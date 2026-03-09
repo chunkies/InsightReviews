@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { PageHeader } from '@/components/shared/page-header';
 import { DashboardStats } from '@/components/dashboard/dashboard-stats';
+import { computeReviewStats, timeAgo } from '@/lib/utils/dashboard-stats';
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -19,49 +20,45 @@ export default async function DashboardPage() {
 
   const orgId = member.organization_id;
 
-  // Fetch stats
-  const [reviewsRes, requestsRes] = await Promise.all([
-    supabase.from('reviews').select('id, rating, created_at').eq('organization_id', orgId),
-    supabase.from('review_requests').select('id, status').eq('organization_id', orgId),
+  // Fetch org settings (for positive_threshold), stats data, and recent reviews
+  const [orgRes, reviewsRes, requestsRes, recentRes] = await Promise.all([
+    supabase
+      .from('organizations')
+      .select('positive_threshold')
+      .eq('id', orgId)
+      .single(),
+    supabase
+      .from('reviews')
+      .select('id, rating, created_at')
+      .eq('organization_id', orgId),
+    supabase
+      .from('review_requests')
+      .select('id, status')
+      .eq('organization_id', orgId),
+    supabase
+      .from('reviews')
+      .select('id, rating, comment, customer_name, created_at')
+      .eq('organization_id', orgId)
+      .order('created_at', { ascending: false })
+      .limit(6),
   ]);
 
+  const positiveThreshold = orgRes.data?.positive_threshold ?? 4;
   const reviews = reviewsRes.data ?? [];
   const requests = requestsRes.data ?? [];
+  const recentReviews = (recentRes.data ?? []).map((r) => ({
+    name: r.customer_name || 'Anonymous',
+    rating: r.rating,
+    time: timeAgo(r.created_at),
+    comment: r.comment || '',
+  }));
 
-  const totalReviews = reviews.length;
-  const avgRating = totalReviews > 0
-    ? reviews.reduce((sum, r) => sum + r.rating, 0) / totalReviews
-    : 0;
-  const positiveCount = reviews.filter(r => r.rating >= 4).length;
-  const positivePercentage = totalReviews > 0 ? (positiveCount / totalReviews) * 100 : 0;
-  const totalRequests = requests.length;
-  const completedRequests = requests.filter(r => r.status === 'completed').length;
-  const responseRate = totalRequests > 0 ? (completedRequests / totalRequests) * 100 : 0;
-
-  // This week vs last week
-  const now = new Date();
-  const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-  const twoWeeksAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
-  const thisWeek = reviews.filter(r => new Date(r.created_at) >= weekAgo).length;
-  const lastWeek = reviews.filter(r => {
-    const d = new Date(r.created_at);
-    return d >= twoWeeksAgo && d < weekAgo;
-  }).length;
+  const stats = computeReviewStats(reviews, requests, positiveThreshold);
 
   return (
     <Box>
       <PageHeader title="Dashboard" subtitle="Overview of your review performance" />
-      <DashboardStats
-        stats={{
-          totalReviews,
-          averageRating: Math.round(avgRating * 10) / 10,
-          positivePercentage: Math.round(positivePercentage),
-          totalRequests,
-          responseRate: Math.round(responseRate),
-          thisWeekReviews: thisWeek,
-          lastWeekReviews: lastWeek,
-        }}
-      />
+      <DashboardStats stats={stats} recentReviews={recentReviews} />
     </Box>
   );
 }

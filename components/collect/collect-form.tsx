@@ -7,12 +7,6 @@ import {
 import { Send, Check, Phone, Mail, RotateCcw, Clock, User } from 'lucide-react';
 import { useSnackbar } from '@/components/providers/snackbar-provider';
 
-interface CollectFormProps {
-  orgId: string;
-  orgName: string;
-  orgSlug: string;
-}
-
 interface RecentRequest {
   name: string;
   contact: string;
@@ -20,15 +14,14 @@ interface RecentRequest {
   time: string;
 }
 
-const placeholderRecents: RecentRequest[] = [
-  { name: 'Sarah M.', contact: '+61 412 *** 340', method: 'sms', time: '10 min ago' },
-  { name: 'James', contact: 'j***@gmail.com', method: 'email', time: '25 min ago' },
-  { name: 'Customer', contact: '+61 433 *** 118', method: 'sms', time: '1 hr ago' },
-  { name: 'Lisa K.', contact: 'lisa***@yahoo.com', method: 'email', time: '2 hrs ago' },
-  { name: 'Tom B.', contact: '+61 408 *** 762', method: 'sms', time: '3 hrs ago' },
-];
+interface CollectFormProps {
+  orgId: string;
+  orgName: string;
+  orgSlug: string;
+  recentRequests?: RecentRequest[];
+}
 
-export function CollectForm({ orgId, orgName: _orgName, orgSlug }: CollectFormProps) {
+export function CollectForm({ orgId, orgName: _orgName, orgSlug, recentRequests = [] }: CollectFormProps) {
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [customerName, setCustomerName] = useState('');
@@ -374,7 +367,7 @@ export function CollectForm({ orgId, orgName: _orgName, orgSlug }: CollectFormPr
             </Typography>
           </Box>
           <Divider />
-          {placeholderRecents.map((item, idx) => (
+          {recentRequests.map((item, idx) => (
             <Box key={idx}>
               <Box
                 sx={{
@@ -422,7 +415,7 @@ export function CollectForm({ orgId, orgName: _orgName, orgSlug }: CollectFormPr
                   </Typography>
                 </Box>
               </Box>
-              {idx < placeholderRecents.length - 1 && <Divider />}
+              {idx < recentRequests.length - 1 && <Divider />}
             </Box>
           ))}
         </CardContent>

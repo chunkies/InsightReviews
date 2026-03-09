@@ -5,10 +5,12 @@ import { ReviewFormContent } from '@/components/review-form/review-form-content'
 
 interface PageProps {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<{ rid?: string }>;
 }
 
-export default async function ReviewPage({ params }: PageProps) {
+export default async function ReviewPage({ params, searchParams }: PageProps) {
   const { slug } = await params;
+  const { rid: reviewRequestId } = await searchParams;
 
   // Use service role to fetch public org data (no auth needed)
   const supabase = createServerClient(
@@ -58,6 +60,7 @@ export default async function ReviewPage({ params }: PageProps) {
             positiveThreshold: org.positive_threshold,
           }}
           platforms={platforms ?? []}
+          reviewRequestId={reviewRequestId}
         />
       </Container>
     </Box>

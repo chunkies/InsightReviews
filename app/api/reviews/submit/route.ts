@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
   try {
-    const { slug, rating, comment, customerName } = await request.json();
+    const { slug, rating, comment, customerName, reviewRequestId } = await request.json();
 
     if (!slug || !rating || rating < 1 || rating > 5) {
       return NextResponse.json({ error: 'Invalid data' }, { status: 400 });
@@ -34,22 +34,48 @@ export async function POST(request: NextRequest) {
 
     const isPositive = rating >= org.positive_threshold;
 
+    // Validate review_request_id if provided
+    let validatedRequestId: string | null = null;
+    if (reviewRequestId) {
+      const { data: reviewRequest } = await supabase
+        .from('review_requests')
+        .select('id, organization_id')
+        .eq('id', reviewRequestId)
+        .single();
+
+      // Only link if the request exists and belongs to the same org
+      if (reviewRequest && reviewRequest.organization_id === org.id) {
+        validatedRequestId = reviewRequest.id;
+      }
+    }
+
     // Insert review
-    const { error: insertError } = await supabase
+    const { data: review, error: insertError } = await supabase
       .from('reviews')
       .insert({
         organization_id: org.id,
+        review_request_id: validatedRequestId,
         rating,
         comment: comment || null,
         customer_name: customerName || null,
         is_positive: isPositive,
         is_public: isPositive, // Auto-publish positive reviews
         redirected_to: [],
-      });
+      })
+      .select('id')
+      .single();
 
-    if (insertError) {
+    if (insertError || !review) {
       console.error('Review insert error:', insertError);
       return NextResponse.json({ error: 'Failed to save review' }, { status: 500 });
+    }
+
+    // Update the review request status to completed
+    if (validatedRequestId) {
+      await supabase
+        .from('review_requests')
+        .update({ status: 'completed' })
+        .eq('id', validatedRequestId);
     }
 
     // Log activity
@@ -61,7 +87,7 @@ export async function POST(request: NextRequest) {
       details: { rating, hasComment: !!comment },
     });
 
-    return NextResponse.json({ success: true, isPositive });
+    return NextResponse.json({ success: true, isPositive, reviewId: review.id });
   } catch (error) {
     console.error('Review submit error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

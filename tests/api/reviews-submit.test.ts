@@ -1,13 +1,27 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // Mock Supabase before importing the route
-const mockInsert = vi.fn().mockReturnValue({ error: null });
+const mockReviewSingle = vi.fn().mockReturnValue({ data: { id: 'review-1' }, error: null });
+const mockReviewSelect = vi.fn().mockReturnValue({ single: mockReviewSingle });
+const mockInsert = vi.fn((_data: unknown) => ({ select: mockReviewSelect, error: null }));
+const mockActivityInsert = vi.fn().mockReturnValue({ error: null });
 const mockSingle = vi.fn();
 const mockEq = vi.fn().mockReturnValue({ single: mockSingle });
 const mockSelect = vi.fn().mockReturnValue({ eq: mockEq });
+const mockReviewRequestSingle = vi.fn().mockResolvedValue({ data: null });
+const mockReviewRequestEq = vi.fn().mockReturnValue({ single: mockReviewRequestSingle });
+const mockReviewRequestSelect = vi.fn().mockReturnValue({ eq: mockReviewRequestEq });
+const mockReviewRequestUpdate = vi.fn().mockReturnValue({ eq: vi.fn().mockReturnValue({ error: null }) });
+
 const mockFrom = vi.fn((table: string) => {
   if (table === 'organizations') {
     return { select: mockSelect };
+  }
+  if (table === 'activity_log') {
+    return { insert: mockActivityInsert };
+  }
+  if (table === 'review_requests') {
+    return { select: mockReviewRequestSelect, update: mockReviewRequestUpdate };
   }
   return { insert: mockInsert };
 });
@@ -62,7 +76,7 @@ describe('POST /api/reviews/submit', () => {
     expect(res.status).toBe(404);
   });
 
-  it('returns success and isPositive=true for high rating', async () => {
+  it('returns success with isPositive=true and reviewId for high rating', async () => {
     mockSingle.mockResolvedValue({
       data: { id: 'org-1', positive_threshold: 4 },
     });
@@ -78,6 +92,7 @@ describe('POST /api/reviews/submit', () => {
     expect(res.status).toBe(200);
     expect(json.success).toBe(true);
     expect(json.isPositive).toBe(true);
+    expect(json.reviewId).toBe('review-1');
   });
 
   it('returns isPositive=false for low rating', async () => {
@@ -110,6 +125,7 @@ describe('POST /api/reviews/submit', () => {
     const reviewInsertCall = mockInsert.mock.calls[0][0];
     expect(reviewInsertCall).toEqual({
       organization_id: 'org-1',
+      review_request_id: null,
       rating: 5,
       comment: 'Awesome',
       customer_name: 'Jane',
@@ -117,6 +133,47 @@ describe('POST /api/reviews/submit', () => {
       is_public: true,
       redirected_to: [],
     });
+  });
+
+  it('links review to review_request when valid rid is provided', async () => {
+    mockSingle.mockResolvedValue({
+      data: { id: 'org-1', positive_threshold: 4 },
+    });
+    mockReviewRequestSingle.mockResolvedValue({
+      data: { id: 'req-123', organization_id: 'org-1' },
+    });
+
+    await POST(makeRequest({
+      slug: 'joes-cafe',
+      rating: 5,
+      comment: 'Great!',
+      customerName: 'Jane',
+      reviewRequestId: 'req-123',
+    }));
+
+    const reviewInsertCall = mockInsert.mock.calls[0][0];
+    expect(reviewInsertCall.review_request_id).toBe('req-123');
+
+    // Should update review_request status to completed
+    expect(mockReviewRequestUpdate).toHaveBeenCalledWith({ status: 'completed' });
+  });
+
+  it('ignores reviewRequestId belonging to a different org', async () => {
+    mockSingle.mockResolvedValue({
+      data: { id: 'org-1', positive_threshold: 4 },
+    });
+    mockReviewRequestSingle.mockResolvedValue({
+      data: { id: 'req-456', organization_id: 'org-other' },
+    });
+
+    await POST(makeRequest({
+      slug: 'joes-cafe',
+      rating: 5,
+      reviewRequestId: 'req-456',
+    }));
+
+    const reviewInsertCall = mockInsert.mock.calls[0][0];
+    expect(reviewInsertCall.review_request_id).toBeNull();
   });
 
   it('logs activity after review insert', async () => {

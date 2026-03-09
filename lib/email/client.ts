@@ -47,26 +47,19 @@ export async function sendReviewEmail(params: SendReviewEmailParams): Promise<bo
       return true;
     }
 
-    // If edge function doesn't exist, log and use fallback
-    console.warn('Edge function send-email not available, using fallback log');
-    console.log(`[EMAIL] To: ${to} | Subject: ${subject}`);
-    console.log(`[EMAIL] Review link: ${reviewLink}`);
-
-    // In development, we still mark it as "sent" since we log it
-    // In production, you'd want to set up the edge function or use Resend
+    // Edge function not available
     if (process.env.NODE_ENV === 'development') {
+      console.log(`[EMAIL-DEV] To: ${to} | Subject: ${subject}`);
       return true;
     }
 
     return false;
   } catch (error) {
-    console.error('Email send error:', error);
-
-    // In development, treat as success (logged above)
     if (process.env.NODE_ENV === 'development') {
-      console.log(`[EMAIL-FALLBACK] To: ${to} | Subject: ${subject} | Link: ${reviewLink}`);
+      console.log(`[EMAIL-DEV] Fallback — To: ${to} | Subject: ${subject}`);
       return true;
     }
+    console.error('Email send error:', error instanceof Error ? error.message : 'Unknown error');
 
     return false;
   }

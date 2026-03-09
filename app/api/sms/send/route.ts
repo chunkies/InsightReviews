@@ -50,11 +50,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Organization not found' }, { status: 404 });
     }
 
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL!;
-    const link = buildReviewLink(siteUrl, org.slug);
-    const messageBody = buildSmsBody(org.sms_template, org.name, link);
-
-    // Create review request record
+    // Create review request record first so we can include its ID in the link
     const { data: reviewRequest, error: reqError } = await supabase
       .from('review_requests')
       .insert({
@@ -72,6 +68,11 @@ export async function POST(request: NextRequest) {
     if (reqError) {
       return NextResponse.json({ error: 'Failed to create request' }, { status: 500 });
     }
+
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL!;
+    const baseLink = buildReviewLink(siteUrl, org.slug);
+    const link = `${baseLink}?rid=${reviewRequest.id}`;
+    const messageBody = buildSmsBody(org.sms_template, org.name, link);
 
     let sendSuccess = false;
 

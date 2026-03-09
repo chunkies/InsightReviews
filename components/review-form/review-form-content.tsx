@@ -23,6 +23,7 @@ interface ReviewFormContentProps {
     url: string;
     display_order: number;
   }>;
+  reviewRequestId?: string;
 }
 
 type FormState = 'rating' | 'submitting' | 'positive' | 'negative' | 'error';
@@ -227,7 +228,7 @@ function BackgroundGlow({ rating, formState }: { rating: number; formState: Form
 
 /* ─── Main Component ────────────────────────────────────────────── */
 
-export function ReviewFormContent({ org, platforms }: ReviewFormContentProps) {
+export function ReviewFormContent({ org, platforms, reviewRequestId }: ReviewFormContentProps) {
   const [rating, setRating] = useState(0);
   const [hoveredRating, setHoveredRating] = useState(0);
   const [comment, setComment] = useState('');
@@ -236,6 +237,7 @@ export function ReviewFormContent({ org, platforms }: ReviewFormContentProps) {
   const [showConfetti, setShowConfetti] = useState(false);
   const [stylesInjected, setStylesInjected] = useState(false);
   const [lastTappedStar, setLastTappedStar] = useState(0);
+  const [reviewId, setReviewId] = useState<string | null>(null);
 
   // Inject keyframes once
   useEffect(() => {
@@ -267,10 +269,16 @@ export function ReviewFormContent({ org, platforms }: ReviewFormContentProps) {
           rating,
           comment: comment || null,
           customerName: customerName || null,
+          reviewRequestId: reviewRequestId || null,
         }),
       });
 
       if (!res.ok) throw new Error('Failed to submit');
+
+      const resData = await res.json();
+      if (resData.reviewId) {
+        setReviewId(resData.reviewId);
+      }
 
       const isPositive = rating >= org.positiveThreshold;
       if (isPositive && rating === 5) {
@@ -366,6 +374,16 @@ export function ReviewFormContent({ org, platforms }: ReviewFormContentProps) {
                   href={p.url}
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={() => {
+                    if (reviewId) {
+                      fetch('/api/reviews/track-click', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ reviewId, platform: p.platform }),
+                        keepalive: true,
+                      });
+                    }
+                  }}
                   endIcon={<ExternalLink size={18} />}
                   sx={{
                     backgroundColor: brandColor,

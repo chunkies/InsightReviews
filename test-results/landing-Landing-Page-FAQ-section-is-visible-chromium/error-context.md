@@ -1,0 +1,287 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - generic [ref=e4]:
+        - generic [ref=e5]:
+          - img [ref=e7]
+          - heading "InsightReviews" [level=6] [ref=e9]
+        - link "Sign In" [ref=e10] [cursor=pointer]:
+          - /url: /auth/login
+        - link "Start Free Trial" [ref=e11] [cursor=pointer]:
+          - /url: /auth/login
+    - generic [ref=e16]:
+      - generic [ref=e17]:
+        - generic [ref=e18]:
+          - img [ref=e19]
+          - generic [ref=e22]: Trusted by 50+ local businesses
+        - heading "Turn Every Happy Customer Into a 5-Star Review" [level=1] [ref=e23]
+        - heading "Collect reviews at the point of sale. Route happy customers to Google and Yelp. Catch unhappy ones privately before they post. Simple, automatic, and effective." [level=6] [ref=e24]
+        - generic [ref=e25]:
+          - link "Start Free 14-Day Trial" [ref=e26] [cursor=pointer]:
+            - /url: /auth/login
+            - text: Start Free 14-Day Trial
+            - img [ref=e28]
+          - link "See How It Works" [ref=e30] [cursor=pointer]:
+            - /url: "#how-it-works"
+        - generic [ref=e31]:
+          - img [ref=e32]
+          - paragraph [ref=e35]: No credit card required
+          - generic [ref=e36]: "|"
+          - img [ref=e37]
+          - paragraph [ref=e40]: Setup in 2 minutes
+          - generic [ref=e41]: "|"
+          - img [ref=e42]
+          - paragraph [ref=e45]: Cancel anytime
+      - generic [ref=e49]:
+        - img [ref=e51]
+        - paragraph [ref=e53]: Joe's Cafe
+        - paragraph [ref=e54]: How was your visit today?
+        - generic [ref=e55]:
+          - img [ref=e57]
+          - img [ref=e60]
+          - img [ref=e63]
+          - img [ref=e66]
+          - img [ref=e69]
+        - paragraph [ref=e72]: Great coffee and friendly staff!
+        - paragraph [ref=e74]: Submit Review
+        - paragraph [ref=e76]: Then redirected to Google Reviews
+    - generic [ref=e78]:
+      - paragraph [ref=e79]: Trusted by 50+ local businesses across the country
+      - generic [ref=e80]:
+        - paragraph [ref=e82]: Joe's Cafe
+        - paragraph [ref=e84]: Glow Salon
+        - paragraph [ref=e86]: FitLife Gym
+        - paragraph [ref=e88]: Smile Dental
+        - paragraph [ref=e90]: AutoPro Shop
+        - paragraph [ref=e92]: The Local Bistro
+    - generic [ref=e94]:
+      - generic [ref=e95]: How It Works
+      - heading "Three Steps to More 5-Star Reviews" [level=3] [ref=e96]
+      - paragraph [ref=e97]: No complicated setup. No training manual. Your team can start collecting reviews in minutes.
+      - generic [ref=e100]:
+        - generic [ref=e102]:
+          - img [ref=e104]
+          - generic [ref=e107]: Step 1
+          - heading "Clerk enters phone number" [level=6] [ref=e108]
+          - paragraph [ref=e109]: At checkout, your staff types in the customer's number. Takes 5 seconds.
+        - generic [ref=e111]:
+          - img [ref=e113]
+          - generic [ref=e116]: Step 2
+          - heading "Customer taps a star rating" [level=6] [ref=e117]
+          - paragraph [ref=e118]: They get a branded SMS link. One tap to rate their experience.
+        - generic [ref=e120]:
+          - img [ref=e122]
+          - generic [ref=e126]: Step 3
+          - heading "Reviews go where they help most" [level=6] [ref=e127]
+          - paragraph [ref=e128]: 4-5 stars go to Google & Yelp. 1-3 stars stay private for you to address.
+    - generic [ref=e130]:
+      - generic [ref=e131]: Features
+      - heading "Everything You Need to Grow Your Reputation" [level=3] [ref=e132]
+      - paragraph [ref=e133]: Built specifically for local businesses. No enterprise complexity.
+      - generic [ref=e134]:
+        - generic [ref=e137]:
+          - img [ref=e139]
+          - heading "One-Tap SMS" [level=6] [ref=e142]
+          - paragraph [ref=e143]: Your clerk enters a phone number, customer gets a branded review link instantly.
+        - generic [ref=e146]:
+          - img [ref=e148]
+          - heading "Smart Routing" [level=6] [ref=e150]
+          - paragraph [ref=e151]: Positive reviews go to Google, Yelp & more. Negative feedback stays private.
+        - generic [ref=e154]:
+          - img [ref=e156]
+          - heading "Real-Time Dashboard" [level=6] [ref=e158]
+          - paragraph [ref=e159]: See your review stats, trends, and response rates at a glance.
+        - generic [ref=e162]:
+          - img [ref=e164]
+          - heading "Reputation Protection" [level=6] [ref=e166]
+          - paragraph [ref=e167]: Catch unhappy customers before they leave a public negative review.
+        - generic [ref=e170]:
+          - img [ref=e172]
+          - heading "2-Minute Setup" [level=6] [ref=e174]
+          - paragraph [ref=e175]: Add your business name, review links, and start collecting in minutes.
+        - generic [ref=e178]:
+          - img [ref=e180]
+          - heading "Testimonial Wall" [level=6] [ref=e182]
+          - paragraph [ref=e183]: Showcase your best reviews on a beautiful public page you can share anywhere.
+    - generic [ref=e185]:
+      - generic [ref=e186]: Testimonials
+      - heading "Loved by Business Owners" [level=3] [ref=e187]
+      - paragraph [ref=e188]: See what our customers have to say about InsightReviews.
+      - generic [ref=e189]:
+        - generic [ref=e192]:
+          - img [ref=e193]
+          - img "5 Stars":
+            - generic:
+              - generic:
+                - img
+            - generic:
+              - generic:
+                - img
+            - generic:
+              - generic:
+                - img
+            - generic:
+              - generic:
+                - img
+            - generic:
+              - generic:
+                - img
+          - paragraph [ref=e196]: “InsightReviews increased our Google reviews by 300% in the first month. We went from 12 reviews to over 50. It's been a game-changer for our visibility.”
+          - separator [ref=e197]
+          - generic [ref=e198]:
+            - generic [ref=e199]: J
+            - generic [ref=e200]:
+              - paragraph [ref=e201]: Joe Martinez
+              - text: Joe's Cafe, Austin TX
+        - generic [ref=e204]:
+          - img [ref=e205]
+          - img "5 Stars":
+            - generic:
+              - generic:
+                - img
+            - generic:
+              - generic:
+                - img
+            - generic:
+              - generic:
+                - img
+            - generic:
+              - generic:
+                - img
+            - generic:
+              - generic:
+                - img
+          - paragraph [ref=e208]: “We caught 3 unhappy customers in the first week that would have left 1-star Google reviews. Instead, we fixed the issues and they came back.”
+          - separator [ref=e209]
+          - generic [ref=e210]:
+            - generic [ref=e211]: S
+            - generic [ref=e212]:
+              - paragraph [ref=e213]: Sarah Chen
+              - text: Glow Beauty Bar, Portland OR
+        - generic [ref=e216]:
+          - img [ref=e217]
+          - img "5 Stars":
+            - generic:
+              - generic:
+                - img
+            - generic:
+              - generic:
+                - img
+            - generic:
+              - generic:
+                - img
+            - generic:
+              - generic:
+                - img
+            - generic:
+              - generic:
+                - img
+          - paragraph [ref=e220]: “My staff loves how simple it is. Just type the number and hit send. No training needed. We send about 30 requests a day now.”
+          - separator [ref=e221]
+          - generic [ref=e222]:
+            - generic [ref=e223]: M
+            - generic [ref=e224]:
+              - paragraph [ref=e225]: Dr. Mike Patel
+              - text: Smile Dental Group, Denver CO
+    - generic [ref=e227]:
+      - generic [ref=e228]: Pricing
+      - heading "Simple, Honest Pricing" [level=3] [ref=e229]
+      - paragraph [ref=e230]: One plan. Everything included. No hidden fees.
+      - generic [ref=e231]:
+        - generic [ref=e233]: Most Popular
+        - text: Everything Plan
+        - generic [ref=e234]:
+          - heading "$29" [level=2] [ref=e235]
+          - heading "/mo" [level=6] [ref=e236]
+        - paragraph [ref=e237]: per location
+        - generic [ref=e239]: 14 days free - no credit card
+        - paragraph [ref=e241]: Save $100+/month vs. Podium, Birdeye, and other review platforms that charge $249-$499/mo
+        - generic [ref=e242]:
+          - generic [ref=e243]:
+            - img [ref=e244]
+            - paragraph [ref=e247]: Unlimited review requests via SMS
+          - generic [ref=e248]:
+            - img [ref=e249]
+            - paragraph [ref=e252]: Smart routing to Google, Yelp, Facebook & more
+          - generic [ref=e253]:
+            - img [ref=e254]
+            - paragraph [ref=e257]: Real-time dashboard & analytics
+          - generic [ref=e258]:
+            - img [ref=e259]
+            - paragraph [ref=e262]: Public testimonial wall page
+          - generic [ref=e263]:
+            - img [ref=e264]
+            - paragraph [ref=e267]: Unlimited staff accounts
+          - generic [ref=e268]:
+            - img [ref=e269]
+            - paragraph [ref=e272]: Private negative feedback capture
+          - generic [ref=e273]:
+            - img [ref=e274]
+            - paragraph [ref=e277]: Custom branded review forms
+          - generic [ref=e278]:
+            - img [ref=e279]
+            - paragraph [ref=e282]: Email notifications for new reviews
+        - link "Start Your Free Trial" [ref=e283] [cursor=pointer]:
+          - /url: /auth/login
+          - text: Start Your Free Trial
+          - img [ref=e285]
+        - generic [ref=e287]: No credit card required. Cancel anytime with one click.
+    - generic [ref=e289]:
+      - generic [ref=e290]: FAQ
+      - heading "Common Questions" [level=3] [ref=e291]
+      - paragraph [ref=e292]: Everything you need to know before getting started.
+      - generic [ref=e293]:
+        - heading "How does the 14-day free trial work?" [level=3] [ref=e295]:
+          - button "How does the 14-day free trial work?" [ref=e296] [cursor=pointer]:
+            - paragraph [ref=e298]: How does the 14-day free trial work?
+            - img [ref=e300]
+        - heading "Will this work for my type of business?" [level=3] [ref=e303]:
+          - button "Will this work for my type of business?" [ref=e304] [cursor=pointer]:
+            - paragraph [ref=e306]: Will this work for my type of business?
+            - img [ref=e308]
+        - heading "What happens with negative reviews?" [level=3] [ref=e311]:
+          - button "What happens with negative reviews?" [ref=e312] [cursor=pointer]:
+            - paragraph [ref=e314]: What happens with negative reviews?
+            - img [ref=e316]
+        - heading "How many SMS messages can I send?" [level=3] [ref=e319]:
+          - button "How many SMS messages can I send?" [ref=e320] [cursor=pointer]:
+            - paragraph [ref=e322]: How many SMS messages can I send?
+            - img [ref=e324]
+        - heading "Can my staff use it too?" [level=3] [ref=e327]:
+          - button "Can my staff use it too?" [ref=e328] [cursor=pointer]:
+            - paragraph [ref=e330]: Can my staff use it too?
+            - img [ref=e332]
+        - heading "Which review platforms do you support?" [level=3] [ref=e335]:
+          - button "Which review platforms do you support?" [ref=e336] [cursor=pointer]:
+            - paragraph [ref=e338]: Which review platforms do you support?
+            - img [ref=e340]
+        - heading "Can I cancel anytime?" [level=3] [ref=e343]:
+          - button "Can I cancel anytime?" [ref=e344] [cursor=pointer]:
+            - paragraph [ref=e346]: Can I cancel anytime?
+            - img [ref=e348]
+    - generic [ref=e351]:
+      - generic [ref=e352]:
+        - img [ref=e353]
+        - img [ref=e355]
+        - img [ref=e357]
+        - img [ref=e359]
+        - img [ref=e361]
+      - heading "Ready to Get More 5-Star Reviews?" [level=3] [ref=e363]
+      - paragraph [ref=e364]: Join 50+ local businesses already using InsightReviews to build their online reputation.
+      - link "Start Free 14-Day Trial" [ref=e365] [cursor=pointer]:
+        - /url: /auth/login
+        - text: Start Free 14-Day Trial
+        - img [ref=e367]
+      - paragraph [ref=e369]: No credit card required. Setup takes 2 minutes.
+    - generic [ref=e372]:
+      - generic [ref=e373]:
+        - img [ref=e375]
+        - paragraph [ref=e377]: InsightReviews
+      - paragraph [ref=e378]: © 2026 InsightReviews. All rights reserved.
+  - button "Open Next.js Dev Tools" [ref=e384] [cursor=pointer]:
+    - img [ref=e385]
+  - alert [ref=e388]
+```

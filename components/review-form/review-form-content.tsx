@@ -670,7 +670,7 @@ export function ReviewFormContent({ org, platforms }: ReviewFormContentProps) {
               label="Tell us more (optional)"
               value={comment}
               onChange={(e) => setComment(e.target.value)}
-              placeholder="What made your experience great? Or what could we improve?"
+              placeholder={rating >= 4 ? "What made your experience great?" : "What could we improve?"}
               variant="outlined"
               sx={{
                 mb: 3,

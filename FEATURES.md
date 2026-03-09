@@ -2,10 +2,10 @@
 
 ## BUGS: Found During Playwright Testing (Mar 9, 2026)
 
-- [ ] **CRITICAL: Supabase keys in .env.local were wrong format** — Keys were `sb_publishable_` / `sb_secret_` format instead of actual JWT tokens. Fixed manually but should document correct setup.
-- [ ] **CRITICAL: Onboarding RLS policy blocks org creation** — `member_owner_insert` policy on `organization_members` prevents new users from creating their first org during onboarding. The `NOT EXISTS` self-referential check fails.
-- [ ] **Missing favicon** — Console 404 error for `/favicon.ico` on every page load
-- [ ] **Review form placeholder text wrong for negative reviews** — Comment placeholder says "What made your experience great?" even for 1-2 star ratings; should say "What could we improve?"
+- [x] **CRITICAL: Supabase keys in .env.local were wrong format** — Fixed: replaced with correct JWT tokens from `supabase status`
+- [x] **CRITICAL: Onboarding RLS policy blocks org creation** — Fixed: moved onboarding to server-side API route `/api/onboarding/create` using service role key
+- [ ] **Missing favicon** — Console 404 error for `/favicon.ico` on every page load (fix in progress)
+- [x] **Review form placeholder text wrong for negative reviews** — Fixed: now shows "What could we improve?" for 1-3 stars
 
 ## P0: Fix Before Demo
 

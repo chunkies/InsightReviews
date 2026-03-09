@@ -11,6 +11,6 @@ export default [
     },
   },
   {
-    ignores: ['.next/**', 'node_modules/**'],
+    ignores: ['.next/**', 'node_modules/**', 'e2e/**'],
   },
 ];

@@ -1,6 +1,7 @@
 import { Box, Toolbar } from '@mui/material';
 import { Sidebar, DRAWER_WIDTH } from '@/components/layout/sidebar';
 import { Header } from '@/components/layout/header';
+import { ErrorBoundary } from '@/components/shared/error-boundary';
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 
@@ -39,7 +40,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
         }}
       >
         <Toolbar />
-        {children}
+        <ErrorBoundary>
+          {children}
+        </ErrorBoundary>
       </Box>
     </Box>
   );

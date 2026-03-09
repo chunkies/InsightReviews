@@ -6,7 +6,6 @@ import {
   Alert,
 } from '@mui/material';
 import { ArrowRight, ArrowLeft, Check } from 'lucide-react';
-import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import { SLUG_REGEX } from '@/lib/utils/constants';
 
@@ -53,8 +52,6 @@ export function OnboardingWizard({ userId }: OnboardingWizardProps) {
     setError(null);
 
     try {
-      const supabase = createClient();
-
       // Validate slug
       if (!SLUG_REGEX.test(slug)) {
         setError('Slug can only contain lowercase letters, numbers, and hyphens');
@@ -62,50 +59,26 @@ export function OnboardingWizard({ userId }: OnboardingWizardProps) {
         return;
       }
 
-      // Create organization
-      const { data: org, error: orgError } = await supabase
-        .from('organizations')
-        .insert({
-          name: businessName,
+      // Use server-side API route to bypass RLS for onboarding
+      const res = await fetch('/api/onboarding/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          businessName,
           slug,
           phone: phone || null,
-        })
-        .select('id')
-        .single();
-
-      if (orgError) {
-        if (orgError.message.includes('duplicate') || orgError.message.includes('unique')) {
-          setError('This slug is already taken. Please choose a different one.');
-        } else {
-          setError(orgError.message);
-        }
-        setLoading(false);
-        return;
-      }
-
-      // Add user as owner
-      await supabase.from('organization_members').insert({
-        organization_id: org.id,
-        user_id: userId,
-        role: 'owner',
+          googleUrl,
+          yelpUrl,
+          facebookUrl,
+        }),
       });
 
-      // Add platforms
-      const platforms = [
-        { platform: 'google', url: googleUrl },
-        { platform: 'yelp', url: yelpUrl },
-        { platform: 'facebook', url: facebookUrl },
-      ].filter((p) => p.url.trim());
+      const data = await res.json();
 
-      if (platforms.length > 0) {
-        await supabase.from('review_platforms').insert(
-          platforms.map((p, i) => ({
-            organization_id: org.id,
-            platform: p.platform,
-            url: p.url.trim(),
-            display_order: i,
-          }))
-        );
+      if (!res.ok) {
+        setError(data.error || 'Something went wrong. Please try again.');
+        setLoading(false);
+        return;
       }
 
       router.push('/dashboard');

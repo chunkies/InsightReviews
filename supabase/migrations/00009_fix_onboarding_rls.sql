@@ -32,9 +32,19 @@ CREATE POLICY "member_owner_insert" ON organization_members
   );
 
 -- Ensure the org_insert policy allows any authenticated user to create orgs.
--- The original migration already has WITH CHECK (true), but we re-assert it
--- in case a later migration altered it.
 DROP POLICY IF EXISTS "org_insert" ON organizations;
 
 CREATE POLICY "org_insert" ON organizations
   FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
+
+-- Allow authenticated users to SELECT orgs that have no members yet.
+-- This is needed because the onboarding wizard does .insert().select('id')
+-- which requires both INSERT and SELECT policies. The org_member_select policy
+-- requires the user to be a member, but they haven't been added yet.
+CREATE POLICY "org_new_select" ON organizations
+  FOR SELECT USING (
+    auth.uid() IS NOT NULL
+    AND NOT EXISTS (
+      SELECT 1 FROM organization_members om WHERE om.organization_id = organizations.id
+    )
+  );

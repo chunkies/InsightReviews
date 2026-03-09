@@ -15,7 +15,7 @@ interface OnboardingWizardProps {
 
 const steps = ['Business Info', 'Review Platforms', 'Done'];
 
-export function OnboardingWizard({ userId }: OnboardingWizardProps) {
+export function OnboardingWizard({ userId: _userId }: OnboardingWizardProps) {
   const router = useRouter();
   const [activeStep, setActiveStep] = useState(0);
   const [loading, setLoading] = useState(false);

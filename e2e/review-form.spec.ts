@@ -11,7 +11,6 @@ test.describe('Public Review Form (/r/[slug])', () => {
     // Wait for the page to fully render
     await page.waitForLoadState('networkidle');
     // Stars should be clickable elements
-    const stars = page.locator('[data-testid="star-rating"], [role="button"], button').filter({ hasText: /★|⭐/ });
     // If no test IDs, look for SVG star icons or rating area
     const ratingArea = page.locator('text=/How was your|Rate your|experience/i');
     await expect(ratingArea).toBeVisible();

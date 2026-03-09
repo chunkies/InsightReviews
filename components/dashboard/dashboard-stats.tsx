@@ -4,8 +4,16 @@ import { Grid, Card, CardContent, Typography, Box } from '@mui/material';
 import { Star, TrendingUp, Send, BarChart3, ArrowUp, ArrowDown, Clock } from 'lucide-react';
 import type { ReviewStats } from '@/lib/types/database';
 
+interface RecentReview {
+  name: string;
+  rating: number;
+  time: string;
+  comment: string;
+}
+
 interface DashboardStatsProps {
   stats: ReviewStats;
+  recentReviews: RecentReview[];
 }
 
 const statCards = [
@@ -94,13 +102,7 @@ function MiniSparkline({ data, color }: { data: number[]; color: string }) {
   );
 }
 
-const recentReviews = [
-  { name: 'Sarah M.', rating: 5, time: '2 hours ago', comment: 'Amazing service!' },
-  { name: 'James T.', rating: 4, time: '5 hours ago', comment: 'Really great experience' },
-  { name: 'Lisa K.', rating: 5, time: '1 day ago', comment: 'Will definitely come back' },
-];
-
-export function DashboardStats({ stats }: DashboardStatsProps) {
+export function DashboardStats({ stats, recentReviews }: DashboardStatsProps) {
   const weekChange = stats.thisWeekReviews - stats.lastWeekReviews;
 
   return (

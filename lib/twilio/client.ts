@@ -14,8 +14,15 @@ export async function sendSms(to: string, body: string): Promise<string | null> 
       to,
     });
     return message.sid;
-  } catch (error) {
-    console.error('Twilio SMS error:', error);
+  } catch (error: unknown) {
+    const twilioErr = error as { code?: number; message?: string; moreInfo?: string };
+    console.error('Twilio SMS error:', {
+      code: twilioErr.code,
+      message: twilioErr.message,
+      moreInfo: twilioErr.moreInfo,
+      to,
+      from: fromNumber,
+    });
     return null;
   }
 }

@@ -1,13 +1,15 @@
 'use client';
 
-import { AppBar, Toolbar, Button, Box } from '@mui/material';
-import { LogOut } from 'lucide-react';
+import { AppBar, Toolbar, Button, Box, IconButton, Tooltip } from '@mui/material';
+import { LogOut, Sun, Moon } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import { DRAWER_WIDTH } from './sidebar';
+import { useThemeMode } from '@/components/providers/theme-provider';
 
 export function Header() {
   const router = useRouter();
+  const { mode, toggleTheme } = useThemeMode();
 
   async function handleSignOut() {
     const supabase = createClient();
@@ -25,10 +27,27 @@ export function Header() {
         ml: `${DRAWER_WIDTH}px`,
         borderBottom: '1px solid',
         borderColor: 'divider',
+        transition: 'background-color 0.3s ease',
       }}
     >
       <Toolbar>
         <Box sx={{ flexGrow: 1 }} />
+        <Tooltip title={mode === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}>
+          <IconButton
+            onClick={toggleTheme}
+            color="inherit"
+            size="small"
+            sx={{
+              mr: 1,
+              transition: 'transform 0.3s ease',
+              '&:hover': {
+                transform: 'rotate(30deg)',
+              },
+            }}
+          >
+            {mode === 'light' ? <Moon size={18} /> : <Sun size={18} />}
+          </IconButton>
+        </Tooltip>
         <Button
           onClick={handleSignOut}
           startIcon={<LogOut size={18} />}

@@ -19,6 +19,10 @@ describe('computeReviewStats', () => {
       responseRate: 0,
       thisWeekReviews: 0,
       lastWeekReviews: 0,
+      npsScore: null,
+      promoterCount: 0,
+      passiveCount: 0,
+      detractorCount: 0,
     });
   });
 
@@ -76,6 +80,54 @@ describe('computeReviewStats', () => {
     const stats = computeReviewStats(reviews, [], 4, now);
     expect(stats.thisWeekReviews).toBe(2);
     expect(stats.lastWeekReviews).toBe(1);
+  });
+
+  it('calculates NPS score correctly', () => {
+    const reviews = [
+      { id: '1', rating: 5, created_at: '2026-03-08T10:00:00Z' }, // Promoter
+      { id: '2', rating: 5, created_at: '2026-03-07T10:00:00Z' }, // Promoter
+      { id: '3', rating: 4, created_at: '2026-03-06T10:00:00Z' }, // Passive
+      { id: '4', rating: 2, created_at: '2026-03-05T10:00:00Z' }, // Detractor
+    ];
+
+    const stats = computeReviewStats(reviews, [], 4, now);
+
+    expect(stats.promoterCount).toBe(2);
+    expect(stats.passiveCount).toBe(1);
+    expect(stats.detractorCount).toBe(1);
+    // NPS = (2/4 - 1/4) * 100 = 25
+    expect(stats.npsScore).toBe(25);
+  });
+
+  it('returns null NPS for zero reviews', () => {
+    const stats = computeReviewStats([], [], 4, now);
+    expect(stats.npsScore).toBeNull();
+  });
+
+  it('calculates NPS of 100 when all reviews are 5 stars', () => {
+    const reviews = [
+      { id: '1', rating: 5, created_at: '2026-03-08T10:00:00Z' },
+      { id: '2', rating: 5, created_at: '2026-03-07T10:00:00Z' },
+    ];
+
+    const stats = computeReviewStats(reviews, [], 4, now);
+    expect(stats.npsScore).toBe(100);
+    expect(stats.promoterCount).toBe(2);
+    expect(stats.passiveCount).toBe(0);
+    expect(stats.detractorCount).toBe(0);
+  });
+
+  it('calculates NPS of -100 when all reviews are detractors', () => {
+    const reviews = [
+      { id: '1', rating: 1, created_at: '2026-03-08T10:00:00Z' },
+      { id: '2', rating: 2, created_at: '2026-03-07T10:00:00Z' },
+      { id: '3', rating: 3, created_at: '2026-03-06T10:00:00Z' },
+    ];
+
+    const stats = computeReviewStats(reviews, [], 4, now);
+    expect(stats.npsScore).toBe(-100);
+    expect(stats.promoterCount).toBe(0);
+    expect(stats.detractorCount).toBe(3);
   });
 
   it('rounds average rating to one decimal place', () => {

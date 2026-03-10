@@ -11,10 +11,25 @@ export interface Organization {
   positive_threshold: number;
   sms_template: string;
   wall_config: Partial<WallConfig>;
+  thankyou_positive_title: string;
+  thankyou_positive_message: string;
+  thankyou_negative_title: string;
+  thankyou_negative_message: string;
+  thankyou_coupon_code: string | null;
+  thankyou_coupon_text: string;
+  thankyou_social_links: Record<string, string>;
   stripe_customer_id: string | null;
   stripe_subscription_id: string | null;
   billing_plan: 'trial' | 'active' | 'cancelled' | 'past_due';
   trial_ends_at: string | null;
+  webhook_url: string | null;
+  webhook_enabled: boolean;
+  notify_on_negative: boolean;
+  digest_enabled: boolean;
+  digest_frequency: 'daily' | 'weekly' | 'monthly';
+  auto_followup_enabled: boolean;
+  auto_followup_delay_hours: number;
+  auto_followup_message: string;
   created_at: string;
   updated_at: string;
 }
@@ -65,6 +80,7 @@ export interface Review {
   redirected_to: string[];
   responded: boolean;
   response_notes: string | null;
+  photo_url: string | null;
   created_at: string;
 }
 
@@ -91,6 +107,18 @@ export interface ActivityLogEntry {
   created_at: string;
 }
 
+export interface FollowupQueue {
+  id: string;
+  organization_id: string;
+  review_id: string;
+  scheduled_at: string;
+  sent_at: string | null;
+  status: 'pending' | 'sent' | 'failed' | 'cancelled';
+  channel: 'email' | 'sms';
+  to_contact: string;
+  created_at: string;
+}
+
 // Dashboard stats
 export interface ReviewStats {
   totalReviews: number;
@@ -100,6 +128,10 @@ export interface ReviewStats {
   responseRate: number;
   thisWeekReviews: number;
   lastWeekReviews: number;
+  npsScore: number | null;
+  promoterCount: number;
+  passiveCount: number;
+  detractorCount: number;
 }
 
 // Platform display config

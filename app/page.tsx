@@ -12,8 +12,8 @@ import {
 const features = [
   {
     icon: Send,
-    title: 'One-Tap SMS',
-    description: 'Your clerk enters a phone number, customer gets a branded review link instantly.',
+    title: 'QR Code + SMS',
+    description: 'Customers scan a QR code at the counter, or you can text them a review link directly.',
   },
   {
     icon: Star,
@@ -32,8 +32,8 @@ const features = [
   },
   {
     icon: Zap,
-    title: '2-Minute Setup',
-    description: 'Add your business name, review links, and start collecting in minutes.',
+    title: 'Fully Customisable',
+    description: 'Match your review page to your brand — colours, fonts, layout. Your customers see your business, not ours.',
   },
   {
     icon: MessageSquare,
@@ -45,20 +45,20 @@ const features = [
 const steps = [
   {
     step: '1',
-    title: 'Clerk enters phone number',
-    desc: 'At checkout, your staff types in the customer\'s number. Takes 5 seconds.',
+    title: 'Customer scans your QR code',
+    desc: 'Place your branded QR code at the counter. Customers scan it with their phone in seconds.',
     icon: Smartphone,
   },
   {
     step: '2',
-    title: 'Customer taps a star rating',
-    desc: 'They get a branded SMS link. One tap to rate their experience.',
+    title: 'They tap a star rating',
+    desc: 'A branded review form loads instantly. One tap to rate their experience.',
     icon: Star,
   },
   {
     step: '3',
     title: 'Reviews go where they help most',
-    desc: '4-5 stars go to Google & Yelp. 1-3 stars stay private for you to address.',
+    desc: '4-5 stars get directed to Google & Yelp. 1-3 stars stay private so you can follow up.',
     icon: TrendingUp,
   },
 ];
@@ -70,15 +70,15 @@ const faqs = [
   },
   {
     q: 'Will this work for my type of business?',
-    a: 'InsightReviews works for any business that serves customers in person - cafes, restaurants, salons, dental offices, auto shops, gyms, retail stores, and more. If you have customers, we can help you get more reviews.',
+    a: 'InsightReviews works for any business that serves customers in person — cafes, restaurants, salons, dental clinics, auto shops, gyms, retail stores, and more. If you have customers walking through your door, we can help you get more reviews.',
   },
   {
     q: 'What happens with negative reviews?',
     a: 'That\'s the magic. When a customer rates you 1-3 stars, their feedback stays completely private. You get notified immediately so you can reach out and make it right - before they ever post publicly.',
   },
   {
-    q: 'How many SMS messages can I send?',
-    a: 'Unlimited. Your $29/month plan includes unlimited review requests via SMS. Send as many as you need - there are no caps or overage charges.',
+    q: 'How does the QR code work?',
+    a: 'We generate a unique QR code for your business. Print it and place it at your counter, on tables, or in receipts. Customers scan it with their phone camera and your branded review form pops up instantly. You can also send review links via SMS or email.',
   },
   {
     q: 'Can my staff use it too?',
@@ -96,31 +96,31 @@ const faqs = [
 
 const testimonials = [
   {
-    quote: 'InsightReviews increased our Google reviews by 300% in the first month. We went from 12 reviews to over 50. It\'s been a game-changer for our visibility.',
-    name: 'Joe Martinez',
-    business: 'Joe\'s Cafe, Austin TX',
-    rating: 5,
-    avatar: 'J',
-  },
-  {
-    quote: 'We caught 3 unhappy customers in the first week that would have left 1-star Google reviews. Instead, we fixed the issues and they came back.',
-    name: 'Sarah Chen',
-    business: 'Glow Beauty Bar, Portland OR',
-    rating: 5,
-    avatar: 'S',
-  },
-  {
-    quote: 'My staff loves how simple it is. Just type the number and hit send. No training needed. We send about 30 requests a day now.',
-    name: 'Dr. Mike Patel',
-    business: 'Smile Dental Group, Denver CO',
+    quote: 'We were getting maybe one Google review a month before this. Now we get 10-15 a week without even thinking about it. Honestly wish we\'d started sooner.',
+    name: 'Marco Rossi',
+    business: 'Rossi\'s Trattoria, Lygon St',
     rating: 5,
     avatar: 'M',
+  },
+  {
+    quote: 'Had a client leave unhappy on a Friday — got the private alert straight away, called her back, sorted it out. She rebooked and left us a 5-star review the next week.',
+    name: 'Priya Sharma',
+    business: 'Luxe Hair Studio, South Yarra',
+    rating: 5,
+    avatar: 'P',
+  },
+  {
+    quote: 'The girls at the front desk just pop the number in after each appointment. Dead simple. We\'ve gone from 40 Google reviews to over 200 in three months.',
+    name: 'Dr. Tom Nguyen',
+    business: 'Bayside Dental, Brighton',
+    rating: 5,
+    avatar: 'T',
   },
 ];
 
 const socialProofLogos = [
-  'Joe\'s Cafe', 'Glow Salon', 'FitLife Gym', 'Smile Dental',
-  'AutoPro Shop', 'The Local Bistro',
+  'Rossi\'s Trattoria', 'Luxe Hair Studio', 'Bayside Dental',
+  'FitZone Gym', 'Chapel St Auto', 'The Brunswick Eatery',
 ];
 
 export default function LandingPage() {
@@ -212,7 +212,7 @@ export default function LandingPage() {
           <Grid container spacing={6} alignItems="center">
             <Grid size={{ xs: 12, md: 7 }}>
               <Chip
-                label="Trusted by 50+ local businesses"
+                label="Trusted by Melbourne businesses"
                 sx={{
                   mb: 3,
                   backgroundColor: 'rgba(251,191,36,0.15)',
@@ -256,7 +256,7 @@ export default function LandingPage() {
                   fontSize: { xs: '1rem', md: '1.15rem' },
                 }}
               >
-                Collect reviews at the point of sale. Route happy customers to Google and Yelp.
+                Collect reviews at the counter with a simple QR code. Route happy customers to Google and Yelp.
                 Catch unhappy ones privately before they post. Simple, automatic, and effective.
               </Typography>
               <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', mb: 3 }}>
@@ -368,12 +368,12 @@ export default function LandingPage() {
                   <Typography
                     sx={{ color: '#0f172a', fontWeight: 700, fontSize: '0.95rem', mb: 0.5 }}
                   >
-                    Joe&apos;s Cafe
+                    Rossi&apos;s Trattoria
                   </Typography>
                   <Typography
                     sx={{ color: '#64748b', fontSize: '0.75rem', mb: 2, textAlign: 'center' }}
                   >
-                    How was your visit today?
+                    How was your meal today?
                   </Typography>
                   {/* Star rating display */}
                   <Box sx={{ display: 'flex', gap: 0.5, mb: 2 }}>
@@ -408,7 +408,7 @@ export default function LandingPage() {
                     }}
                   >
                     <Typography sx={{ color: '#94a3b8', fontSize: '0.7rem' }}>
-                      Great coffee and friendly staff!
+                      Amazing pasta, will definitely be back!
                     </Typography>
                   </Box>
                   <Box
@@ -453,7 +453,7 @@ export default function LandingPage() {
             color="text.secondary"
             sx={{ mb: 3, fontWeight: 500, textTransform: 'uppercase', letterSpacing: 1, fontSize: '0.75rem' }}
           >
-            Trusted by 50+ local businesses across the country
+            Trusted by local businesses across Melbourne
           </Typography>
           <Box
             sx={{
@@ -654,10 +654,10 @@ export default function LandingPage() {
                 <Star size={20} color="#fbbf24" fill="#fbbf24" />
               </Box>
               <Typography sx={{ fontWeight: 700, fontSize: '0.85rem', mb: 0.5 }}>
-                Joe&apos;s Cafe
+                Rossi&apos;s Trattoria
               </Typography>
               <Typography sx={{ color: '#64748b', fontSize: '0.7rem', mb: 1.5 }}>
-                How was your visit?
+                How was your meal?
               </Typography>
               <Box sx={{ display: 'flex', gap: 0.5, justifyContent: 'center', mb: 1.5 }}>
                 {[1, 2, 3, 4, 5].map((s) => (
@@ -682,6 +682,58 @@ export default function LandingPage() {
                 </Typography>
               </Box>
             </Box>
+          </Box>
+        </Container>
+      </Box>
+
+      {/* Product Screenshot */}
+      <Box
+        sx={{
+          py: { xs: 6, md: 10 },
+          background: 'linear-gradient(180deg, #f8fafc 0%, #eff6ff 50%, #f8fafc 100%)',
+        }}
+      >
+        <Container maxWidth="lg">
+          <Typography
+            variant="overline"
+            textAlign="center"
+            display="block"
+            sx={{ color: '#2563eb', fontWeight: 700, letterSpacing: 2, mb: 1 }}
+          >
+            Your Dashboard
+          </Typography>
+          <Typography
+            variant="h3"
+            fontWeight={800}
+            textAlign="center"
+            sx={{ mb: 2, fontSize: { xs: '1.8rem', md: '2.4rem' } }}
+          >
+            Everything at a Glance
+          </Typography>
+          <Typography
+            variant="body1"
+            color="text.secondary"
+            textAlign="center"
+            sx={{ mb: 5, maxWidth: 520, mx: 'auto' }}
+          >
+            Track reviews, monitor your reputation score, and see exactly where your customers are coming from.
+          </Typography>
+          <Box
+            sx={{
+              borderRadius: '16px',
+              overflow: 'hidden',
+              boxShadow: '0 20px 60px rgba(0,0,0,0.15)',
+              border: '1px solid',
+              borderColor: 'divider',
+              mx: { xs: 0, md: 4 },
+            }}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/screenshots/dashboard-hero.png"
+              alt="InsightReviews dashboard showing review stats, NPS score, and review funnel"
+              style={{ width: '100%', display: 'block' }}
+            />
           </Box>
         </Container>
       </Box>
@@ -940,13 +992,13 @@ export default function LandingPage() {
 
             <Box sx={{ textAlign: 'left', mb: 3 }}>
               {[
-                'Unlimited review requests via SMS',
+                'QR code + unlimited SMS review requests',
                 'Smart routing to Google, Yelp, Facebook & more',
                 'Real-time dashboard & analytics',
                 'Public testimonial wall page',
                 'Unlimited staff accounts',
                 'Private negative feedback capture',
-                'Custom branded review forms',
+                'Fully customisable branded review page',
                 'Email notifications for new reviews',
               ].map((item) => (
                 <Box key={item} sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 0.8 }}>
@@ -1070,7 +1122,7 @@ export default function LandingPage() {
             Ready to Get More 5-Star Reviews?
           </Typography>
           <Typography variant="body1" sx={{ mb: 4, opacity: 0.8, maxWidth: 420, mx: 'auto' }}>
-            Join 50+ local businesses already using InsightReviews to build their online reputation.
+            Join local businesses across Melbourne already using InsightReviews to build their online reputation.
           </Typography>
           <Button
             href="/auth/login"

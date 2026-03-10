@@ -12,6 +12,7 @@ interface WallReview {
   rating: number;
   comment: string | null;
   customer_name: string | null;
+  photo_url?: string | null;
   created_at: string;
 }
 
@@ -271,6 +272,22 @@ export function TestimonialWall({ org, reviews, config: configProp }: Testimonia
                     >
                       {review.comment}
                     </Typography>
+                  )}
+
+                  {review.photo_url && (
+                    <Box
+                      component="img"
+                      src={review.photo_url}
+                      alt="Review photo"
+                      sx={{
+                        width: '100%',
+                        maxHeight: 240,
+                        objectFit: 'cover',
+                        borderRadius: `${Math.max(config.cardBorderRadius - 4, 4)}px`,
+                        mt: review.comment ? 0 : 2,
+                        mb: 1,
+                      }}
+                    />
                   )}
 
                   <Box sx={{ mt: 2 }}>

@@ -30,7 +30,7 @@ export async function GET(
 
   const { data: reviews } = await supabase
     .from('reviews')
-    .select('id, rating, comment, customer_name, created_at')
+    .select('id, rating, comment, customer_name, photo_url, created_at')
     .eq('organization_id', org.id)
     .eq('is_public', true)
     .order('created_at', { ascending: false })

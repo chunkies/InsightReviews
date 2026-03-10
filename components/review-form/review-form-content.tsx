@@ -1,15 +1,35 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Box, Paper, Typography, TextField, Button, Avatar, IconButton,
 } from '@mui/material';
-import { Star, ExternalLink, MessageCircle } from 'lucide-react';
+import { Star, ExternalLink, MessageCircle, Instagram, Facebook, Gift, Camera, X } from 'lucide-react';
 
 import type { WallConfig } from '@/lib/types/wall-config';
 import { DEFAULT_WALL_CONFIG } from '@/lib/types/wall-config';
 
 /* ─── Types ─────────────────────────────────────────────────────── */
+
+export interface ThankYouConfig {
+  positiveTitle: string;
+  positiveMessage: string;
+  negativeTitle: string;
+  negativeMessage: string;
+  couponCode: string | null;
+  couponText: string;
+  socialLinks: Record<string, string>;
+}
+
+const DEFAULT_THANKYOU_CONFIG: ThankYouConfig = {
+  positiveTitle: 'Thank You!',
+  positiveMessage: 'We really appreciate your feedback. Would you mind sharing your experience on one of these platforms?',
+  negativeTitle: 'Thank You for Your Feedback',
+  negativeMessage: 'We appreciate you letting us know. Your feedback helps us improve. We\'ll follow up with you soon.',
+  couponCode: null,
+  couponText: 'Here\'s a little thank you from us:',
+  socialLinks: {},
+};
 
 interface ReviewFormContentProps {
   org: {
@@ -28,6 +48,7 @@ interface ReviewFormContentProps {
   }>;
   reviewRequestId?: string;
   config?: WallConfig;
+  thankYouConfig?: ThankYouConfig;
 }
 
 type FormState = 'rating' | 'submitting' | 'positive' | 'negative' | 'error';
@@ -232,8 +253,9 @@ function BackgroundGlow({ rating, formState }: { rating: number; formState: Form
 
 /* ─── Main Component ────────────────────────────────────────────── */
 
-export function ReviewFormContent({ org, platforms, reviewRequestId, config: cfg }: ReviewFormContentProps) {
+export function ReviewFormContent({ org, platforms, reviewRequestId, config: cfg, thankYouConfig: tyc }: ReviewFormContentProps) {
   const config = cfg ?? DEFAULT_WALL_CONFIG;
+  const tyConfig = tyc ?? DEFAULT_THANKYOU_CONFIG;
   const accentColor = config.accentColor;
   const [rating, setRating] = useState(0);
   const [hoveredRating, setHoveredRating] = useState(0);
@@ -244,6 +266,9 @@ export function ReviewFormContent({ org, platforms, reviewRequestId, config: cfg
   const [stylesInjected, setStylesInjected] = useState(false);
   const [lastTappedStar, setLastTappedStar] = useState(0);
   const [reviewId, setReviewId] = useState<string | null>(null);
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Inject keyframes once
   useEffect(() => {
@@ -254,6 +279,36 @@ export function ReviewFormContent({ org, platforms, reviewRequestId, config: cfg
     setStylesInjected(true);
     return () => { document.head.removeChild(style); };
   }, [stylesInjected]);
+
+  function handlePhotoSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Photo must be under 5MB');
+      return;
+    }
+
+    if (!file.type.startsWith('image/')) {
+      alert('Please select an image file');
+      return;
+    }
+
+    setPhotoFile(file);
+    const url = URL.createObjectURL(file);
+    setPhotoPreview(url);
+  }
+
+  function handlePhotoRemove() {
+    setPhotoFile(null);
+    if (photoPreview) {
+      URL.revokeObjectURL(photoPreview);
+      setPhotoPreview(null);
+    }
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  }
 
   const handleStarClick = useCallback((star: number) => {
     setRating(star);
@@ -267,6 +322,25 @@ export function ReviewFormContent({ org, platforms, reviewRequestId, config: cfg
     setFormState('submitting');
 
     try {
+      // Upload photo first if one was selected
+      let photoUrl: string | null = null;
+      if (photoFile) {
+        const photoFormData = new FormData();
+        photoFormData.append('photo', photoFile);
+        photoFormData.append('orgId', org.id);
+
+        const uploadRes = await fetch('/api/reviews/upload-photo', {
+          method: 'POST',
+          body: photoFormData,
+        });
+
+        if (uploadRes.ok) {
+          const uploadData = await uploadRes.json();
+          photoUrl = uploadData.url;
+        }
+        // If upload fails, still submit the review without photo
+      }
+
       const res = await fetch('/api/reviews/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -276,6 +350,7 @@ export function ReviewFormContent({ org, platforms, reviewRequestId, config: cfg
           comment: comment || null,
           customerName: customerName || null,
           reviewRequestId: reviewRequestId || null,
+          photoUrl,
         }),
       });
 
@@ -348,7 +423,7 @@ export function ReviewFormContent({ org, platforms, reviewRequestId, config: cfg
               WebkitTextFillColor: 'transparent',
             }}
           >
-            Thank you!
+            {tyConfig.positiveTitle}
           </Typography>
 
           <Typography
@@ -363,8 +438,7 @@ export function ReviewFormContent({ org, platforms, reviewRequestId, config: cfg
               fontFamily: config.bodyFont,
             }}
           >
-            We&apos;re thrilled you had a great experience at <strong>{org.name}</strong>!
-            Would you mind sharing your review?
+            {tyConfig.positiveMessage}
           </Typography>
 
           <Box sx={{
@@ -421,6 +495,76 @@ export function ReviewFormContent({ org, platforms, reviewRequestId, config: cfg
             })}
           </Box>
 
+          {/* Coupon Code Box */}
+          {tyConfig.couponCode && (
+            <Box sx={{
+              animation: 'rf-fade-in 0.5s ease 0.85s both',
+              mt: 3,
+              p: 2.5,
+              borderRadius: 3,
+              background: 'linear-gradient(135deg, rgba(250,204,21,0.1) 0%, rgba(251,191,36,0.06) 100%)',
+              border: '1px dashed rgba(250,204,21,0.5)',
+              textAlign: 'center',
+            }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, mb: 1 }}>
+                <Gift size={18} color="#EAB308" />
+                <Typography variant="body2" fontWeight={600} color="text.secondary">
+                  {tyConfig.couponText}
+                </Typography>
+              </Box>
+              <Typography
+                variant="h6"
+                fontWeight={800}
+                sx={{
+                  letterSpacing: '0.1em',
+                  color: '#B45309',
+                  fontFamily: 'monospace',
+                  fontSize: '1.3rem',
+                }}
+              >
+                {tyConfig.couponCode}
+              </Typography>
+            </Box>
+          )}
+
+          {/* Social Links */}
+          {Object.keys(tyConfig.socialLinks).length > 0 && (
+            <Box sx={{
+              animation: 'rf-fade-in 0.5s ease 0.95s both',
+              mt: 2.5,
+              display: 'flex',
+              justifyContent: 'center',
+              gap: 1.5,
+            }}>
+              {tyConfig.socialLinks.instagram && (
+                <IconButton
+                  href={tyConfig.socialLinks.instagram}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  sx={{
+                    color: '#E4405F',
+                    '&:hover': { backgroundColor: 'rgba(228,64,95,0.08)' },
+                  }}
+                >
+                  <Instagram size={22} />
+                </IconButton>
+              )}
+              {tyConfig.socialLinks.facebook && (
+                <IconButton
+                  href={tyConfig.socialLinks.facebook}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  sx={{
+                    color: '#1877F2',
+                    '&:hover': { backgroundColor: 'rgba(24,119,242,0.08)' },
+                  }}
+                >
+                  <Facebook size={22} />
+                </IconButton>
+              )}
+            </Box>
+          )}
+
           <Typography
             variant="caption"
             color="text.secondary"
@@ -475,7 +619,7 @@ export function ReviewFormContent({ org, platforms, reviewRequestId, config: cfg
               fontFamily: config.headerFont,
             }}
           >
-            Thank you for your feedback
+            {tyConfig.negativeTitle}
           </Typography>
 
           <Typography
@@ -490,13 +634,44 @@ export function ReviewFormContent({ org, platforms, reviewRequestId, config: cfg
               fontFamily: config.bodyFont,
             }}
           >
-            We appreciate you taking the time to share your thoughts.
-            Your feedback is important to us, and someone from{' '}
-            <strong>{org.name}</strong> will follow up with you.
+            {tyConfig.negativeMessage}
           </Typography>
 
+          {/* Coupon Code Box (also shown on negative if configured) */}
+          {tyConfig.couponCode && (
+            <Box sx={{
+              animation: 'rf-fade-in 0.5s ease 0.6s both',
+              mt: 2,
+              mb: 2,
+              p: 2.5,
+              borderRadius: 3,
+              background: 'linear-gradient(135deg, rgba(250,204,21,0.1) 0%, rgba(251,191,36,0.06) 100%)',
+              border: '1px dashed rgba(250,204,21,0.5)',
+              textAlign: 'center',
+            }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, mb: 1 }}>
+                <Gift size={18} color="#EAB308" />
+                <Typography variant="body2" fontWeight={600} color="text.secondary">
+                  {tyConfig.couponText}
+                </Typography>
+              </Box>
+              <Typography
+                variant="h6"
+                fontWeight={800}
+                sx={{
+                  letterSpacing: '0.1em',
+                  color: '#B45309',
+                  fontFamily: 'monospace',
+                  fontSize: '1.3rem',
+                }}
+              >
+                {tyConfig.couponCode}
+              </Typography>
+            </Box>
+          )}
+
           <Box sx={{
-            animation: 'rf-fade-in 0.5s ease 0.6s both',
+            animation: 'rf-fade-in 0.5s ease 0.7s both',
             mt: 3,
             p: 2,
             borderRadius: 2.5,
@@ -510,6 +685,44 @@ export function ReviewFormContent({ org, platforms, reviewRequestId, config: cfg
               &mdash; The {org.name} Team
             </Typography>
           </Box>
+
+          {/* Social Links */}
+          {Object.keys(tyConfig.socialLinks).length > 0 && (
+            <Box sx={{
+              animation: 'rf-fade-in 0.5s ease 0.8s both',
+              mt: 2.5,
+              display: 'flex',
+              justifyContent: 'center',
+              gap: 1.5,
+            }}>
+              {tyConfig.socialLinks.instagram && (
+                <IconButton
+                  href={tyConfig.socialLinks.instagram}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  sx={{
+                    color: '#E4405F',
+                    '&:hover': { backgroundColor: 'rgba(228,64,95,0.08)' },
+                  }}
+                >
+                  <Instagram size={22} />
+                </IconButton>
+              )}
+              {tyConfig.socialLinks.facebook && (
+                <IconButton
+                  href={tyConfig.socialLinks.facebook}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  sx={{
+                    color: '#1877F2',
+                    '&:hover': { backgroundColor: 'rgba(24,119,242,0.08)' },
+                  }}
+                >
+                  <Facebook size={22} />
+                </IconButton>
+              )}
+            </Box>
+          )}
         </Box>
       </Paper>
     );
@@ -702,7 +915,7 @@ export function ReviewFormContent({ org, platforms, reviewRequestId, config: cfg
               placeholder={rating >= 4 ? "What made your experience great?" : "What could we improve?"}
               variant="outlined"
               sx={{
-                mb: 3,
+                mb: 2,
                 '& .MuiOutlinedInput-root': {
                   borderRadius: 2.5,
                   transition: 'box-shadow 0.2s ease',
@@ -712,6 +925,77 @@ export function ReviewFormContent({ org, platforms, reviewRequestId, config: cfg
                 },
               }}
             />
+
+            {/* Photo Upload */}
+            <Box sx={{ mb: 3 }}>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handlePhotoSelect}
+                style={{ display: 'none' }}
+              />
+              {!photoPreview ? (
+                <Button
+                  variant="outlined"
+                  size="small"
+                  startIcon={<Camera size={18} />}
+                  onClick={() => fileInputRef.current?.click()}
+                  sx={{
+                    borderRadius: 2.5,
+                    textTransform: 'none',
+                    fontWeight: 600,
+                    borderColor: 'rgba(0,0,0,0.15)',
+                    color: 'text.secondary',
+                    '&:hover': {
+                      borderColor: accentColor,
+                      color: accentColor,
+                      backgroundColor: `${accentColor}08`,
+                    },
+                  }}
+                >
+                  Add a photo (optional)
+                </Button>
+              ) : (
+                <Box sx={{
+                  display: 'inline-flex',
+                  position: 'relative',
+                  borderRadius: 2,
+                  overflow: 'hidden',
+                  border: '1px solid rgba(0,0,0,0.1)',
+                }}>
+                  <Box
+                    component="img"
+                    src={photoPreview}
+                    alt="Selected photo"
+                    sx={{
+                      width: 120,
+                      height: 90,
+                      objectFit: 'cover',
+                      display: 'block',
+                    }}
+                  />
+                  <IconButton
+                    size="small"
+                    onClick={handlePhotoRemove}
+                    sx={{
+                      position: 'absolute',
+                      top: 4,
+                      right: 4,
+                      backgroundColor: 'rgba(0,0,0,0.55)',
+                      color: 'white',
+                      width: 24,
+                      height: 24,
+                      '&:hover': {
+                        backgroundColor: 'rgba(0,0,0,0.75)',
+                      },
+                    }}
+                  >
+                    <X size={14} />
+                  </IconButton>
+                </Box>
+              )}
+            </Box>
 
             {/* Submit Button */}
             <Button

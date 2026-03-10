@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Button, Box } from '@mui/material';
 import { ExternalLink } from 'lucide-react';
+import { useSnackbar } from '@/components/providers/snackbar-provider';
 
 interface BillingActionsProps {
   orgId: string;
@@ -12,29 +13,56 @@ interface BillingActionsProps {
 
 export function BillingActions({ orgId, hasSubscription, billingPlan }: BillingActionsProps) {
   const [loading, setLoading] = useState(false);
+  const { showSnackbar } = useSnackbar();
 
   async function handleCheckout() {
     setLoading(true);
-    const res = await fetch('/api/stripe/create-checkout', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ organizationId: orgId }),
-    });
-    const data = await res.json();
-    if (data.url) window.location.href = data.url;
-    setLoading(false);
+    try {
+      const res = await fetch('/api/stripe/create-checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ organizationId: orgId }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        showSnackbar(data.error || 'Failed to create checkout session', 'error');
+        return;
+      }
+      if (data.url) {
+        window.location.href = data.url;
+        return; // Don't reset loading — page is navigating
+      }
+      showSnackbar('No checkout URL returned', 'error');
+    } catch {
+      showSnackbar('Failed to connect to billing service', 'error');
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function handlePortal() {
     setLoading(true);
-    const res = await fetch('/api/stripe/create-portal', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ organizationId: orgId }),
-    });
-    const data = await res.json();
-    if (data.url) window.location.href = data.url;
-    setLoading(false);
+    try {
+      const res = await fetch('/api/stripe/create-portal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ organizationId: orgId }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        showSnackbar(data.error || 'Failed to open billing portal', 'error');
+        return;
+      }
+      if (data.url) {
+        window.location.href = data.url;
+        return;
+      }
+      showSnackbar('No portal URL returned', 'error');
+    } catch {
+      showSnackbar('Failed to connect to billing service', 'error');
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (

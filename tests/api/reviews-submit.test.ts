@@ -132,6 +132,7 @@ describe('POST /api/reviews/submit', () => {
       is_positive: true,
       is_public: true,
       redirected_to: [],
+      photo_url: null,
     });
   });
 

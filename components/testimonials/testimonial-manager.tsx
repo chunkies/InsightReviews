@@ -1,10 +1,11 @@
 'use client';
 
+import { useState } from 'react';
 import {
   Box, Paper, Typography, TextField, Button,
-  Alert, Divider, Chip,
+  Alert, Divider, Chip, ToggleButtonGroup, ToggleButton,
 } from '@mui/material';
-import { Copy, Star, ExternalLink, Code, QrCode, Eye, EyeOff } from 'lucide-react';
+import { Copy, Star, ExternalLink, Code, QrCode, Eye, EyeOff, Puzzle } from 'lucide-react';
 import type { Review } from '@/lib/types/database';
 import { EmptyState } from '@/components/shared/empty-state';
 import { useSnackbar } from '@/components/providers/snackbar-provider';
@@ -12,15 +13,23 @@ import { useSnackbar } from '@/components/providers/snackbar-provider';
 interface TestimonialManagerProps {
   reviews: Review[];
   wallUrl: string;
+  reviewUrl: string;
+  slug?: string;
+  siteUrl?: string;
 }
 
-export function TestimonialManager({ reviews, wallUrl }: TestimonialManagerProps) {
+export function TestimonialManager({ reviews, wallUrl, reviewUrl, slug, siteUrl }: TestimonialManagerProps) {
   const { showSnackbar } = useSnackbar();
+  const [widgetLayout, setWidgetLayout] = useState<string>('carousel');
 
   const publicCount = reviews.filter((r) => r.is_public).length;
   const totalCount = reviews.length;
 
   const embedCode = `<iframe src="${wallUrl}" width="100%" height="600" style="border:none;border-radius:12px;" title="Customer Reviews"></iframe>`;
+
+  const widgetScriptTag = `<script src="${siteUrl || ''}/widget.js"></script>`;
+  const widgetDivTag = `<div id="insightreviews-widget" data-slug="${slug || ''}" data-layout="${widgetLayout}"></div>`;
+  const widgetFullCode = widgetScriptTag + '\n' + widgetDivTag;
 
   function copyToClipboard(text: string) {
     navigator.clipboard.writeText(text);
@@ -84,6 +93,39 @@ export function TestimonialManager({ reviews, wallUrl }: TestimonialManagerProps
         </Alert>
       </Paper>
 
+      {/* Review Page URL */}
+      <Paper sx={{ p: 3, mb: 3 }}>
+        <Typography variant="h6" gutterBottom>
+          Your Review Page
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+          This is the page customers see when they scan your QR code or click your review link.
+        </Typography>
+        <Box sx={{ display: 'flex', gap: 1, mb: 1 }}>
+          <TextField
+            fullWidth
+            size="small"
+            value={reviewUrl}
+            slotProps={{ input: { readOnly: true } }}
+          />
+          <Button
+            variant="outlined"
+            startIcon={<Copy size={16} />}
+            onClick={() => copyToClipboard(reviewUrl)}
+          >
+            Copy
+          </Button>
+          <Button
+            variant="outlined"
+            startIcon={<ExternalLink size={16} />}
+            href={reviewUrl}
+            target="_blank"
+          >
+            Preview
+          </Button>
+        </Box>
+      </Paper>
+
       {/* Embed code */}
       <Paper sx={{ p: 3, mb: 3 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
@@ -115,6 +157,58 @@ export function TestimonialManager({ reviews, wallUrl }: TestimonialManagerProps
           Copy Embed Code
         </Button>
       </Paper>
+
+      {/* Widget Embed Code */}
+      {slug && siteUrl && (
+        <Paper sx={{ p: 3, mb: 3 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
+            <Puzzle size={20} />
+            <Typography variant="h6">Widget Embed Code</Typography>
+          </Box>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            Add a self-contained review widget to any page on your website. Choose a layout style below.
+          </Typography>
+
+          <Typography variant="subtitle2" sx={{ mb: 1 }}>Layout</Typography>
+          <ToggleButtonGroup
+            value={widgetLayout}
+            exclusive
+            onChange={(_e, val) => { if (val) setWidgetLayout(val); }}
+            size="small"
+            sx={{ mb: 2 }}
+          >
+            <ToggleButton value="badge">Badge</ToggleButton>
+            <ToggleButton value="carousel">Carousel</ToggleButton>
+            <ToggleButton value="grid">Grid</ToggleButton>
+          </ToggleButtonGroup>
+
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+            You can also add <code>data-theme=&quot;dark&quot;</code> and <code>data-max=&quot;5&quot;</code> to customise the widget.
+          </Typography>
+
+          <TextField
+            fullWidth
+            size="small"
+            multiline
+            rows={3}
+            value={widgetFullCode}
+            slotProps={{
+              input: {
+                readOnly: true,
+                sx: { fontFamily: 'monospace', fontSize: '0.8rem' },
+              },
+            }}
+          />
+          <Button
+            variant="outlined"
+            startIcon={<Copy size={16} />}
+            onClick={() => copyToClipboard(widgetFullCode)}
+            sx={{ mt: 1.5 }}
+          >
+            Copy Widget Code
+          </Button>
+        </Paper>
+      )}
 
       {/* QR Code hint */}
       <Paper sx={{ p: 3, mb: 3 }}>

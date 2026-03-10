@@ -36,6 +36,7 @@ export function CollectForm({ orgId, orgName, orgSlug, reviewUrl, recentRequests
   const [sentTo, setSentTo] = useState('');
   const [sentMethod, setSentMethod] = useState<'sms' | 'email'>('sms');
   const [error, setError] = useState<string | null>(null);
+  const [isThrottled, setIsThrottled] = useState(false);
 
   const hasPhone = phone.trim().length > 0;
   const hasEmail = email.trim().length > 0;
@@ -48,6 +49,7 @@ export function CollectForm({ orgId, orgName, orgSlug, reviewUrl, recentRequests
     setSent(false);
     setSentTo('');
     setError(null);
+    setIsThrottled(false);
   }, []);
 
   const handleCopyLink = useCallback(async () => {
@@ -130,6 +132,7 @@ export function CollectForm({ orgId, orgName, orgSlug, reviewUrl, recentRequests
     if (!canSubmit) return;
     setLoading(true);
     setError(null);
+    setIsThrottled(false);
 
     const contactMethod = hasPhone ? 'sms' : 'email';
 
@@ -148,6 +151,11 @@ export function CollectForm({ orgId, orgName, orgSlug, reviewUrl, recentRequests
 
       if (!res.ok) {
         const data = await res.json();
+        if (res.status === 429) {
+          setError(data.error || 'This customer was recently contacted. Please wait before sending again.');
+          setIsThrottled(true);
+          return;
+        }
         throw new Error(data.error || 'Failed to send review request');
       }
 
@@ -364,7 +372,7 @@ export function CollectForm({ orgId, orgName, orgSlug, reviewUrl, recentRequests
                 }}
               />
               {error && (
-                <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>
+                <Alert severity={isThrottled ? 'warning' : 'error'} sx={{ mb: 2, borderRadius: 2 }}>
                   {error}
                 </Alert>
               )}

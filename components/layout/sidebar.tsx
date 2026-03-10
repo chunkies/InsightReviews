@@ -10,6 +10,7 @@ import {
   LayoutDashboard, Star, Send, Users, MessageSquareQuote,
   Settings, CreditCard, Phone, Sparkles,
 } from 'lucide-react';
+import { useTheme } from '@mui/material/styles';
 
 const DRAWER_WIDTH = 260;
 
@@ -25,10 +26,26 @@ const navItems = [
 
 interface SidebarProps {
   orgName?: string;
+  billingPlan?: string | null;
+  trialEndsAt?: string | null;
 }
 
-export function Sidebar({ orgName }: SidebarProps) {
+function getPlanDisplay(billingPlan?: string | null, trialEndsAt?: string | null) {
+  if (billingPlan === 'active') return { label: 'Active', gradient: 'linear-gradient(135deg, #16a34a 0%, #22c55e 100%)' };
+  if (billingPlan === 'past_due') return { label: 'Past Due', gradient: 'linear-gradient(135deg, #dc2626 0%, #ef4444 100%)' };
+  if (billingPlan === 'cancelled') return { label: 'Cancelled', gradient: 'linear-gradient(135deg, #6b7280 0%, #9ca3af 100%)' };
+  // Default: trial
+  if (trialEndsAt) {
+    const daysLeft = Math.max(0, Math.ceil((new Date(trialEndsAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24)));
+    return { label: `Trial · ${daysLeft}d left`, gradient: 'linear-gradient(135deg, #f59e0b 0%, #f97316 100%)' };
+  }
+  return { label: 'Trial', gradient: 'linear-gradient(135deg, #f59e0b 0%, #f97316 100%)' };
+}
+
+export function Sidebar({ orgName, billingPlan, trialEndsAt }: SidebarProps) {
   const pathname = usePathname();
+  const muiTheme = useTheme();
+  const isDark = muiTheme.palette.mode === 'dark';
 
   return (
     <Drawer
@@ -41,7 +58,10 @@ export function Sidebar({ orgName }: SidebarProps) {
           boxSizing: 'border-box',
           borderRight: '1px solid',
           borderColor: 'divider',
-          background: 'linear-gradient(180deg, #fafbff 0%, #f8f9fc 100%)',
+          background: isDark
+            ? 'linear-gradient(180deg, #0f172a 0%, #131c2e 100%)'
+            : 'linear-gradient(180deg, #fafbff 0%, #f8f9fc 100%)',
+          transition: 'background 0.3s ease',
           display: 'flex',
           flexDirection: 'column',
         },
@@ -101,7 +121,7 @@ export function Sidebar({ orgName }: SidebarProps) {
                   backgroundColor: isActive ? 'primary.main' : 'transparent',
                   color: isActive ? 'white' : 'text.primary',
                   '&:hover': {
-                    backgroundColor: isActive ? 'primary.dark' : 'rgba(37, 99, 235, 0.06)',
+                    backgroundColor: isActive ? 'primary.dark' : (isDark ? 'rgba(37, 99, 235, 0.15)' : 'rgba(37, 99, 235, 0.06)'),
                     borderColor: isActive ? 'primary.dark' : 'rgba(37, 99, 235, 0.3)',
                     transform: 'translateX(2px)',
                   },
@@ -183,13 +203,13 @@ export function Sidebar({ orgName }: SidebarProps) {
           </Typography>
         </Box>
         <Chip
-          label="Trial"
+          label={getPlanDisplay(billingPlan, trialEndsAt).label}
           size="small"
           sx={{
             height: 22,
             fontSize: '0.7rem',
             fontWeight: 600,
-            background: 'linear-gradient(135deg, #f59e0b 0%, #f97316 100%)',
+            background: getPlanDisplay(billingPlan, trialEndsAt).gradient,
             color: 'white',
             letterSpacing: 0.3,
           }}

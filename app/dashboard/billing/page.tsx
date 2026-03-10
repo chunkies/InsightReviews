@@ -53,6 +53,11 @@ export default async function BillingPage() {
           hasSubscription={!!org.stripe_customer_id}
           billingPlan={org.billing_plan}
         />
+        {org.billing_plan === 'past_due' && (
+          <Typography variant="body2" color="error" sx={{ mt: 1 }}>
+            Your last payment failed. Please update your payment method to avoid service interruption.
+          </Typography>
+        )}
       </Paper>
     </Box>
   );

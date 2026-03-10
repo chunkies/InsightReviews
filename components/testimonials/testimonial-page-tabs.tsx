@@ -2,14 +2,15 @@
 
 import { useState, type ReactNode } from 'react';
 import { Box, Tabs, Tab } from '@mui/material';
-import { Settings2, LayoutGrid } from 'lucide-react';
+import { Settings2, LayoutGrid, Star } from 'lucide-react';
 
 interface TestimonialPageTabsProps {
   managerContent: ReactNode;
   customizerContent: ReactNode;
+  reviewExperienceContent: ReactNode;
 }
 
-export function TestimonialPageTabs({ managerContent, customizerContent }: TestimonialPageTabsProps) {
+export function TestimonialPageTabs({ managerContent, customizerContent, reviewExperienceContent }: TestimonialPageTabsProps) {
   const [tab, setTab] = useState(0);
 
   return (
@@ -31,6 +32,12 @@ export function TestimonialPageTabs({ managerContent, customizerContent }: Testi
           label="Customize Design"
           sx={{ textTransform: 'none', fontWeight: 600 }}
         />
+        <Tab
+          icon={<Star size={16} />}
+          iconPosition="start"
+          label="Review Experience"
+          sx={{ textTransform: 'none', fontWeight: 600 }}
+        />
       </Tabs>
 
       <Box sx={{ display: tab === 0 ? 'block' : 'none' }}>
@@ -38,6 +45,9 @@ export function TestimonialPageTabs({ managerContent, customizerContent }: Testi
       </Box>
       <Box sx={{ display: tab === 1 ? 'block' : 'none' }}>
         {customizerContent}
+      </Box>
+      <Box sx={{ display: tab === 2 ? 'block' : 'none' }}>
+        {reviewExperienceContent}
       </Box>
     </Box>
   );

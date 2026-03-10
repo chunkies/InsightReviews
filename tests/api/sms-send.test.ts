@@ -33,7 +33,21 @@ const mocks = vi.hoisted(() => {
       };
     }
     if (table === 'review_requests') {
-      return { insert: mockInsert, update: mockUpdate };
+      return {
+        insert: mockInsert,
+        update: mockUpdate,
+        select: vi.fn().mockReturnValue({
+          eq: vi.fn().mockReturnValue({
+            gte: vi.fn().mockReturnValue({
+              order: vi.fn().mockReturnValue({
+                limit: vi.fn().mockReturnValue({
+                  eq: vi.fn().mockResolvedValue({ data: [], error: null }),
+                }),
+              }),
+            }),
+          }),
+        }),
+      };
     }
     return { insert: vi.fn().mockReturnValue({ error: null }) };
   });

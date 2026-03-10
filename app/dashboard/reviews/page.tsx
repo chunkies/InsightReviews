@@ -17,6 +17,12 @@ export default async function ReviewsPage() {
 
   if (!member) redirect('/onboarding');
 
+  const { data: org } = await supabase
+    .from('organizations')
+    .select('email, name, slug')
+    .eq('id', member.organization_id)
+    .single();
+
   const { data: reviews } = await supabase
     .from('reviews')
     .select('*')
@@ -29,7 +35,13 @@ export default async function ReviewsPage() {
         title="Reviews"
         subtitle="All customer feedback in one place"
       />
-      <ReviewList reviews={reviews ?? []} isOwner={member.role === 'owner'} />
+      <ReviewList
+        reviews={reviews ?? []}
+        isOwner={member.role === 'owner'}
+        orgEmail={org?.email ?? null}
+        orgName={org?.name ?? ''}
+        orgSlug={org?.slug ?? ''}
+      />
     </Box>
   );
 }

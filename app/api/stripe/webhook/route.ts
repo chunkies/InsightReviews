@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
   }
 
-  // Service role client for webhook processing
+  // Service role client for webhook processing (bypasses RLS)
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
@@ -37,48 +37,73 @@ export async function POST(request: NextRequest) {
     case 'checkout.session.completed': {
       const session = event.data.object as Stripe.Checkout.Session;
       const orgId = session.metadata?.organizationId;
-      if (orgId) {
-        await supabase
-          .from('organizations')
-          .update({
-            billing_plan: 'active',
-            stripe_subscription_id: session.subscription as string,
-          })
-          .eq('id', orgId);
+      if (!orgId) {
+        console.error('Webhook: checkout.session.completed missing organizationId in metadata');
+        return NextResponse.json({ error: 'Missing metadata' }, { status: 400 });
+      }
+      const subscriptionId = typeof session.subscription === 'string'
+        ? session.subscription
+        : null;
+      const { error } = await supabase
+        .from('organizations')
+        .update({
+          billing_plan: 'active',
+          stripe_subscription_id: subscriptionId,
+        })
+        .eq('id', orgId);
+      if (error) {
+        console.error('Webhook: Failed to update org after checkout:', error);
+        return NextResponse.json({ error: 'Database update failed' }, { status: 500 });
       }
       break;
     }
 
     case 'invoice.payment_succeeded': {
-      const invoice = event.data.object as Stripe.Invoice;
-      const subId = (invoice as unknown as { subscription: string | null }).subscription;
+      const invoice = event.data.object as Stripe.Invoice & { subscription?: string | null };
+      const subId = typeof invoice.subscription === 'string'
+        ? invoice.subscription
+        : null;
       if (subId) {
-        await supabase
+        const { error } = await supabase
           .from('organizations')
           .update({ billing_plan: 'active' })
           .eq('stripe_subscription_id', subId);
+        if (error) {
+          console.error('Webhook: Failed to update org after payment success:', error);
+          return NextResponse.json({ error: 'Database update failed' }, { status: 500 });
+        }
       }
       break;
     }
 
     case 'invoice.payment_failed': {
-      const invoice = event.data.object as Stripe.Invoice;
-      const subId = (invoice as unknown as { subscription: string | null }).subscription;
+      const invoice = event.data.object as Stripe.Invoice & { subscription?: string | null };
+      const subId = typeof invoice.subscription === 'string'
+        ? invoice.subscription
+        : null;
       if (subId) {
-        await supabase
+        const { error } = await supabase
           .from('organizations')
           .update({ billing_plan: 'past_due' })
           .eq('stripe_subscription_id', subId);
+        if (error) {
+          console.error('Webhook: Failed to update org after payment failure:', error);
+          return NextResponse.json({ error: 'Database update failed' }, { status: 500 });
+        }
       }
       break;
     }
 
     case 'customer.subscription.deleted': {
       const subscription = event.data.object as Stripe.Subscription;
-      await supabase
+      const { error } = await supabase
         .from('organizations')
         .update({ billing_plan: 'cancelled', stripe_subscription_id: null })
         .eq('stripe_subscription_id', subscription.id);
+      if (error) {
+        console.error('Webhook: Failed to update org after subscription deletion:', error);
+        return NextResponse.json({ error: 'Database update failed' }, { status: 500 });
+      }
       break;
     }
   }

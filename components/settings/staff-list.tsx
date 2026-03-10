@@ -11,6 +11,7 @@ import { format } from 'date-fns';
 import { createClient } from '@/lib/supabase/client';
 import { useSnackbar } from '@/components/providers/snackbar-provider';
 import { EmptyState } from '@/components/shared/empty-state';
+import { ConfirmDialog } from '@/components/shared/confirm-dialog';
 import type { OrganizationMember } from '@/lib/types/database';
 
 interface StaffListProps {
@@ -24,13 +25,19 @@ export function StaffList({ members: initial, isOwner, orgId: _orgId, currentUse
   const [members, setMembers] = useState(initial);
   const [inviteOpen, setInviteOpen] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
+  const [removeTarget, setRemoveTarget] = useState<string | null>(null);
   const { showSnackbar } = useSnackbar();
 
   async function handleRemove(memberId: string) {
     const supabase = createClient();
-    await supabase.from('organization_members').delete().eq('id', memberId);
-    setMembers((prev) => prev.filter((m) => m.id !== memberId));
-    showSnackbar('Member removed');
+    const { error } = await supabase.from('organization_members').delete().eq('id', memberId);
+    if (!error) {
+      setMembers((prev) => prev.filter((m) => m.id !== memberId));
+      showSnackbar('Member removed');
+    } else {
+      showSnackbar('Failed to remove member', 'error');
+    }
+    setRemoveTarget(null);
   }
 
   return (
@@ -80,7 +87,7 @@ export function StaffList({ members: initial, isOwner, orgId: _orgId, currentUse
                   {isOwner && (
                     <TableCell align="right">
                       {m.user_id !== currentUserId && (
-                        <IconButton size="small" color="error" onClick={() => handleRemove(m.id)}>
+                        <IconButton size="small" color="error" onClick={() => setRemoveTarget(m.id)}>
                           <Trash2 size={16} />
                         </IconButton>
                       )}
@@ -92,6 +99,14 @@ export function StaffList({ members: initial, isOwner, orgId: _orgId, currentUse
           </Table>
         </TableContainer>
       )}
+
+      <ConfirmDialog
+        open={!!removeTarget}
+        title="Remove Team Member"
+        message="Are you sure you want to remove this team member? They will lose access to your business."
+        onConfirm={() => removeTarget && handleRemove(removeTarget)}
+        onCancel={() => setRemoveTarget(null)}
+      />
 
       <Dialog open={inviteOpen} onClose={() => setInviteOpen(false)} maxWidth="xs" fullWidth>
         <DialogTitle>Invite Staff Member</DialogTitle>

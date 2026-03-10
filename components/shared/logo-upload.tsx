@@ -134,14 +134,21 @@ export function LogoUpload({ orgId, orgName, currentLogoUrl, onLogoChange, size 
         </Typography>
         <Box sx={{ display: 'flex', gap: 1 }}>
           <Button
+            component="label"
             size="small"
             variant="outlined"
             startIcon={<Upload size={14} />}
-            onClick={() => fileRef.current?.click()}
             disabled={uploading}
-            sx={{ textTransform: 'none' }}
+            sx={{ textTransform: 'none', cursor: 'pointer' }}
           >
             Upload
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/*"
+              onChange={handleUpload}
+              hidden
+            />
           </Button>
           {currentLogoUrl && (
             <Button
@@ -156,13 +163,6 @@ export function LogoUpload({ orgId, orgName, currentLogoUrl, onLogoChange, size 
             </Button>
           )}
         </Box>
-        <input
-          ref={fileRef}
-          type="file"
-          accept="image/*"
-          onChange={handleUpload}
-          style={{ display: 'none' }}
-        />
       </Box>
     </Box>
   );

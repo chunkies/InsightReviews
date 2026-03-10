@@ -3,17 +3,166 @@
 import { useState, useCallback } from 'react';
 import {
   Box, Paper, Typography, Button, TextField, Slider, Switch,
-  FormControlLabel, Divider, ToggleButtonGroup, ToggleButton,
+  FormControlLabel, ToggleButtonGroup, ToggleButton,
   Select, MenuItem, InputLabel, FormControl, Alert, IconButton,
   Accordion, AccordionSummary, AccordionDetails,
 } from '@mui/material';
 import {
   Palette, Type, LayoutGrid, Image, Save, RotateCcw,
-  ChevronDown, Eye, Columns3, Columns2, Square,
+  ChevronDown, Eye, Columns3, Columns2, Square, Sparkles,
 } from 'lucide-react';
 import { useSnackbar } from '@/components/providers/snackbar-provider';
 import type { WallConfig } from '@/lib/types/wall-config';
 import { DEFAULT_WALL_CONFIG } from '@/lib/types/wall-config';
+
+// ── Theme Presets ──────────────────────────────────────────────────────────
+
+interface ThemePreset {
+  name: string;
+  config: WallConfig;
+  /** Colors used for the thumbnail preview: [bg1, bg2, card, accent] */
+  preview: [string, string, string, string];
+}
+
+const THEME_PRESETS: ThemePreset[] = [
+  {
+    name: 'Clean',
+    preview: ['#f0f4ff', '#f0fdf4', '#ffffff', '#6366f1'],
+    config: { ...DEFAULT_WALL_CONFIG },
+  },
+  {
+    name: 'Dark',
+    preview: ['#1a1a2e', '#16213e', '#1e293b', '#f59e0b'],
+    config: {
+      ...DEFAULT_WALL_CONFIG,
+      bgType: 'gradient',
+      bgColor: '#1a1a2e',
+      bgGradientFrom: '#1a1a2e',
+      bgGradientTo: '#16213e',
+      bgGradientAngle: 145,
+      cardBg: '#1e293b',
+      cardBorderRadius: 12,
+      cardShadow: 'lg',
+      headerFont: 'Inter, system-ui, sans-serif',
+      bodyFont: 'Inter, system-ui, sans-serif',
+      headerColor: '#f1f5f9',
+      bodyColor: '#cbd5e1',
+      headerSize: 1,
+      starColor: '#f59e0b',
+      accentColor: '#f59e0b',
+    },
+  },
+  {
+    name: 'Warm',
+    preview: ['#fef3c7', '#fef9ef', '#ffffff', '#f97316'],
+    config: {
+      ...DEFAULT_WALL_CONFIG,
+      bgType: 'gradient',
+      bgColor: '#fef3c7',
+      bgGradientFrom: '#fef3c7',
+      bgGradientTo: '#fef9ef',
+      bgGradientAngle: 145,
+      cardBg: '#ffffff',
+      cardBorderRadius: 14,
+      cardShadow: 'md',
+      headerFont: 'Georgia, serif',
+      bodyFont: 'Inter, system-ui, sans-serif',
+      headerColor: '#78350f',
+      bodyColor: '#92400e',
+      headerSize: 1,
+      starColor: '#f97316',
+      accentColor: '#f97316',
+    },
+  },
+  {
+    name: 'Ocean',
+    preview: ['#0ea5e9', '#06b6d4', '#ffffffdd', '#0891b2'],
+    config: {
+      ...DEFAULT_WALL_CONFIG,
+      bgType: 'gradient',
+      bgColor: '#0ea5e9',
+      bgGradientFrom: '#0ea5e9',
+      bgGradientTo: '#06b6d4',
+      bgGradientAngle: 135,
+      cardBg: '#ffffffdd',
+      cardBorderRadius: 16,
+      cardShadow: 'md',
+      headerFont: '"DM Sans", sans-serif',
+      bodyFont: '"DM Sans", sans-serif',
+      headerColor: '#0c4a6e',
+      bodyColor: '#164e63',
+      headerSize: 1,
+      starColor: '#0891b2',
+      accentColor: '#0891b2',
+    },
+  },
+  {
+    name: 'Rose',
+    preview: ['#fce7f3', '#fdf2f8', '#ffffff', '#ec4899'],
+    config: {
+      ...DEFAULT_WALL_CONFIG,
+      bgType: 'gradient',
+      bgColor: '#fce7f3',
+      bgGradientFrom: '#fce7f3',
+      bgGradientTo: '#fdf2f8',
+      bgGradientAngle: 145,
+      cardBg: '#ffffff',
+      cardBorderRadius: 14,
+      cardShadow: 'md',
+      headerFont: '"Playfair Display", serif',
+      bodyFont: 'Inter, system-ui, sans-serif',
+      headerColor: '#831843',
+      bodyColor: '#9d174d',
+      headerSize: 1.05,
+      starColor: '#ec4899',
+      accentColor: '#ec4899',
+    },
+  },
+  {
+    name: 'Forest',
+    preview: ['#064e3b', '#065f46', '#0f766e', '#34d399'],
+    config: {
+      ...DEFAULT_WALL_CONFIG,
+      bgType: 'gradient',
+      bgColor: '#064e3b',
+      bgGradientFrom: '#064e3b',
+      bgGradientTo: '#065f46',
+      bgGradientAngle: 145,
+      cardBg: '#0f766e',
+      cardBorderRadius: 12,
+      cardShadow: 'lg',
+      headerFont: '"Space Grotesk", sans-serif',
+      bodyFont: 'Inter, system-ui, sans-serif',
+      headerColor: '#a7f3d0',
+      bodyColor: '#6ee7b7',
+      headerSize: 1,
+      starColor: '#34d399',
+      accentColor: '#34d399',
+    },
+  },
+  {
+    name: 'Minimal',
+    preview: ['#ffffff', '#ffffff', '#ffffff', '#6b7280'],
+    config: {
+      ...DEFAULT_WALL_CONFIG,
+      bgType: 'solid',
+      bgColor: '#ffffff',
+      bgGradientFrom: '#ffffff',
+      bgGradientTo: '#ffffff',
+      bgGradientAngle: 0,
+      cardBg: '#ffffff',
+      cardBorderRadius: 8,
+      cardShadow: 'sm',
+      headerFont: 'Inter, system-ui, sans-serif',
+      bodyFont: 'Inter, system-ui, sans-serif',
+      headerColor: '#111827',
+      bodyColor: '#4b5563',
+      headerSize: 0.95,
+      starColor: '#6b7280',
+      accentColor: '#6b7280',
+    },
+  },
+];
 
 interface WallCustomizerProps {
   orgId: string;
@@ -21,6 +170,7 @@ interface WallCustomizerProps {
   logoUrl: string | null;
   initialConfig: WallConfig;
   wallUrl: string;
+  reviewUrl: string;
   reviews: Array<{
     id: string;
     rating: number;
@@ -87,7 +237,7 @@ function getCardShadow(shadow: string) {
   }
 }
 
-export function WallCustomizer({ orgId, orgName, logoUrl, initialConfig, wallUrl, reviews }: WallCustomizerProps) {
+export function WallCustomizer({ orgId, orgName, logoUrl, initialConfig, wallUrl, reviewUrl, reviews }: WallCustomizerProps) {
   const [config, setConfig] = useState<WallConfig>(initialConfig);
   const [saving, setSaving] = useState(false);
   const { showSnackbar } = useSnackbar();
@@ -146,10 +296,163 @@ export function WallCustomizer({ orgId, orgName, logoUrl, initialConfig, wallUrl
           <IconButton onClick={handleReset} title="Reset to defaults">
             <RotateCcw size={18} />
           </IconButton>
-          <IconButton href={wallUrl} target="_blank" title="View live wall">
-            <Eye size={18} />
-          </IconButton>
         </Box>
+
+        <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
+          <Button
+            variant="outlined"
+            size="small"
+            startIcon={<Eye size={14} />}
+            href={wallUrl}
+            target="_blank"
+            sx={{ flex: 1, textTransform: 'none', fontWeight: 600 }}
+          >
+            Preview Wall
+          </Button>
+          <Button
+            variant="outlined"
+            size="small"
+            startIcon={<Eye size={14} />}
+            href={reviewUrl}
+            target="_blank"
+            sx={{ flex: 1, textTransform: 'none', fontWeight: 600 }}
+          >
+            Preview Review Page
+          </Button>
+        </Box>
+
+        <Alert severity="info" sx={{ mb: 2, '& .MuiAlert-message': { fontSize: '0.8rem' } }}>
+          Design changes apply to both the testimonial wall and the review page.
+        </Alert>
+
+        {/* Theme Presets */}
+        <Accordion defaultExpanded sx={{ '&:before': { display: 'none' }, borderRadius: '12px !important', mb: 1.5, border: '1px solid', borderColor: 'divider', boxShadow: 'none' }}>
+          <AccordionSummary expandIcon={<ChevronDown size={18} />}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Sparkles size={16} />
+              <Typography variant="subtitle2" fontWeight={600}>Themes</Typography>
+            </Box>
+          </AccordionSummary>
+          <AccordionDetails>
+            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1.5 }}>
+              Click a theme to apply it. You can customize further below.
+            </Typography>
+            <Box
+              sx={{
+                display: 'flex',
+                gap: 1.5,
+                overflowX: 'auto',
+                pb: 1,
+                mx: -1,
+                px: 1,
+                '&::-webkit-scrollbar': { height: 4 },
+                '&::-webkit-scrollbar-thumb': { bgcolor: 'divider', borderRadius: 2 },
+              }}
+            >
+              {THEME_PRESETS.map((theme) => {
+                const isActive =
+                  config.bgGradientFrom === theme.config.bgGradientFrom &&
+                  config.bgGradientTo === theme.config.bgGradientTo &&
+                  config.cardBg === theme.config.cardBg &&
+                  config.accentColor === theme.config.accentColor &&
+                  config.bgType === theme.config.bgType &&
+                  config.bgColor === theme.config.bgColor;
+                return (
+                  <Box
+                    key={theme.name}
+                    onClick={() => {
+                      setConfig(theme.config);
+                      showSnackbar(`Applied "${theme.name}" theme`, 'info');
+                    }}
+                    sx={{
+                      flexShrink: 0,
+                      cursor: 'pointer',
+                      textAlign: 'center',
+                      transition: 'transform 0.15s ease, box-shadow 0.15s ease',
+                      '&:hover': { transform: 'translateY(-2px)' },
+                    }}
+                  >
+                    {/* Thumbnail */}
+                    <Box
+                      sx={{
+                        width: 72,
+                        height: 52,
+                        borderRadius: 1.5,
+                        background: `linear-gradient(135deg, ${theme.preview[0]} 0%, ${theme.preview[1]} 100%)`,
+                        border: isActive ? '2px solid' : '2px solid',
+                        borderColor: isActive ? 'primary.main' : 'divider',
+                        boxShadow: isActive ? '0 0 0 2px rgba(99,102,241,0.25)' : 'none',
+                        position: 'relative',
+                        overflow: 'hidden',
+                        p: 0.75,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '3px',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                      }}
+                    >
+                      {/* Mini card representation */}
+                      <Box
+                        sx={{
+                          width: '80%',
+                          height: 14,
+                          borderRadius: 0.5,
+                          bgcolor: theme.preview[2],
+                          border: '1px solid rgba(0,0,0,0.05)',
+                          position: 'relative',
+                          overflow: 'hidden',
+                          '&::before': {
+                            content: '""',
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            height: '2px',
+                            bgcolor: theme.preview[3],
+                          },
+                        }}
+                      />
+                      <Box
+                        sx={{
+                          width: '80%',
+                          height: 14,
+                          borderRadius: 0.5,
+                          bgcolor: theme.preview[2],
+                          border: '1px solid rgba(0,0,0,0.05)',
+                          position: 'relative',
+                          overflow: 'hidden',
+                          '&::before': {
+                            content: '""',
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            height: '2px',
+                            bgcolor: theme.preview[3],
+                          },
+                        }}
+                      />
+                    </Box>
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        display: 'block',
+                        mt: 0.5,
+                        fontWeight: isActive ? 700 : 500,
+                        color: isActive ? 'primary.main' : 'text.secondary',
+                        fontSize: '0.68rem',
+                        lineHeight: 1.3,
+                      }}
+                    >
+                      {theme.name}
+                    </Typography>
+                  </Box>
+                );
+              })}
+            </Box>
+          </AccordionDetails>
+        </Accordion>
 
         {/* Background */}
         <Accordion defaultExpanded sx={{ '&:before': { display: 'none' }, borderRadius: '12px !important', mb: 1.5, border: '1px solid', borderColor: 'divider', boxShadow: 'none' }}>

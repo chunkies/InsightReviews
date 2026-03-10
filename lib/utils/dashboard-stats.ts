@@ -51,6 +51,18 @@ export function computeReviewStats(
     return d >= twoWeeksAgo && d < weekAgo;
   }).length;
 
+  // NPS calculation: 5 stars = Promoter, 4 stars = Passive, 1-3 stars = Detractor
+  const promoterCount = reviews.filter((r) => r.rating === 5).length;
+  const passiveCount = reviews.filter((r) => r.rating === 4).length;
+  const detractorCount = reviews.filter((r) => r.rating <= 3).length;
+
+  const npsScore =
+    totalReviews > 0
+      ? Math.round(
+          ((promoterCount - detractorCount) / totalReviews) * 100,
+        )
+      : null;
+
   return {
     totalReviews,
     averageRating: Math.round(avgRating * 10) / 10,
@@ -59,7 +71,52 @@ export function computeReviewStats(
     responseRate: Math.round(responseRate),
     thisWeekReviews,
     lastWeekReviews,
+    npsScore,
+    promoterCount,
+    passiveCount,
+    detractorCount,
   };
+}
+
+interface ChartRow {
+  created_at: string;
+}
+
+/**
+ * Build daily chart data for the last 30 days.
+ */
+export function buildDailyChartData(
+  reviews: ChartRow[],
+  requests: ChartRow[],
+  now: Date = new Date(),
+): Array<{ date: string; reviews: number; requests: number }> {
+  const days = 30;
+  const result: Array<{ date: string; reviews: number; requests: number }> = [];
+
+  for (let i = days - 1; i >= 0; i--) {
+    const d = new Date(now);
+    d.setDate(d.getDate() - i);
+    const dateStr = d.toISOString().slice(0, 10);
+    result.push({ date: dateStr, reviews: 0, requests: 0 });
+  }
+
+  for (const r of reviews) {
+    const dateStr = new Date(r.created_at).toISOString().slice(0, 10);
+    const entry = result.find((e) => e.date === dateStr);
+    if (entry) entry.reviews++;
+  }
+
+  for (const r of requests) {
+    const dateStr = new Date(r.created_at).toISOString().slice(0, 10);
+    const entry = result.find((e) => e.date === dateStr);
+    if (entry) entry.requests++;
+  }
+
+  // Format dates for display
+  return result.map((e) => ({
+    ...e,
+    date: new Date(e.date + 'T00:00:00').toLocaleDateString('en-AU', { day: 'numeric', month: 'short' }),
+  }));
 }
 
 /**

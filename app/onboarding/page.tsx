@@ -13,7 +13,7 @@ export default async function OnboardingPage() {
     .from('organization_members')
     .select('organization_id')
     .eq('user_id', user.id)
-    .single();
+    .maybeSingle();
 
   if (member) redirect('/dashboard');
 

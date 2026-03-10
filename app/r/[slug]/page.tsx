@@ -28,7 +28,7 @@ export default async function ReviewPage({ params, searchParams }: PageProps) {
 
   const { data: org } = await supabase
     .from('organizations')
-    .select('id, name, slug, logo_url, positive_threshold, wall_config')
+    .select('id, name, slug, logo_url, positive_threshold, wall_config, thankyou_positive_title, thankyou_positive_message, thankyou_negative_title, thankyou_negative_message, thankyou_coupon_code, thankyou_coupon_text, thankyou_social_links')
     .eq('slug', slug)
     .single();
 
@@ -67,6 +67,15 @@ export default async function ReviewPage({ params, searchParams }: PageProps) {
             slug: org.slug,
             logoUrl: org.logo_url,
             positiveThreshold: org.positive_threshold,
+          }}
+          thankYouConfig={{
+            positiveTitle: org.thankyou_positive_title ?? 'Thank You!',
+            positiveMessage: org.thankyou_positive_message ?? 'We really appreciate your feedback. Would you mind sharing your experience on one of these platforms?',
+            negativeTitle: org.thankyou_negative_title ?? 'Thank You for Your Feedback',
+            negativeMessage: org.thankyou_negative_message ?? 'We appreciate you letting us know. Your feedback helps us improve. We\'ll follow up with you soon.',
+            couponCode: org.thankyou_coupon_code ?? null,
+            couponText: org.thankyou_coupon_text ?? 'Here\'s a little thank you from us:',
+            socialLinks: (org.thankyou_social_links as Record<string, string>) ?? {},
           }}
           platforms={platforms ?? []}
           reviewRequestId={reviewRequestId}

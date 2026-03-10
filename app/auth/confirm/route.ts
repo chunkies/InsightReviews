@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
           .from('organization_members')
           .select('organization_id')
           .eq('user_id', user.id)
-          .single();
+          .maybeSingle();
 
         if (!member) {
           return NextResponse.redirect(new URL('/onboarding', request.url));

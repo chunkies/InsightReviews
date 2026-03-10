@@ -50,6 +50,40 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Organization not found' }, { status: 404 });
     }
 
+    // Throttle: prevent sending to the same customer within 30 days
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const throttleCutoff = thirtyDaysAgo.toISOString();
+
+    let throttleQuery = supabase
+      .from('review_requests')
+      .select('id, created_at')
+      .eq('organization_id', organizationId)
+      .gte('created_at', throttleCutoff)
+      .order('created_at', { ascending: false })
+      .limit(1);
+
+    if (method === 'sms' && customerPhone) {
+      throttleQuery = throttleQuery.eq('customer_phone', customerPhone);
+    } else if (method === 'email' && customerEmail) {
+      throttleQuery = throttleQuery.eq('customer_email', customerEmail);
+    }
+
+    const { data: recentRequests } = await throttleQuery;
+
+    if (recentRequests && recentRequests.length > 0) {
+      const lastSentDate = new Date(recentRequests[0].created_at);
+      const now = new Date();
+      const diffMs = now.getTime() - lastSentDate.getTime();
+      const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+      const daysAgoText = diffDays === 0 ? 'today' : diffDays === 1 ? '1 day ago' : `${diffDays} days ago`;
+
+      return NextResponse.json(
+        { error: `A review request was already sent to this customer ${daysAgoText}. Please wait 30 days between requests to the same customer.` },
+        { status: 429 },
+      );
+    }
+
     // Create review request record first so we can include its ID in the link
     const { data: reviewRequest, error: reqError } = await supabase
       .from('review_requests')
@@ -77,15 +111,21 @@ export async function POST(request: NextRequest) {
     let sendSuccess = false;
 
     if (method === 'sms') {
+      // Ensure phone has country code for Twilio (E.164 format)
+      let formattedPhone = customerPhone.replace(/\s+/g, '').replace(/^0/, '+61');
+      if (!formattedPhone.startsWith('+')) {
+        formattedPhone = '+' + formattedPhone;
+      }
+
       // Send SMS via Twilio
-      const twilioSid = await sendSms(customerPhone, messageBody);
+      const twilioSid = await sendSms(formattedPhone, messageBody);
       sendSuccess = !!twilioSid;
 
       // Log to sms_log
       await supabase.from('sms_log').insert({
         organization_id: organizationId,
         review_request_id: reviewRequest.id,
-        to_phone: customerPhone,
+        to_phone: formattedPhone,
         message_body: messageBody,
         twilio_sid: twilioSid,
         channel: 'sms',

@@ -68,11 +68,11 @@ export async function middleware(request: NextRequest) {
     return supabaseResponse;
   }
 
-  // For dashboard routes, check org membership and billing status
+  // For dashboard routes, check org membership and billing in a single query
   if (pathname.startsWith('/dashboard')) {
     const { data: member } = await supabase
       .from('organization_members')
-      .select('organization_id')
+      .select('organization_id, organizations(billing_plan, trial_ends_at)')
       .eq('user_id', user.id)
       .maybeSingle();
 
@@ -83,13 +83,8 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(url);
     }
 
-    // Check billing status
-    const { data: org } = await supabase
-      .from('organizations')
-      .select('billing_plan, trial_ends_at')
-      .eq('id', member.organization_id)
-      .single();
-
+    // Check billing status (org data is joined in the same query)
+    const org = member.organizations as unknown as { billing_plan: string; trial_ends_at: string | null } | null;
     if (org && !hasValidBilling(org.billing_plan, org.trial_ends_at, user.email)) {
       const url = request.nextUrl.clone();
       url.pathname = '/subscribe';

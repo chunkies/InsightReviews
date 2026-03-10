@@ -13,9 +13,10 @@ export default async function DashboardPage() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/auth/login');
 
+  // Single query for membership + org settings
   const { data: member } = await supabase
     .from('organization_members')
-    .select('organization_id')
+    .select('organization_id, organizations(positive_threshold)')
     .eq('user_id', user.id)
     .single();
 
@@ -26,43 +27,41 @@ export default async function DashboardPage() {
   // Get first day of current month for leaderboard filtering
   const now = new Date();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+  // Limit stats queries to last 90 days for performance
+  const statsStart = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000).toISOString();
 
-  // Fetch org settings (for positive_threshold), stats data, recent reviews, and leaderboard data
-  const [orgRes, reviewsRes, requestsRes, recentRes, leaderboardRequestsRes, orgMembersRes] = await Promise.all([
-    supabase
-      .from('organizations')
-      .select('positive_threshold')
-      .eq('id', orgId)
-      .single(),
+  // Fetch stats data, recent reviews, and leaderboard data in parallel
+  const [reviewsRes, requestsRes, recentRes, leaderboardRequestsRes, orgMembersRes] = await Promise.all([
     supabase
       .from('reviews')
       .select('id, rating, created_at, review_request_id, redirected_to')
-      .eq('organization_id', orgId),
+      .eq('organization_id', orgId)
+      .gte('created_at', statsStart),
     supabase
       .from('review_requests')
       .select('id, status, created_at')
-      .eq('organization_id', orgId),
+      .eq('organization_id', orgId)
+      .gte('created_at', statsStart),
     supabase
       .from('reviews')
       .select('id, rating, comment, customer_name, created_at')
       .eq('organization_id', orgId)
       .order('created_at', { ascending: false })
       .limit(6),
-    // Leaderboard: all review requests this month with their linked reviews
     supabase
       .from('review_requests')
       .select('id, sent_by, status')
       .eq('organization_id', orgId)
       .gte('created_at', monthStart)
       .not('sent_by', 'is', null),
-    // Org members to map user_id to email/role
     supabase
       .from('organization_members')
       .select('user_id, role')
       .eq('organization_id', orgId),
   ]);
 
-  const positiveThreshold = orgRes.data?.positive_threshold ?? 4;
+  const orgData = member.organizations as unknown as { positive_threshold: number } | null;
+  const positiveThreshold = orgData?.positive_threshold ?? 4;
   const reviews = reviewsRes.data ?? [];
   const requests = requestsRes.data ?? [];
   const recentReviews = (recentRes.data ?? []).map((r) => ({

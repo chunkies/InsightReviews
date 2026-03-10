@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import { TestimonialWall } from '@/components/testimonials/testimonial-wall';
 import { mergeWallConfig } from '@/lib/types/wall-config';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 300; // Cache for 5 minutes
 
 interface PageProps {
   params: Promise<{ slug: string }>;

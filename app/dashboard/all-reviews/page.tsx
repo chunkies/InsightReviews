@@ -17,25 +17,25 @@ export default async function AllReviewsPage() {
 
   if (!member) redirect('/onboarding');
 
-  // Fetch internal reviews
-  const { data: internalReviews } = await supabase
-    .from('reviews')
-    .select('*')
-    .eq('organization_id', member.organization_id)
-    .order('created_at', { ascending: false });
-
-  // Fetch external reviews
-  const { data: externalReviews } = await supabase
-    .from('external_reviews')
-    .select('*')
-    .eq('organization_id', member.organization_id)
-    .order('review_date', { ascending: false });
-
-  // Fetch integrations for platform info
-  const { data: integrations } = await supabase
-    .from('organization_integrations')
-    .select('id, platform, platform_account_name')
-    .eq('organization_id', member.organization_id);
+  // Parallel queries with limits
+  const [internalRes, externalRes, integrationsRes] = await Promise.all([
+    supabase
+      .from('reviews')
+      .select('*')
+      .eq('organization_id', member.organization_id)
+      .order('created_at', { ascending: false })
+      .limit(500),
+    supabase
+      .from('external_reviews')
+      .select('*')
+      .eq('organization_id', member.organization_id)
+      .order('review_date', { ascending: false })
+      .limit(500),
+    supabase
+      .from('organization_integrations')
+      .select('id, platform, platform_account_name')
+      .eq('organization_id', member.organization_id),
+  ]);
 
   return (
     <Box>
@@ -44,9 +44,9 @@ export default async function AllReviewsPage() {
         subtitle="Unified view of reviews from all platforms"
       />
       <UnifiedReviewList
-        internalReviews={internalReviews ?? []}
-        externalReviews={externalReviews ?? []}
-        integrations={integrations ?? []}
+        internalReviews={internalRes.data ?? []}
+        externalReviews={externalRes.data ?? []}
+        integrations={integrationsRes.data ?? []}
         isOwner={member.role === 'owner'}
       />
     </Box>

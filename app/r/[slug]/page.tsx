@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation';
 import { ReviewFormContent } from '@/components/review-form/review-form-content';
 import { mergeWallConfig } from '@/lib/types/wall-config';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 300; // Cache for 5 minutes
 
 interface PageProps {
   params: Promise<{ slug: string }>;

@@ -319,48 +319,6 @@ export function TestimonialWall({ org, reviews, config: configProp }: Testimonia
           </Box>
         )}
 
-        {/* Footer */}
-        {config.showPoweredBy && (
-          <Box sx={{ textAlign: 'center', mt: { xs: 5, md: 6 }, pb: 2 }}>
-            <Typography
-              sx={{
-                fontSize: '0.8rem',
-                color: config.bodyColor,
-                opacity: 0.4,
-                mb: 0.5,
-              }}
-            >
-              Powered by{' '}
-              <Box
-                component="a"
-                href="/"
-                sx={{
-                  color: config.accentColor,
-                  textDecoration: 'none',
-                  fontWeight: 600,
-                  '&:hover': { textDecoration: 'underline' },
-                }}
-              >
-                InsightReviews
-              </Box>
-            </Typography>
-            <Box
-              component="a"
-              href="/"
-              sx={{
-                display: 'inline-block',
-                fontSize: '0.75rem',
-                color: config.accentColor,
-                textDecoration: 'none',
-                fontWeight: 500,
-                opacity: 0.6,
-                '&:hover': { opacity: 1, textDecoration: 'underline' },
-              }}
-            >
-              Get more reviews for your business &rarr;
-            </Box>
-          </Box>
-        )}
       </Container>
     </Box>
   );

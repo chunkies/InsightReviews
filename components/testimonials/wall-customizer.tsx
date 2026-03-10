@@ -642,10 +642,6 @@ export function WallCustomizer({ orgId, orgName, logoUrl, initialConfig, wallUrl
               control={<Switch checked={config.showRatingBadge} onChange={(_, v) => update('showRatingBadge', v)} />}
               label="Show Rating Badge"
             />
-            <FormControlLabel
-              control={<Switch checked={config.showPoweredBy} onChange={(_, v) => update('showPoweredBy', v)} />}
-              label='Show "Powered by"'
-            />
           </AccordionDetails>
         </Accordion>
       </Box>
@@ -846,20 +842,6 @@ export function WallCustomizer({ orgId, orgName, logoUrl, initialConfig, wallUrl
               ))}
             </Box>
 
-            {/* Footer */}
-            {config.showPoweredBy && (
-              <Typography
-                sx={{
-                  textAlign: 'center',
-                  mt: 4,
-                  fontSize: '0.75rem',
-                  color: config.bodyColor,
-                  opacity: 0.5,
-                }}
-              >
-                Powered by InsightReviews
-              </Typography>
-            )}
           </Box>
         </Paper>
       </Box>

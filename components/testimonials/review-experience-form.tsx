@@ -108,6 +108,21 @@ export function ReviewExperienceForm({ org, isOwner, integrations }: ReviewExper
 
   return (
     <Box sx={{ maxWidth: 700 }}>
+      {/* Save button at top — consistent with Customize Design tab */}
+      {isOwner && (
+        <Box sx={{ display: 'flex', gap: 1, mb: 3 }}>
+          <Button
+            variant="contained"
+            startIcon={<Save size={16} />}
+            onClick={handleSave}
+            disabled={saving}
+            sx={{ flex: 1, textTransform: 'none', fontWeight: 600 }}
+          >
+            {saving ? 'Saving...' : 'Save Review Experience'}
+          </Button>
+        </Box>
+      )}
+
       {/* Review Redirect Platforms */}
       <Paper sx={{ p: 3, mb: 3 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
@@ -395,17 +410,6 @@ export function ReviewExperienceForm({ org, isOwner, integrations }: ReviewExper
         </Grid>
       </Paper>
 
-      {isOwner && (
-        <Button
-          variant="contained"
-          startIcon={<Save size={18} />}
-          onClick={handleSave}
-          disabled={saving}
-          size="large"
-        >
-          {saving ? 'Saving...' : 'Save Review Experience'}
-        </Button>
-      )}
     </Box>
   );
 }

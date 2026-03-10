@@ -5,7 +5,7 @@ import {
   Box, Paper, Typography, Button, Chip, Grid,
   Dialog, DialogTitle, DialogContent, DialogActions,
   TextField, List, ListItemButton, ListItemText, Avatar,
-  CircularProgress, Alert, Divider, Switch, FormControlLabel,
+  CircularProgress, Alert, Divider,
 } from '@mui/material';
 import {
   Unlink, RefreshCw, ExternalLink,
@@ -70,9 +70,6 @@ export function IntegrationsPanel({
   }> | null>(null);
   const [yelpSearching, setYelpSearching] = useState(false);
   const [connecting, setConnecting] = useState<string | null>(null);
-  const [reviewFormToggles, setReviewFormToggles] = useState<Record<string, boolean>>(
-    Object.fromEntries(integrations.map(i => [i.platform, i.show_on_review_form]))
-  );
 
   const integrationMap = new Map(integrations.map(i => [i.platform, i]));
   const connectedCount = integrations.length;
@@ -159,24 +156,6 @@ export function IntegrationsPanel({
       showSnackbar('Sync failed', 'error');
     }
     setSyncing({});
-  }
-
-  async function handleToggleReviewForm(platform: string, enabled: boolean) {
-    setReviewFormToggles(prev => ({ ...prev, [platform]: enabled }));
-    try {
-      const integration = integrationMap.get(platform as OrganizationIntegration['platform']);
-      if (!integration) return;
-      const res = await fetch('/api/integrations/toggle-review-form', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ integrationId: integration.id, showOnReviewForm: enabled }),
-      });
-      if (res.ok) {
-        showSnackbar(`${PLATFORM_INFO[platform as keyof typeof PLATFORM_INFO]?.name} ${enabled ? 'shown' : 'hidden'} on review form`);
-      }
-    } catch {
-      setReviewFormToggles(prev => ({ ...prev, [platform]: !enabled }));
-    }
   }
 
   async function handleYelpSearch() {
@@ -401,23 +380,6 @@ export function IntegrationsPanel({
                             </Button>
                           )}
                         </Box>
-                        {isOwner && (
-                          <FormControlLabel
-                            control={
-                              <Switch
-                                size="small"
-                                checked={reviewFormToggles[platform] ?? true}
-                                onChange={(_, v) => handleToggleReviewForm(platform, v)}
-                              />
-                            }
-                            label={
-                              <Typography variant="caption" color="text.secondary">
-                                Show as redirect option on review form
-                              </Typography>
-                            }
-                            sx={{ mt: 1.5, ml: 0 }}
-                          />
-                        )}
                       </>
                     ) : (
                       <Box sx={{ textAlign: 'center', py: 1 }}>

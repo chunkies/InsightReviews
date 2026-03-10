@@ -39,3 +39,7 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 test-results/
+
+# local tooling
+.playwright-mcp/
+supabase/.temp/

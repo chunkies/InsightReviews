@@ -8,6 +8,7 @@ import {
 import { Save, Plus, Trash2 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { useSnackbar } from '@/components/providers/snackbar-provider';
+import { LogoUpload } from '@/components/shared/logo-upload';
 import type { Organization, ReviewPlatform } from '@/lib/types/database';
 
 interface SettingsFormProps {
@@ -18,6 +19,7 @@ interface SettingsFormProps {
 
 export function SettingsForm({ org, platforms: initialPlatforms, isOwner }: SettingsFormProps) {
   const [name, setName] = useState(org.name);
+  const [logoUrl, setLogoUrl] = useState(org.logo_url);
   const [phone, setPhone] = useState(org.phone ?? '');
   const [email, setEmail] = useState(org.email ?? '');
   const [address, setAddress] = useState(org.address ?? '');
@@ -94,6 +96,16 @@ export function SettingsForm({ org, platforms: initialPlatforms, isOwner }: Sett
         <Typography variant="h6" gutterBottom>
           Business Profile
         </Typography>
+        {isOwner && (
+          <Box sx={{ mb: 3 }}>
+            <LogoUpload
+              orgId={org.id}
+              orgName={name}
+              currentLogoUrl={logoUrl}
+              onLogoChange={setLogoUrl}
+            />
+          </Box>
+        )}
         <Grid container spacing={2}>
           <Grid size={{ xs: 12, sm: 6 }}>
             <TextField

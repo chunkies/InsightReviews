@@ -2,6 +2,9 @@ import { Box, Container } from '@mui/material';
 import { createServerClient } from '@supabase/ssr';
 import { notFound } from 'next/navigation';
 import { ReviewFormContent } from '@/components/review-form/review-form-content';
+import { mergeWallConfig } from '@/lib/types/wall-config';
+
+export const dynamic = 'force-dynamic';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -12,7 +15,6 @@ export default async function ReviewPage({ params, searchParams }: PageProps) {
   const { slug } = await params;
   const { rid: reviewRequestId } = await searchParams;
 
-  // Use service role to fetch public org data (no auth needed)
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
@@ -26,7 +28,7 @@ export default async function ReviewPage({ params, searchParams }: PageProps) {
 
   const { data: org } = await supabase
     .from('organizations')
-    .select('id, name, slug, logo_url, positive_threshold')
+    .select('id, name, slug, logo_url, positive_threshold, wall_config')
     .eq('slug', slug)
     .single();
 
@@ -39,11 +41,18 @@ export default async function ReviewPage({ params, searchParams }: PageProps) {
     .eq('enabled', true)
     .order('display_order');
 
+  const config = mergeWallConfig(org.wall_config);
+
+  // Use the wall config for the review form background
+  const bgStyle = config.bgType === 'gradient'
+    ? `linear-gradient(${config.bgGradientAngle}deg, ${config.bgGradientFrom} 0%, ${config.bgGradientTo} 100%)`
+    : config.bgColor;
+
   return (
     <Box
       sx={{
         minHeight: '100vh',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        background: bgStyle,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -61,6 +70,7 @@ export default async function ReviewPage({ params, searchParams }: PageProps) {
           }}
           platforms={platforms ?? []}
           reviewRequestId={reviewRequestId}
+          config={config}
         />
       </Container>
     </Box>

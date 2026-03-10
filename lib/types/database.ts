@@ -1,3 +1,5 @@
+import type { WallConfig } from './wall-config';
+
 export interface Organization {
   id: string;
   name: string;
@@ -8,6 +10,7 @@ export interface Organization {
   address: string | null;
   positive_threshold: number;
   sms_template: string;
+  wall_config: Partial<WallConfig>;
   stripe_customer_id: string | null;
   stripe_subscription_id: string | null;
   billing_plan: 'trial' | 'active' | 'cancelled' | 'past_due';

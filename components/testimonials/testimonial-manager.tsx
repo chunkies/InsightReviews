@@ -1,11 +1,10 @@
 'use client';
 
 import {
-  Box, Paper, Typography, TextField, Button, Card, CardContent,
-  Grid, Alert, Divider, Chip,
+  Box, Paper, Typography, TextField, Button,
+  Alert, Divider, Chip,
 } from '@mui/material';
 import { Copy, Star, ExternalLink, Code, QrCode, Eye, EyeOff } from 'lucide-react';
-import { format } from 'date-fns';
 import type { Review } from '@/lib/types/database';
 import { EmptyState } from '@/components/shared/empty-state';
 import { useSnackbar } from '@/components/providers/snackbar-provider';
@@ -171,48 +170,13 @@ export function TestimonialManager({ reviews, wallUrl }: TestimonialManagerProps
         </Box>
       </Paper>
 
-      {/* Preview of public reviews */}
-      {publicReviews.length === 0 ? (
+      {publicReviews.length === 0 && (
         <EmptyState
           icon={<Star size={48} />}
           title="No public testimonials yet"
           description="Mark positive reviews as public from the Reviews page to show them here."
           action={{ label: 'Go to Reviews', href: '/dashboard/reviews' }}
         />
-      ) : (
-        <Box>
-          <Typography variant="h6" sx={{ mb: 2 }}>
-            Public Reviews Preview
-          </Typography>
-          <Grid container spacing={2}>
-            {publicReviews.map((review) => (
-              <Grid key={review.id} size={{ xs: 12, sm: 6, md: 4 }}>
-                <Card>
-                  <CardContent>
-                    <Box sx={{ display: 'flex', gap: 0.5, mb: 1 }}>
-                      {[1, 2, 3, 4, 5].map((s) => (
-                        <Star
-                          key={s}
-                          size={16}
-                          fill={s <= review.rating ? '#f59e0b' : 'none'}
-                          color={s <= review.rating ? '#f59e0b' : '#d1d5db'}
-                        />
-                      ))}
-                    </Box>
-                    {review.comment && (
-                      <Typography variant="body2" sx={{ mb: 1 }}>
-                        &ldquo;{review.comment}&rdquo;
-                      </Typography>
-                    )}
-                    <Typography variant="caption" color="text.secondary">
-                      {review.customer_name || 'Anonymous'} &middot; {format(new Date(review.created_at), 'dd MMM yyyy')}
-                    </Typography>
-                  </CardContent>
-                </Card>
-              </Grid>
-            ))}
-          </Grid>
-        </Box>
       )}
     </Box>
   );

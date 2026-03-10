@@ -47,16 +47,20 @@ export default async function CollectPage() {
     time: timeAgo(r.created_at),
   }));
 
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+  const reviewUrl = `${siteUrl}/r/${org.slug}`;
+
   return (
     <Box>
       <PageHeader
         title="Collect Reviews"
-        subtitle="Enter the customer's phone number to send a review request"
+        subtitle="Print your QR code and place it where customers can scan it"
       />
       <CollectForm
         orgId={org.id}
         orgName={org.name}
         orgSlug={org.slug}
+        reviewUrl={reviewUrl}
         recentRequests={recentRequests}
       />
     </Box>

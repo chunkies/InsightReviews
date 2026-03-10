@@ -1,6 +1,9 @@
 import { createServerClient } from '@supabase/ssr';
 import { notFound } from 'next/navigation';
 import { TestimonialWall } from '@/components/testimonials/testimonial-wall';
+import { mergeWallConfig } from '@/lib/types/wall-config';
+
+export const dynamic = 'force-dynamic';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -22,7 +25,7 @@ export default async function TestimonialWallPage({ params }: PageProps) {
 
   const { data: org } = await supabase
     .from('organizations')
-    .select('id, name, logo_url')
+    .select('id, name, logo_url, wall_config')
     .eq('slug', slug)
     .single();
 
@@ -35,10 +38,13 @@ export default async function TestimonialWallPage({ params }: PageProps) {
     .eq('is_public', true)
     .order('created_at', { ascending: false });
 
+  const config = mergeWallConfig(org.wall_config);
+
   return (
     <TestimonialWall
       org={{ name: org.name, logo_url: org.logo_url }}
       reviews={reviews ?? []}
+      config={config}
     />
   );
 }

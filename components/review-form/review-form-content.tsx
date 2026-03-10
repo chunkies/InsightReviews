@@ -6,6 +6,9 @@ import {
 } from '@mui/material';
 import { Star, ExternalLink, MessageCircle } from 'lucide-react';
 
+import type { WallConfig } from '@/lib/types/wall-config';
+import { DEFAULT_WALL_CONFIG } from '@/lib/types/wall-config';
+
 /* ─── Types ─────────────────────────────────────────────────────── */
 
 interface ReviewFormContentProps {
@@ -24,6 +27,7 @@ interface ReviewFormContentProps {
     display_order: number;
   }>;
   reviewRequestId?: string;
+  config?: WallConfig;
 }
 
 type FormState = 'rating' | 'submitting' | 'positive' | 'negative' | 'error';
@@ -228,7 +232,9 @@ function BackgroundGlow({ rating, formState }: { rating: number; formState: Form
 
 /* ─── Main Component ────────────────────────────────────────────── */
 
-export function ReviewFormContent({ org, platforms, reviewRequestId }: ReviewFormContentProps) {
+export function ReviewFormContent({ org, platforms, reviewRequestId, config: cfg }: ReviewFormContentProps) {
+  const config = cfg ?? DEFAULT_WALL_CONFIG;
+  const accentColor = config.accentColor;
   const [rating, setRating] = useState(0);
   const [hoveredRating, setHoveredRating] = useState(0);
   const [comment, setComment] = useState('');
@@ -297,12 +303,12 @@ export function ReviewFormContent({ org, platforms, reviewRequestId }: ReviewFor
     overflow: 'hidden',
     p: { xs: 3, sm: 4 },
     textAlign: 'center' as const,
-    borderRadius: 4,
+    borderRadius: `${config.cardBorderRadius}px`,
     boxShadow: '0 20px 60px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.06)',
     border: '1px solid',
     borderColor: 'rgba(255,255,255,0.6)',
     backdropFilter: 'blur(10px)',
-    background: 'rgba(255,255,255,0.96)',
+    background: config.cardBg,
   };
 
   /* ─── Positive Thank-You ────────────────────────────────── */
@@ -346,7 +352,6 @@ export function ReviewFormContent({ org, platforms, reviewRequestId }: ReviewFor
           </Typography>
 
           <Typography
-            color="text.secondary"
             sx={{
               mb: 3.5,
               animation: 'rf-fade-in 0.5s ease 0.45s both',
@@ -354,6 +359,8 @@ export function ReviewFormContent({ org, platforms, reviewRequestId }: ReviewFor
               lineHeight: 1.6,
               maxWidth: 380,
               mx: 'auto',
+              color: config.bodyColor,
+              fontFamily: config.bodyFont,
             }}
           >
             We&apos;re thrilled you had a great experience at <strong>{org.name}</strong>!
@@ -452,7 +459,7 @@ export function ReviewFormContent({ org, platforms, reviewRequestId }: ReviewFor
           <Box sx={{
             mb: 2,
             animation: 'rf-fade-in 0.5s ease 0.2s both',
-            color: '#6366F1',
+            color: accentColor,
           }}>
             <MessageCircle size={56} strokeWidth={1.5} />
           </Box>
@@ -463,15 +470,15 @@ export function ReviewFormContent({ org, platforms, reviewRequestId }: ReviewFor
             sx={{
               animation: 'rf-fade-in 0.5s ease 0.3s both',
               mb: 1.5,
-              fontSize: { xs: '1.5rem', sm: '1.85rem' },
-              color: 'text.primary',
+              fontSize: { xs: `${1.5 * config.headerSize}rem`, sm: `${1.85 * config.headerSize}rem` },
+              color: config.headerColor,
+              fontFamily: config.headerFont,
             }}
           >
             Thank you for your feedback
           </Typography>
 
           <Typography
-            color="text.secondary"
             sx={{
               animation: 'rf-fade-in 0.5s ease 0.45s both',
               fontSize: { xs: '0.95rem', sm: '1.05rem' },
@@ -479,6 +486,8 @@ export function ReviewFormContent({ org, platforms, reviewRequestId }: ReviewFor
               maxWidth: 380,
               mx: 'auto',
               mb: 2,
+              color: config.bodyColor,
+              fontFamily: config.bodyFont,
             }}
           >
             We appreciate you taking the time to share your thoughts.
@@ -571,19 +580,21 @@ export function ReviewFormContent({ org, platforms, reviewRequestId }: ReviewFor
           fontWeight={800}
           sx={{
             mb: 0.5,
-            fontSize: { xs: '1.6rem', sm: '2.1rem' },
+            fontSize: { xs: `${1.6 * config.headerSize}rem`, sm: `${2.1 * config.headerSize}rem` },
             letterSpacing: '-0.02em',
-            color: 'text.primary',
+            color: config.headerColor,
             lineHeight: 1.2,
+            fontFamily: config.headerFont,
           }}
         >
           How was your experience?
         </Typography>
         <Typography
-          color="text.secondary"
           sx={{
             mb: { xs: 3, sm: 3.5 },
             fontSize: { xs: '1rem', sm: '1.1rem' },
+            color: config.bodyColor,
+            fontFamily: config.bodyFont,
           }}
         >
           at <strong>{org.name}</strong>
@@ -626,8 +637,8 @@ export function ReviewFormContent({ org, platforms, reviewRequestId }: ReviewFor
               >
                 <Star
                   size={56}
-                  fill={isActive ? '#FACC15' : 'none'}
-                  color={isActive ? '#F59E0B' : '#D1D5DB'}
+                  fill={isActive ? config.starColor : 'none'}
+                  color={isActive ? config.starColor : '#D1D5DB'}
                   strokeWidth={isActive ? 1.2 : 1.5}
                   style={{
                     transition: 'fill 0.2s ease, color 0.2s ease',
@@ -718,13 +729,13 @@ export function ReviewFormContent({ org, platforms, reviewRequestId }: ReviewFor
                 letterSpacing: '0.01em',
                 background: formState === 'submitting'
                   ? undefined
-                  : 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)',
+                  : `linear-gradient(135deg, ${accentColor} 0%, ${accentColor}cc 100%)`,
                 boxShadow: '0 4px 14px rgba(99, 102, 241, 0.3)',
                 transition: 'all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1)',
                 '&:hover': {
                   transform: 'translateY(-1px) scale(1.01)',
                   boxShadow: '0 8px 24px rgba(99, 102, 241, 0.4)',
-                  background: 'linear-gradient(135deg, #5558E6 0%, #7C4FE0 100%)',
+                  background: `linear-gradient(135deg, ${accentColor}ee 0%, ${accentColor}aa 100%)`,
                 },
                 '&:active': {
                   transform: 'translateY(0) scale(0.98)',

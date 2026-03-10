@@ -148,6 +148,7 @@ export interface OrganizationIntegration {
   connected_at: string;
   last_synced_at: string | null;
   sync_enabled: boolean;
+  show_on_review_form: boolean;
   created_at: string;
 }
 

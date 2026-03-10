@@ -3,13 +3,11 @@
 import { useState, useMemo } from 'react';
 import {
   Box, Paper, Typography, Chip, Avatar, Rating,
-  TextField, ToggleButtonGroup, ToggleButton,
-  Select, MenuItem, FormControl, InputLabel,
-  Divider,
+  TextField, Select, MenuItem, FormControl, InputLabel,
+  Divider, ToggleButton,
 } from '@mui/material';
 import {
-  Star, MessageSquare, ExternalLink, Search,
-  Globe, Building2,
+  Star, MessageSquare, Search, Globe, Building2,
 } from 'lucide-react';
 import type { Review, ExternalReview } from '@/lib/types/database';
 
@@ -27,11 +25,17 @@ interface UnifiedReview {
   has_reply: boolean;
 }
 
-const PLATFORM_BADGE: Record<string, { label: string; color: string; bgColor: string }> = {
-  internal: { label: 'InsightReviews', color: '#7c3aed', bgColor: '#f3e8ff' },
-  google: { label: 'Google', color: '#4285F4', bgColor: '#E8F0FE' },
-  facebook: { label: 'Facebook', color: '#1877F2', bgColor: '#E7F3FF' },
-  yelp: { label: 'Yelp', color: '#D32323', bgColor: '#FDE8E8' },
+const PLATFORM_BADGE: Record<string, {
+  label: string;
+  color: string;
+  bgColor: string;
+  icon: string;
+  gradient: string;
+}> = {
+  internal: { label: 'InsightReviews', color: '#7c3aed', bgColor: '#f3e8ff', icon: '⭐', gradient: 'linear-gradient(135deg, #7c3aed, #a855f7)' },
+  google: { label: 'Google', color: '#4285F4', bgColor: '#E8F0FE', icon: '🔍', gradient: 'linear-gradient(135deg, #4285F4, #34A853)' },
+  facebook: { label: 'Facebook', color: '#1877F2', bgColor: '#E7F3FF', icon: '📘', gradient: 'linear-gradient(135deg, #1877F2, #42A5F5)' },
+  yelp: { label: 'Yelp', color: '#D32323', bgColor: '#FDE8E8', icon: '🔥', gradient: 'linear-gradient(135deg, #D32323, #FF5722)' },
 };
 
 interface UnifiedReviewListProps {
@@ -50,7 +54,6 @@ export function UnifiedReviewList({
   const [ratingFilter, setRatingFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'highest' | 'lowest'>('newest');
 
-  // Merge all reviews into a unified format
   const allReviews = useMemo<UnifiedReview[]>(() => {
     const internal: UnifiedReview[] = internalReviews.map(r => ({
       id: r.id,
@@ -80,127 +83,198 @@ export function UnifiedReviewList({
     return [...internal, ...external];
   }, [internalReviews, externalReviews]);
 
-  // Apply filters and search
   const filtered = useMemo(() => {
     let results = allReviews;
-
-    // Platform filter
     if (platformFilter !== 'all') {
       results = results.filter(r => r.source === platformFilter);
     }
-
-    // Rating filter
     if (ratingFilter !== 'all') {
-      const minRating = parseInt(ratingFilter);
-      results = results.filter(r => r.rating === minRating);
+      results = results.filter(r => r.rating === parseInt(ratingFilter));
     }
-
-    // Search
     if (search.trim()) {
       const q = search.toLowerCase();
       results = results.filter(r =>
-        r.comment?.toLowerCase().includes(q) ||
-        r.reviewer_name?.toLowerCase().includes(q)
+        r.comment?.toLowerCase().includes(q) || r.reviewer_name?.toLowerCase().includes(q)
       );
     }
-
-    // Sort
     results.sort((a, b) => {
       if (sortBy === 'newest') return new Date(b.date).getTime() - new Date(a.date).getTime();
       if (sortBy === 'oldest') return new Date(a.date).getTime() - new Date(b.date).getTime();
       if (sortBy === 'highest') return (b.rating ?? 0) - (a.rating ?? 0);
-      if (sortBy === 'lowest') return (a.rating ?? 0) - (b.rating ?? 0);
-      return 0;
+      return (a.rating ?? 0) - (b.rating ?? 0);
     });
-
     return results;
   }, [allReviews, platformFilter, ratingFilter, search, sortBy]);
 
-  // Stats
+  // Stats per platform
   const stats = useMemo(() => {
-    const total = allReviews.length;
-    const withRating = allReviews.filter(r => r.rating);
-    const avg = withRating.length > 0
-      ? withRating.reduce((sum, r) => sum + (r.rating ?? 0), 0) / withRating.length
-      : 0;
-    const byPlatform: Record<string, number> = {};
+    const byPlatform: Record<string, { count: number; totalRating: number; ratedCount: number }> = {};
     allReviews.forEach(r => {
-      byPlatform[r.source] = (byPlatform[r.source] || 0) + 1;
+      if (!byPlatform[r.source]) {
+        byPlatform[r.source] = { count: 0, totalRating: 0, ratedCount: 0 };
+      }
+      byPlatform[r.source].count++;
+      if (r.rating) {
+        byPlatform[r.source].totalRating += r.rating;
+        byPlatform[r.source].ratedCount++;
+      }
     });
-    return { total, avg, byPlatform };
+    return byPlatform;
   }, [allReviews]);
 
-  // Available platforms for filter
-  const availablePlatforms = useMemo(() => {
-    const platforms = new Set(allReviews.map(r => r.source));
-    return Array.from(platforms);
-  }, [allReviews]);
+  const totalReviews = allReviews.length;
+  const totalRated = allReviews.filter(r => r.rating).reduce((sum, r) => sum + (r.rating ?? 0), 0);
+  const avgRating = allReviews.filter(r => r.rating).length > 0
+    ? totalRated / allReviews.filter(r => r.rating).length
+    : 0;
+  const availablePlatforms = Object.keys(stats);
 
   return (
     <Box>
-      {/* Stats row */}
+      {/* Platform filter chips with stats */}
+      <Box sx={{ display: 'flex', gap: 1.5, mb: 3, flexWrap: 'wrap' }}>
+        <ToggleButton
+          value="all"
+          selected={platformFilter === 'all'}
+          onChange={() => setPlatformFilter('all')}
+          sx={{
+            border: 'none',
+            borderRadius: '12px !important',
+            px: 2.5,
+            py: 1,
+            textTransform: 'none',
+            fontWeight: 600,
+            fontSize: '0.85rem',
+            gap: 1,
+            backgroundColor: platformFilter === 'all' ? 'primary.main' : 'action.hover',
+            color: platformFilter === 'all' ? 'white' : 'text.primary',
+            '&:hover': { backgroundColor: platformFilter === 'all' ? 'primary.dark' : 'action.selected' },
+            '&.Mui-selected': { backgroundColor: 'primary.main', color: 'white' },
+          }}
+        >
+          <Globe size={16} />
+          All ({totalReviews})
+        </ToggleButton>
+
+        {availablePlatforms.map(platform => {
+          const badge = PLATFORM_BADGE[platform];
+          const s = stats[platform];
+          const isActive = platformFilter === platform;
+          return (
+            <ToggleButton
+              key={platform}
+              value={platform}
+              selected={isActive}
+              onChange={() => setPlatformFilter(isActive ? 'all' : platform)}
+              sx={{
+                border: 'none',
+                borderRadius: '12px !important',
+                px: 2.5,
+                py: 1,
+                textTransform: 'none',
+                fontWeight: 600,
+                fontSize: '0.85rem',
+                gap: 1,
+                backgroundColor: isActive ? badge?.color : badge?.bgColor,
+                color: isActive ? 'white' : badge?.color,
+                '&:hover': {
+                  backgroundColor: isActive ? badge?.color : badge?.bgColor,
+                  filter: 'brightness(0.95)',
+                },
+                '&.Mui-selected': {
+                  backgroundColor: badge?.color,
+                  color: 'white',
+                },
+              }}
+            >
+              <span>{badge?.icon}</span>
+              {badge?.label} ({s.count})
+            </ToggleButton>
+          );
+        })}
+      </Box>
+
+      {/* Stats cards */}
       <Box sx={{ display: 'flex', gap: 2, mb: 3, flexWrap: 'wrap' }}>
-        <Paper sx={{ px: 3, py: 2, borderRadius: 3, flex: '1 1 140px', minWidth: 140 }}>
-          <Typography variant="caption" color="text.secondary">Total Reviews</Typography>
-          <Typography variant="h4" fontWeight={800}>{stats.total}</Typography>
+        <Paper
+          elevation={0}
+          sx={{
+            px: 3, py: 2, borderRadius: 3, flex: '1 1 160px', minWidth: 160,
+            background: 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)',
+            border: '1px solid #bae6fd',
+          }}
+        >
+          <Typography variant="caption" color="text.secondary" fontWeight={600}>Total Reviews</Typography>
+          <Typography variant="h4" fontWeight={800}>{totalReviews}</Typography>
         </Paper>
-        <Paper sx={{ px: 3, py: 2, borderRadius: 3, flex: '1 1 140px', minWidth: 140 }}>
-          <Typography variant="caption" color="text.secondary">Average Rating</Typography>
+        <Paper
+          elevation={0}
+          sx={{
+            px: 3, py: 2, borderRadius: 3, flex: '1 1 160px', minWidth: 160,
+            background: 'linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)',
+            border: '1px solid #fde68a',
+          }}
+        >
+          <Typography variant="caption" color="text.secondary" fontWeight={600}>Average Rating</Typography>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Typography variant="h4" fontWeight={800}>{stats.avg.toFixed(1)}</Typography>
+            <Typography variant="h4" fontWeight={800}>{avgRating.toFixed(1)}</Typography>
             <Star size={20} fill="#f59e0b" color="#f59e0b" />
           </Box>
         </Paper>
-        {Object.entries(stats.byPlatform).map(([platform, count]) => (
-          <Paper key={platform} sx={{ px: 3, py: 2, borderRadius: 3, flex: '1 1 140px', minWidth: 140 }}>
-            <Typography variant="caption" color="text.secondary">
-              {PLATFORM_BADGE[platform]?.label || platform}
-            </Typography>
-            <Typography variant="h4" fontWeight={800}>{count}</Typography>
-          </Paper>
-        ))}
+        {availablePlatforms.map(platform => {
+          const badge = PLATFORM_BADGE[platform];
+          const s = stats[platform];
+          const avg = s.ratedCount > 0 ? (s.totalRating / s.ratedCount).toFixed(1) : '—';
+          return (
+            <Paper
+              key={platform}
+              elevation={0}
+              sx={{
+                px: 3, py: 2, borderRadius: 3, flex: '1 1 140px', minWidth: 140,
+                background: badge?.bgColor,
+                border: `1px solid ${badge?.color}30`,
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.5 }}>
+                <span style={{ fontSize: 14 }}>{badge?.icon}</span>
+                <Typography variant="caption" color="text.secondary" fontWeight={600}>
+                  {badge?.label}
+                </Typography>
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1 }}>
+                <Typography variant="h5" fontWeight={800}>{s.count}</Typography>
+                <Typography variant="caption" color="text.secondary">avg {avg}</Typography>
+              </Box>
+            </Paper>
+          );
+        })}
       </Box>
 
-      {/* Filters */}
-      <Paper sx={{ p: 2, mb: 3, borderRadius: 3 }}>
+      {/* Search and sort */}
+      <Paper elevation={0} sx={{ p: 2, mb: 3, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
         <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'center' }}>
           <TextField
             size="small"
             placeholder="Search reviews..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            slotProps={{ input: { startAdornment: <Search size={16} style={{ marginRight: 8, opacity: 0.5 }} /> } }}
-            sx={{ flex: '1 1 200px', minWidth: 200 }}
+            slotProps={{ input: { startAdornment: <Search size={16} style={{ marginRight: 8, opacity: 0.4 }} /> } }}
+            sx={{ flex: '1 1 250px', minWidth: 200 }}
           />
-          <ToggleButtonGroup
-            size="small"
-            value={platformFilter}
-            exclusive
-            onChange={(_, v) => v && setPlatformFilter(v)}
-          >
-            <ToggleButton value="all">All</ToggleButton>
-            {availablePlatforms.map(p => (
-              <ToggleButton key={p} value={p}>
-                {PLATFORM_BADGE[p]?.label || p}
-              </ToggleButton>
-            ))}
-          </ToggleButtonGroup>
           <FormControl size="small" sx={{ minWidth: 100 }}>
             <InputLabel>Rating</InputLabel>
             <Select value={ratingFilter} label="Rating" onChange={(e) => setRatingFilter(e.target.value)}>
               <MenuItem value="all">All</MenuItem>
-              <MenuItem value="5">5 stars</MenuItem>
-              <MenuItem value="4">4 stars</MenuItem>
-              <MenuItem value="3">3 stars</MenuItem>
-              <MenuItem value="2">2 stars</MenuItem>
-              <MenuItem value="1">1 star</MenuItem>
+              {[5, 4, 3, 2, 1].map(n => (
+                <MenuItem key={n} value={String(n)}>{n} star{n !== 1 ? 's' : ''}</MenuItem>
+              ))}
             </Select>
           </FormControl>
-          <FormControl size="small" sx={{ minWidth: 120 }}>
-            <InputLabel>Sort</InputLabel>
-            <Select value={sortBy} label="Sort" onChange={(e) => setSortBy(e.target.value as typeof sortBy)}>
-              <MenuItem value="newest">Newest</MenuItem>
-              <MenuItem value="oldest">Oldest</MenuItem>
+          <FormControl size="small" sx={{ minWidth: 130 }}>
+            <InputLabel>Sort by</InputLabel>
+            <Select value={sortBy} label="Sort by" onChange={(e) => setSortBy(e.target.value as typeof sortBy)}>
+              <MenuItem value="newest">Newest first</MenuItem>
+              <MenuItem value="oldest">Oldest first</MenuItem>
               <MenuItem value="highest">Highest rated</MenuItem>
               <MenuItem value="lowest">Lowest rated</MenuItem>
             </Select>
@@ -210,20 +284,20 @@ export function UnifiedReviewList({
 
       {/* Review list */}
       {filtered.length === 0 ? (
-        <Paper sx={{ p: 6, textAlign: 'center', borderRadius: 3 }}>
-          <Globe size={48} style={{ opacity: 0.3, marginBottom: 16 }} />
-          <Typography variant="h6" color="text.secondary">
-            No reviews yet
+        <Paper elevation={0} sx={{ p: 8, textAlign: 'center', borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
+          <Globe size={48} style={{ opacity: 0.15, marginBottom: 16 }} />
+          <Typography variant="h6" color="text.secondary" fontWeight={600}>
+            No reviews found
           </Typography>
-          <Typography variant="body2" color="text.secondary">
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
             {allReviews.length === 0
-              ? 'Connect your review platforms in Integrations to see reviews here.'
-              : 'No reviews match your current filters.'
+              ? 'Connect your review platforms in the Integrations tab to see all your reviews here.'
+              : 'Try adjusting your filters or search query.'
             }
           </Typography>
         </Paper>
       ) : (
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
           {filtered.map((review) => (
             <ReviewCard key={`${review.source}-${review.id}`} review={review} />
           ))}
@@ -237,47 +311,64 @@ function ReviewCard({ review }: { review: UnifiedReview }) {
   const badge = PLATFORM_BADGE[review.source];
 
   return (
-    <Paper sx={{ p: 3, borderRadius: 3 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1.5 }}>
+    <Paper
+      elevation={0}
+      sx={{
+        p: 2.5,
+        borderRadius: 2.5,
+        border: '1px solid',
+        borderColor: 'divider',
+        transition: 'border-color 0.15s ease',
+        '&:hover': { borderColor: badge?.color || 'primary.main' },
+      }}
+    >
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
           <Avatar
             src={review.reviewer_avatar || undefined}
-            sx={{ width: 40, height: 40, bgcolor: badge?.color || '#888' }}
+            sx={{
+              width: 38,
+              height: 38,
+              background: badge?.gradient || '#888',
+              fontSize: '0.9rem',
+            }}
           >
             {review.source === 'internal'
-              ? <Building2 size={18} />
+              ? <Building2 size={16} />
               : (review.reviewer_name?.[0]?.toUpperCase() || '?')
             }
           </Avatar>
           <Box>
-            <Typography variant="subtitle2" fontWeight={600}>
-              {review.reviewer_name || 'Anonymous'}
-            </Typography>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              {review.rating && (
-                <Rating value={review.rating} readOnly size="small" />
-              )}
+              <Typography variant="subtitle2" fontWeight={600} sx={{ lineHeight: 1.2 }}>
+                {review.reviewer_name || 'Anonymous'}
+              </Typography>
               <Chip
                 label={badge?.label || review.source}
                 size="small"
                 sx={{
-                  height: 20,
-                  fontSize: '0.65rem',
-                  fontWeight: 600,
+                  height: 18,
+                  fontSize: '0.6rem',
+                  fontWeight: 700,
+                  letterSpacing: 0.3,
                   backgroundColor: badge?.bgColor,
                   color: badge?.color,
+                  '& .MuiChip-label': { px: 1 },
                 }}
               />
             </Box>
+            {review.rating && (
+              <Rating value={review.rating} readOnly size="small" sx={{ mt: 0.25 }} />
+            )}
           </Box>
         </Box>
-        <Typography variant="caption" color="text.secondary">
+        <Typography variant="caption" color="text.secondary" sx={{ whiteSpace: 'nowrap' }}>
           {new Date(review.date).toLocaleDateString()}
         </Typography>
       </Box>
 
       {review.comment && (
-        <Typography variant="body2" sx={{ mb: 1, lineHeight: 1.6 }}>
+        <Typography variant="body2" sx={{ mt: 1, lineHeight: 1.6, color: 'text.secondary' }}>
           {review.comment}
         </Typography>
       )}
@@ -285,13 +376,13 @@ function ReviewCard({ review }: { review: UnifiedReview }) {
       {review.reply_text && (
         <>
           <Divider sx={{ my: 1.5 }} />
-          <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-start' }}>
-            <MessageSquare size={14} style={{ marginTop: 3, opacity: 0.5 }} />
+          <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-start', pl: 1 }}>
+            <MessageSquare size={13} style={{ marginTop: 3, opacity: 0.4 }} />
             <Box>
               <Typography variant="caption" color="text.secondary" fontWeight={600}>
                 Business reply
               </Typography>
-              <Typography variant="body2" color="text.secondary">
+              <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.8rem' }}>
                 {review.reply_text}
               </Typography>
             </Box>
@@ -299,34 +390,24 @@ function ReviewCard({ review }: { review: UnifiedReview }) {
         </>
       )}
 
-      {/* Status badges for internal reviews */}
       {review.source === 'internal' && (
-        <Box sx={{ display: 'flex', gap: 1, mt: 1.5 }}>
-          {review.is_positive !== undefined && (
-            <Chip
-              label={review.is_positive ? 'Positive' : 'Negative'}
-              size="small"
-              sx={{
-                height: 22,
-                fontSize: '0.7rem',
-                backgroundColor: review.is_positive ? '#dcfce7' : '#fee2e2',
-                color: review.is_positive ? '#166534' : '#991b1b',
-              }}
-            />
-          )}
-          {review.is_public && (
-            <Chip
-              label="Public"
-              size="small"
-              icon={<ExternalLink size={12} />}
-              sx={{ height: 22, fontSize: '0.7rem', '& .MuiChip-icon': { fontSize: 12 } }}
-            />
-          )}
+        <Box sx={{ display: 'flex', gap: 0.75, mt: 1.5 }}>
+          <Chip
+            label={review.is_positive ? 'Positive' : 'Negative'}
+            size="small"
+            sx={{
+              height: 20,
+              fontSize: '0.65rem',
+              fontWeight: 600,
+              backgroundColor: review.is_positive ? '#dcfce7' : '#fee2e2',
+              color: review.is_positive ? '#166534' : '#991b1b',
+            }}
+          />
           {review.has_reply && (
             <Chip
               label="Responded"
               size="small"
-              sx={{ height: 22, fontSize: '0.7rem', backgroundColor: '#dbeafe', color: '#1e40af' }}
+              sx={{ height: 20, fontSize: '0.65rem', fontWeight: 600, backgroundColor: '#dbeafe', color: '#1e40af' }}
             />
           )}
         </Box>

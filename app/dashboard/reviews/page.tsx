@@ -17,11 +17,11 @@ export default async function ReviewsPage() {
 
   if (!member) redirect('/onboarding');
 
-  // Parallel queries for all data
-  const [orgRes, reviewsRes, externalRes, integrationsRes, reviewCountsRes] = await Promise.all([
+  // Parallel queries
+  const [orgRes, reviewsRes, externalRes, integrationsRes] = await Promise.all([
     supabase
       .from('organizations')
-      .select('email, name, slug, address')
+      .select('email, name, slug')
       .eq('id', member.organization_id)
       .single(),
     supabase
@@ -40,16 +40,7 @@ export default async function ReviewsPage() {
       .from('organization_integrations')
       .select('*')
       .eq('organization_id', member.organization_id),
-    supabase
-      .from('external_reviews')
-      .select('platform')
-      .eq('organization_id', member.organization_id),
   ]);
-
-  const countByPlatform: Record<string, number> = {};
-  (reviewCountsRes.data || []).forEach((r: { platform: string }) => {
-    countByPlatform[r.platform] = (countByPlatform[r.platform] || 0) + 1;
-  });
 
   return (
     <Box>
@@ -61,13 +52,10 @@ export default async function ReviewsPage() {
         reviews={reviewsRes.data || []}
         externalReviews={externalRes.data || []}
         integrations={integrationsRes.data || []}
-        reviewCounts={countByPlatform}
         isOwner={member.role === 'owner'}
         orgEmail={orgRes.data?.email ?? null}
         orgName={orgRes.data?.name ?? ''}
         orgSlug={orgRes.data?.slug ?? ''}
-        orgAddress={orgRes.data?.address ?? ''}
-        organizationId={member.organization_id}
       />
     </Box>
   );

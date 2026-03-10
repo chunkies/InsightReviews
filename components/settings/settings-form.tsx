@@ -280,49 +280,63 @@ export function SettingsForm({ org, platforms: initialPlatforms, isOwner }: Sett
 
       {/* Review Platforms */}
       <Paper sx={{ p: 3, mb: 3 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-          <Typography variant="h6">
-            Review Platforms
-          </Typography>
-          {isOwner && (
-            <Button startIcon={<Plus size={16} />} onClick={addPlatform} size="small">
-              Add Platform
-            </Button>
-          )}
-        </Box>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          Add your business review page URLs. Customers with positive reviews will be directed here.
+        <Typography variant="h6" gutterBottom>
+          Review Platforms
         </Typography>
-        {platforms.map((p) => (
-          <Box key={p.id} sx={{ display: 'flex', gap: 1, mb: 1.5, alignItems: 'center' }}>
-            <FormControl size="small" sx={{ minWidth: 140 }}>
-              <Select
-                value={p.platform}
-                onChange={(e) => updatePlatform(p.id, 'platform', e.target.value)}
-                disabled={!isOwner}
-              >
-                <MenuItem value="google">Google</MenuItem>
-                <MenuItem value="yelp">Yelp</MenuItem>
-                <MenuItem value="facebook">Facebook</MenuItem>
-                <MenuItem value="tripadvisor">TripAdvisor</MenuItem>
-                <MenuItem value="other">Other</MenuItem>
-              </Select>
-            </FormControl>
-            <TextField
-              fullWidth
-              size="small"
-              placeholder="https://..."
-              value={p.url}
-              onChange={(e) => updatePlatform(p.id, 'url', e.target.value)}
-              disabled={!isOwner}
-            />
-            {isOwner && (
-              <IconButton size="small" color="error" onClick={() => removePlatform(p.id)}>
-                <Trash2 size={16} />
-              </IconButton>
-            )}
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+          Connected integrations automatically appear as redirect options when customers leave positive reviews.
+          Connect platforms in the Reviews &rarr; Integrations tab.
+        </Typography>
+        {platforms.length > 0 && (
+          <Box sx={{ mb: 2 }}>
+            {platforms.map((p) => (
+              <Box key={p.id} sx={{ display: 'flex', gap: 1, mb: 1.5, alignItems: 'center' }}>
+                <FormControl size="small" sx={{ minWidth: 140 }}>
+                  <Select
+                    value={p.platform}
+                    onChange={(e) => updatePlatform(p.id, 'platform', e.target.value)}
+                    disabled={!isOwner}
+                  >
+                    <MenuItem value="google">Google</MenuItem>
+                    <MenuItem value="yelp">Yelp</MenuItem>
+                    <MenuItem value="facebook">Facebook</MenuItem>
+                    <MenuItem value="tripadvisor">TripAdvisor</MenuItem>
+                    <MenuItem value="other">Other</MenuItem>
+                  </Select>
+                </FormControl>
+                <TextField
+                  fullWidth
+                  size="small"
+                  placeholder="https://..."
+                  value={p.url}
+                  onChange={(e) => updatePlatform(p.id, 'url', e.target.value)}
+                  disabled={!isOwner}
+                />
+                {isOwner && (
+                  <IconButton size="small" color="error" onClick={() => removePlatform(p.id)}>
+                    <Trash2 size={16} />
+                  </IconButton>
+                )}
+              </Box>
+            ))}
           </Box>
-        ))}
+        )}
+        {isOwner && (
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <Button
+              component="a"
+              href="/dashboard/reviews"
+              variant="outlined"
+              size="small"
+              startIcon={<Send size={14} />}
+            >
+              Manage Integrations
+            </Button>
+            <Button startIcon={<Plus size={16} />} onClick={addPlatform} size="small" variant="text">
+              Add Manual Platform
+            </Button>
+          </Box>
+        )}
       </Paper>
 
       {isOwner && (

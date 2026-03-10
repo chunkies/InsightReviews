@@ -231,8 +231,14 @@ export function ReviewExperienceForm({ org, isOwner }: ReviewExperienceFormProps
         <Typography variant="subtitle2" sx={{ mb: 1.5, fontWeight: 700 }}>
           Social Media Links (Optional)
         </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+          Show &ldquo;Follow us&rdquo; buttons on the thank-you page after a review.
+        </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          Show social media buttons on the thank-you page so customers can follow you.
+          Looking to connect review platforms (Google, Facebook, Yelp)?{' '}
+          <a href="/dashboard/integrations" style={{ color: '#2563eb', fontWeight: 600 }}>
+            Go to Integrations
+          </a>
         </Typography>
         <Grid container spacing={2}>
           <Grid size={{ xs: 12, sm: 6 }}>

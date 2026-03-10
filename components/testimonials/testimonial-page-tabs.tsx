@@ -18,36 +18,45 @@ export function TestimonialPageTabs({ managerContent, customizerContent, reviewE
       <Tabs
         value={tab}
         onChange={(_, v) => setTab(v)}
-        sx={{ mb: 3, borderBottom: 1, borderColor: 'divider' }}
+        sx={{
+          mb: 3,
+          '& .MuiTab-root': {
+            textTransform: 'none',
+            fontWeight: 600,
+            fontSize: '0.9rem',
+            minHeight: 44,
+          },
+          '& .MuiTabs-indicator': {
+            height: 3,
+            borderRadius: 1.5,
+          },
+        }}
       >
-        <Tab
-          icon={<LayoutGrid size={16} />}
-          iconPosition="start"
-          label="Manage & Share"
-          sx={{ textTransform: 'none', fontWeight: 600 }}
-        />
         <Tab
           icon={<Settings2 size={16} />}
           iconPosition="start"
           label="Customize Design"
-          sx={{ textTransform: 'none', fontWeight: 600 }}
         />
         <Tab
           icon={<Star size={16} />}
           iconPosition="start"
           label="Review Experience"
-          sx={{ textTransform: 'none', fontWeight: 600 }}
+        />
+        <Tab
+          icon={<LayoutGrid size={16} />}
+          iconPosition="start"
+          label="Manage & Share"
         />
       </Tabs>
 
       <Box sx={{ display: tab === 0 ? 'block' : 'none' }}>
-        {managerContent}
-      </Box>
-      <Box sx={{ display: tab === 1 ? 'block' : 'none' }}>
         {customizerContent}
       </Box>
-      <Box sx={{ display: tab === 2 ? 'block' : 'none' }}>
+      <Box sx={{ display: tab === 1 ? 'block' : 'none' }}>
         {reviewExperienceContent}
+      </Box>
+      <Box sx={{ display: tab === 2 ? 'block' : 'none' }}>
+        {managerContent}
       </Box>
     </Box>
   );

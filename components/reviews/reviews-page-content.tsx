@@ -2,36 +2,29 @@
 
 import { useState } from 'react';
 import { Box, Tabs, Tab } from '@mui/material';
-import { Star, Globe, Link2 } from 'lucide-react';
+import { Star, Globe } from 'lucide-react';
 import { ReviewList } from '@/components/reviews/review-list';
 import { UnifiedReviewList } from '@/components/integrations/unified-review-list';
-import { IntegrationsPanel } from '@/components/integrations/integrations-panel';
 import type { Review, ExternalReview, OrganizationIntegration } from '@/lib/types/database';
 
 interface ReviewsPageContentProps {
   reviews: Review[];
   externalReviews: ExternalReview[];
   integrations: OrganizationIntegration[];
-  reviewCounts: Record<string, number>;
   isOwner: boolean;
   orgEmail: string | null;
   orgName: string;
   orgSlug: string;
-  orgAddress: string;
-  organizationId: string;
 }
 
 export function ReviewsPageContent({
   reviews,
   externalReviews,
   integrations,
-  reviewCounts,
   isOwner,
   orgEmail,
   orgName,
   orgSlug,
-  orgAddress,
-  organizationId,
 }: ReviewsPageContentProps) {
   const [tab, setTab] = useState(0);
 
@@ -64,11 +57,6 @@ export function ReviewsPageContent({
           iconPosition="start"
           label="All Platforms"
         />
-        <Tab
-          icon={<Link2 size={16} />}
-          iconPosition="start"
-          label="Integrations"
-        />
       </Tabs>
 
       {tab === 0 && (
@@ -87,17 +75,6 @@ export function ReviewsPageContent({
           externalReviews={externalReviews}
           integrations={integrations}
           isOwner={isOwner}
-        />
-      )}
-
-      {tab === 2 && (
-        <IntegrationsPanel
-          integrations={integrations}
-          reviewCounts={reviewCounts}
-          isOwner={isOwner}
-          organizationId={organizationId}
-          orgName={orgName}
-          orgAddress={orgAddress}
         />
       )}
     </Box>

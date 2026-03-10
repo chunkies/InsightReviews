@@ -7,7 +7,7 @@ import {
   Typography, Divider, Chip, useMediaQuery,
 } from '@mui/material';
 import {
-  LayoutDashboard, Star, Send, Users, Palette,
+  LayoutDashboard, Star, Send, Users, Palette, Link2,
   Settings, CreditCard, Phone, Sparkles,
 } from 'lucide-react';
 import { useTheme } from '@mui/material/styles';
@@ -18,10 +18,11 @@ const navItems = [
   { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { label: 'Reviews', href: '/dashboard/reviews', icon: Star },
   { label: 'Collect Reviews', href: '/dashboard/collect', icon: Send },
+  { label: 'Integrations', href: '/dashboard/integrations', icon: Link2 },
   { label: 'Staff', href: '/dashboard/staff', icon: Users },
-  { label: 'Settings', href: '/dashboard/settings', icon: Settings },
-  { label: 'Billing', href: '/dashboard/billing', icon: CreditCard },
   { label: 'Customization', href: '/dashboard/testimonials', icon: Palette },
+  { label: 'Billing', href: '/dashboard/billing', icon: CreditCard },
+  { label: 'Settings', href: '/dashboard/settings', icon: Settings },
 ];
 
 interface SidebarProps {

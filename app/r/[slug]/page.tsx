@@ -34,12 +34,37 @@ export default async function ReviewPage({ params, searchParams }: PageProps) {
 
   if (!org) notFound();
 
-  const { data: platforms } = await supabase
-    .from('review_platforms')
-    .select('id, platform, platform_name, url, display_order')
-    .eq('organization_id', org.id)
-    .eq('enabled', true)
-    .order('display_order');
+  // Fetch both manual platforms AND connected integrations
+  const [platformsRes, integrationsRes] = await Promise.all([
+    supabase
+      .from('review_platforms')
+      .select('id, platform, platform_name, url, display_order')
+      .eq('organization_id', org.id)
+      .eq('enabled', true)
+      .order('display_order'),
+    supabase
+      .from('organization_integrations')
+      .select('id, platform, platform_account_name, platform_url')
+      .eq('organization_id', org.id)
+      .eq('show_on_review_form', true),
+  ]);
+
+  const manualPlatforms = platformsRes.data ?? [];
+  const integrations = integrationsRes.data ?? [];
+
+  // Merge: integrations auto-add their platform if not already in manual list
+  const manualPlatformTypes = new Set(manualPlatforms.map(p => p.platform));
+  const integrationPlatforms = integrations
+    .filter(i => i.platform_url && !manualPlatformTypes.has(i.platform))
+    .map((i, idx) => ({
+      id: i.id,
+      platform: i.platform,
+      platform_name: i.platform_account_name,
+      url: i.platform_url!,
+      display_order: 100 + idx,
+    }));
+
+  const platforms = [...manualPlatforms, ...integrationPlatforms];
 
   const config = mergeWallConfig(org.wall_config);
 

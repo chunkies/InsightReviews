@@ -5,35 +5,41 @@ import {
   Box, Paper, Typography, Button, Chip, Grid,
   Dialog, DialogTitle, DialogContent, DialogActions,
   TextField, List, ListItemButton, ListItemText, Avatar,
-  CircularProgress, Alert,
+  CircularProgress, Alert, Divider, Switch, FormControlLabel,
 } from '@mui/material';
 import {
-  Link2, Unlink, RefreshCw, Star, ExternalLink,
-  Search, CheckCircle2, Clock, AlertCircle,
+  Unlink, RefreshCw, ExternalLink,
+  Search, CheckCircle2, Clock, AlertCircle, Zap,
 } from 'lucide-react';
 import { useSnackbar } from '@/components/providers/snackbar-provider';
 import type { OrganizationIntegration } from '@/lib/types/database';
 
 const PLATFORM_INFO = {
   google: {
-    name: 'Google Business',
+    name: 'Google',
+    fullName: 'Google Business Profile',
     color: '#4285F4',
-    bgColor: '#E8F0FE',
-    description: 'Import reviews from your Google Business Profile. Requires Google OAuth.',
+    bgGradient: 'linear-gradient(135deg, #4285F4 0%, #34A853 100%)',
+    lightBg: 'linear-gradient(135deg, #E8F0FE 0%, #E6F4EA 100%)',
+    description: 'Sync reviews from Google Maps and Search',
     icon: '🔍',
   },
   facebook: {
     name: 'Facebook',
+    fullName: 'Facebook Page',
     color: '#1877F2',
-    bgColor: '#E7F3FF',
-    description: 'Import ratings and recommendations from your Facebook Page.',
+    bgGradient: 'linear-gradient(135deg, #1877F2 0%, #42A5F5 100%)',
+    lightBg: 'linear-gradient(135deg, #E7F3FF 0%, #E3F2FD 100%)',
+    description: 'Import ratings and recommendations',
     icon: '📘',
   },
   yelp: {
     name: 'Yelp',
+    fullName: 'Yelp Business',
     color: '#D32323',
-    bgColor: '#FDE8E8',
-    description: 'Import reviews from your Yelp business listing. Uses free Yelp Fusion API.',
+    bgGradient: 'linear-gradient(135deg, #D32323 0%, #FF5722 100%)',
+    lightBg: 'linear-gradient(135deg, #FDE8E8 0%, #FFEBEE 100%)',
+    description: 'Import reviews via Yelp Fusion API',
     icon: '⭐',
   },
 };
@@ -65,20 +71,23 @@ export function IntegrationsPanel({
   }> | null>(null);
   const [yelpSearching, setYelpSearching] = useState(false);
   const [connecting, setConnecting] = useState<string | null>(null);
+  const [reviewFormToggles, setReviewFormToggles] = useState<Record<string, boolean>>(
+    Object.fromEntries(integrations.map(i => [i.platform, i.show_on_review_form]))
+  );
 
   const integrationMap = new Map(integrations.map(i => [i.platform, i]));
+  const connectedCount = integrations.length;
+  const totalSynced = Object.values(reviewCounts).reduce((a, b) => a + b, 0);
 
   async function handleConnect(platform: string) {
     if (platform === 'yelp') {
       setYelpDialog(true);
       return;
     }
-
     setConnecting(platform);
     try {
       const res = await fetch(`/api/integrations/${platform}/connect`, { method: 'POST' });
       const data = await res.json();
-
       if (data.url) {
         window.location.href = data.url;
       } else {
@@ -98,7 +107,6 @@ export function IntegrationsPanel({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ platform }),
       });
-
       if (res.ok) {
         showSnackbar(`${PLATFORM_INFO[platform as keyof typeof PLATFORM_INFO]?.name} disconnected`);
         window.location.reload();
@@ -119,12 +127,9 @@ export function IntegrationsPanel({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ platform }),
       });
-
       const data = await res.json();
       if (res.ok && data.results?.[platform]) {
-        const r = data.results[platform];
-        showSnackbar(`Synced ${r.synced} reviews from ${PLATFORM_INFO[platform as keyof typeof PLATFORM_INFO]?.name}`);
-        // Reload to show updated counts
+        showSnackbar(`Synced ${data.results[platform].synced} reviews from ${PLATFORM_INFO[platform as keyof typeof PLATFORM_INFO]?.name}`);
         window.location.reload();
       } else {
         showSnackbar(data.error || 'Sync failed', 'error');
@@ -135,18 +140,54 @@ export function IntegrationsPanel({
     setSyncing(prev => ({ ...prev, [platform]: false }));
   }
 
+  async function handleSyncAll() {
+    setSyncing({ google: true, facebook: true, yelp: true });
+    try {
+      const res = await fetch('/api/integrations/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        const total = Object.values(data.results || {}).reduce((sum: number, r: unknown) => sum + ((r as { synced: number }).synced || 0), 0);
+        showSnackbar(`Synced ${total} reviews across all platforms`);
+        window.location.reload();
+      } else {
+        showSnackbar(data.error || 'Sync failed', 'error');
+      }
+    } catch {
+      showSnackbar('Sync failed', 'error');
+    }
+    setSyncing({});
+  }
+
+  async function handleToggleReviewForm(platform: string, enabled: boolean) {
+    setReviewFormToggles(prev => ({ ...prev, [platform]: enabled }));
+    try {
+      const integration = integrationMap.get(platform as OrganizationIntegration['platform']);
+      if (!integration) return;
+      const res = await fetch('/api/integrations/toggle-review-form', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ integrationId: integration.id, showOnReviewForm: enabled }),
+      });
+      if (res.ok) {
+        showSnackbar(`${PLATFORM_INFO[platform as keyof typeof PLATFORM_INFO]?.name} ${enabled ? 'shown' : 'hidden'} on review form`);
+      }
+    } catch {
+      setReviewFormToggles(prev => ({ ...prev, [platform]: !enabled }));
+    }
+  }
+
   async function handleYelpSearch() {
     setYelpSearching(true);
     try {
       const res = await fetch('/api/integrations/yelp/connect', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          businessName: yelpSearch.name,
-          location: yelpSearch.location,
-        }),
+        body: JSON.stringify({ businessName: yelpSearch.name, location: yelpSearch.location }),
       });
-
       const data = await res.json();
       if (data.businesses) {
         setYelpResults(data.businesses);
@@ -164,13 +205,8 @@ export function IntegrationsPanel({
       const res = await fetch('/api/integrations/yelp/connect', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          yelpBusinessId: business.id,
-          businessName: business.name,
-          businessUrl: business.url,
-        }),
+        body: JSON.stringify({ yelpBusinessId: business.id, businessName: business.name, businessUrl: business.url }),
       });
-
       if (res.ok) {
         showSnackbar('Yelp connected!');
         setYelpDialog(false);
@@ -185,7 +221,50 @@ export function IntegrationsPanel({
 
   return (
     <>
-      <Grid container spacing={3}>
+      {/* Summary bar */}
+      {connectedCount > 0 && (
+        <Paper
+          sx={{
+            p: 2.5,
+            mb: 3,
+            borderRadius: 3,
+            background: 'linear-gradient(135deg, #f0f9ff 0%, #f5f3ff 50%, #fdf2f8 100%)',
+            border: '1px solid',
+            borderColor: 'divider',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: 2,
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Zap size={18} color="#7c3aed" />
+              <Typography variant="subtitle2" fontWeight={700}>
+                {connectedCount} platform{connectedCount !== 1 ? 's' : ''} connected
+              </Typography>
+            </Box>
+            <Divider orientation="vertical" flexItem />
+            <Typography variant="body2" color="text.secondary">
+              {totalSynced} reviews synced
+            </Typography>
+          </Box>
+          {connectedCount > 0 && (
+            <Button
+              size="small"
+              variant="outlined"
+              startIcon={<RefreshCw size={14} />}
+              onClick={handleSyncAll}
+              disabled={Object.values(syncing).some(Boolean)}
+            >
+              Sync All
+            </Button>
+          )}
+        </Paper>
+      )}
+
+      <Grid container spacing={2.5}>
         {(Object.entries(PLATFORM_INFO) as [keyof typeof PLATFORM_INFO, typeof PLATFORM_INFO[keyof typeof PLATFORM_INFO]][]).map(
           ([platform, info]) => {
             const integration = integrationMap.get(platform as OrganizationIntegration['platform']);
@@ -193,136 +272,178 @@ export function IntegrationsPanel({
             const count = reviewCounts[platform] || 0;
 
             return (
-              <Grid size={{ xs: 12, sm: 6, lg: 4 }} key={platform}>
+              <Grid size={{ xs: 12, md: 4 }} key={platform}>
                 <Paper
+                  elevation={0}
                   sx={{
-                    p: 3,
-                    height: '100%',
                     borderRadius: 3,
+                    overflow: 'hidden',
                     border: '1px solid',
                     borderColor: isConnected ? info.color : 'divider',
-                    position: 'relative',
-                    overflow: 'hidden',
+                    transition: 'all 0.2s ease',
+                    '&:hover': {
+                      borderColor: info.color,
+                      boxShadow: `0 4px 20px ${info.color}15`,
+                    },
                   }}
                 >
-                  {/* Platform header */}
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
-                    <Box
-                      sx={{
-                        width: 44,
-                        height: 44,
-                        borderRadius: 2,
-                        backgroundColor: info.bgColor,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: 24,
-                      }}
-                    >
-                      {info.icon}
-                    </Box>
-                    <Box sx={{ flex: 1 }}>
-                      <Typography variant="subtitle1" fontWeight={700}>
-                        {info.name}
-                      </Typography>
-                      <Chip
-                        label={isConnected ? 'Connected' : 'Not connected'}
-                        size="small"
-                        icon={isConnected ? <CheckCircle2 size={14} /> : <AlertCircle size={14} />}
-                        sx={{
-                          height: 22,
-                          fontSize: '0.7rem',
-                          backgroundColor: isConnected ? '#dcfce7' : '#f3f4f6',
-                          color: isConnected ? '#166534' : '#6b7280',
-                          '& .MuiChip-icon': { color: 'inherit' },
-                        }}
-                      />
-                    </Box>
-                  </Box>
-
-                  {/* Description or connected info */}
-                  {isConnected ? (
-                    <Box sx={{ mb: 2 }}>
-                      <Typography variant="body2" fontWeight={600} color="text.secondary">
-                        {integration.platform_account_name}
-                      </Typography>
-                      <Box sx={{ display: 'flex', gap: 2, mt: 1 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                          <Star size={14} color={info.color} />
-                          <Typography variant="caption" color="text.secondary">
-                            {count} reviews synced
-                          </Typography>
-                        </Box>
-                        {integration.last_synced_at && (
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                            <Clock size={14} />
-                            <Typography variant="caption" color="text.secondary">
-                              {new Date(integration.last_synced_at).toLocaleDateString()}
-                            </Typography>
-                          </Box>
-                        )}
+                  {/* Header band */}
+                  <Box
+                    sx={{
+                      background: isConnected ? info.bgGradient : info.lightBg,
+                      px: 2.5,
+                      py: 2,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                    }}
+                  >
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                      <Typography fontSize={28}>{info.icon}</Typography>
+                      <Box>
+                        <Typography
+                          variant="subtitle1"
+                          fontWeight={700}
+                          sx={{ color: isConnected ? 'white' : 'text.primary', lineHeight: 1.2 }}
+                        >
+                          {info.name}
+                        </Typography>
+                        <Typography
+                          variant="caption"
+                          sx={{ color: isConnected ? 'rgba(255,255,255,0.8)' : 'text.secondary' }}
+                        >
+                          {isConnected ? integration.platform_account_name : info.description}
+                        </Typography>
                       </Box>
                     </Box>
-                  ) : (
-                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                      {info.description}
-                    </Typography>
-                  )}
+                    <Chip
+                      label={isConnected ? 'Connected' : 'Available'}
+                      size="small"
+                      icon={isConnected ? <CheckCircle2 size={12} /> : <AlertCircle size={12} />}
+                      sx={{
+                        height: 24,
+                        fontSize: '0.7rem',
+                        fontWeight: 600,
+                        backgroundColor: isConnected ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.06)',
+                        color: isConnected ? 'white' : 'text.secondary',
+                        backdropFilter: 'blur(8px)',
+                        '& .MuiChip-icon': { color: 'inherit' },
+                      }}
+                    />
+                  </Box>
 
-                  {/* Actions */}
-                  <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                  {/* Body */}
+                  <Box sx={{ p: 2.5 }}>
                     {isConnected ? (
                       <>
-                        <Button
-                          size="small"
-                          variant="outlined"
-                          startIcon={syncing[platform] ? <CircularProgress size={14} /> : <RefreshCw size={14} />}
-                          onClick={() => handleSync(platform)}
-                          disabled={syncing[platform]}
-                        >
-                          {syncing[platform] ? 'Syncing...' : 'Sync Now'}
-                        </Button>
-                        {integration.platform_url && (
+                        <Box sx={{ display: 'flex', gap: 3, mb: 2 }}>
+                          <Box>
+                            <Typography variant="h5" fontWeight={800} color={info.color}>
+                              {count}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              reviews
+                            </Typography>
+                          </Box>
+                          {integration.last_synced_at && (
+                            <Box>
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                <Clock size={12} style={{ opacity: 0.5 }} />
+                                <Typography variant="caption" color="text.secondary">
+                                  Last sync
+                                </Typography>
+                              </Box>
+                              <Typography variant="body2" fontWeight={500}>
+                                {new Date(integration.last_synced_at).toLocaleDateString()}
+                              </Typography>
+                            </Box>
+                          )}
+                        </Box>
+                        <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
                           <Button
                             size="small"
-                            variant="text"
-                            startIcon={<ExternalLink size={14} />}
-                            href={integration.platform_url}
-                            target="_blank"
-                            component="a"
+                            variant="contained"
+                            startIcon={syncing[platform] ? <CircularProgress size={14} color="inherit" /> : <RefreshCw size={14} />}
+                            onClick={() => handleSync(platform)}
+                            disabled={syncing[platform]}
+                            sx={{
+                              backgroundColor: info.color,
+                              '&:hover': { backgroundColor: info.color, filter: 'brightness(0.9)' },
+                              textTransform: 'none',
+                              fontWeight: 600,
+                            }}
                           >
-                            View
+                            {syncing[platform] ? 'Syncing...' : 'Sync'}
                           </Button>
-                        )}
+                          {integration.platform_url && (
+                            <Button
+                              size="small"
+                              variant="text"
+                              startIcon={<ExternalLink size={14} />}
+                              href={integration.platform_url}
+                              target="_blank"
+                              component="a"
+                              sx={{ textTransform: 'none' }}
+                            >
+                              View
+                            </Button>
+                          )}
+                          {isOwner && (
+                            <Button
+                              size="small"
+                              color="error"
+                              variant="text"
+                              startIcon={disconnecting === platform ? <CircularProgress size={14} /> : <Unlink size={14} />}
+                              onClick={() => handleDisconnect(platform)}
+                              disabled={disconnecting === platform}
+                              sx={{ textTransform: 'none', ml: 'auto' }}
+                            >
+                              Disconnect
+                            </Button>
+                          )}
+                        </Box>
                         {isOwner && (
-                          <Button
-                            size="small"
-                            color="error"
-                            variant="text"
-                            startIcon={disconnecting === platform ? <CircularProgress size={14} /> : <Unlink size={14} />}
-                            onClick={() => handleDisconnect(platform)}
-                            disabled={disconnecting === platform}
-                          >
-                            Disconnect
-                          </Button>
+                          <FormControlLabel
+                            control={
+                              <Switch
+                                size="small"
+                                checked={reviewFormToggles[platform] ?? true}
+                                onChange={(_, v) => handleToggleReviewForm(platform, v)}
+                              />
+                            }
+                            label={
+                              <Typography variant="caption" color="text.secondary">
+                                Show as redirect option on review form
+                              </Typography>
+                            }
+                            sx={{ mt: 1.5, ml: 0 }}
+                          />
                         )}
                       </>
                     ) : (
-                      isOwner && (
-                        <Button
-                          variant="contained"
-                          size="small"
-                          startIcon={connecting === platform ? <CircularProgress size={14} color="inherit" /> : <Link2 size={14} />}
-                          onClick={() => handleConnect(platform)}
-                          disabled={connecting === platform}
-                          sx={{
-                            backgroundColor: info.color,
-                            '&:hover': { backgroundColor: info.color, filter: 'brightness(0.9)' },
-                          }}
-                        >
-                          Connect {info.name}
-                        </Button>
-                      )
+                      <Box sx={{ textAlign: 'center', py: 1 }}>
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                          {info.description}
+                        </Typography>
+                        {isOwner && (
+                          <Button
+                            variant="contained"
+                            size="small"
+                            startIcon={connecting === platform ? <CircularProgress size={14} color="inherit" /> : null}
+                            onClick={() => handleConnect(platform)}
+                            disabled={connecting === platform}
+                            sx={{
+                              background: info.bgGradient,
+                              textTransform: 'none',
+                              fontWeight: 600,
+                              px: 3,
+                              '&:hover': { filter: 'brightness(1.1)' },
+                            }}
+                          >
+                            Connect {info.name}
+                          </Button>
+                        )}
+                      </Box>
                     )}
                   </Box>
                 </Paper>

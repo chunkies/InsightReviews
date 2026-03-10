@@ -48,8 +48,8 @@ function getDesignTokens(mode: ThemeMode) {
       },
       divider: mode === 'light' ? 'rgba(0, 0, 0, 0.12)' : 'rgba(255, 255, 255, 0.12)',
       text: {
-        primary: mode === 'light' ? 'rgba(0, 0, 0, 0.87)' : '#e2e8f0',
-        secondary: mode === 'light' ? 'rgba(0, 0, 0, 0.6)' : '#94a3b8',
+        primary: mode === 'light' ? '#0f172a' : '#e2e8f0',
+        secondary: mode === 'light' ? '#64748b' : '#94a3b8',
       },
     },
     typography: {
@@ -94,6 +94,7 @@ function getDesignTokens(mode: ThemeMode) {
         styleOverrides: {
           root: {
             backgroundImage: 'none',
+            borderRadius: 0,
           },
         },
       },

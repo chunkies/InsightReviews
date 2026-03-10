@@ -15,12 +15,25 @@ port = 54423
 
 [auth]
 enabled = true
-site_url = "http://localhost:3000"
+site_url = "https://insightreviews.com.au"
+additional_redirect_urls = ["https://insightreviews.com.au/auth/confirm", "https://insightreviews.com.au/**"]
 
 [auth.email]
 enable_signup = true
 double_confirm_changes = false
 enable_confirmations = false
+
+[auth.email.template.magic_link]
+subject = "Your InsightReviews Login Link"
+content_path = "./supabase/templates/magic-link.html"
+
+[auth.email.template.confirmation]
+subject = "Confirm Your InsightReviews Account"
+content_path = "./supabase/templates/confirmation.html"
+
+[auth.email.template.invite]
+subject = "You've Been Invited to InsightReviews"
+content_path = "./supabase/templates/invite.html"
 
 [auth.external.google]
 enabled = false

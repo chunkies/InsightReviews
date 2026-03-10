@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sign in to InsightReviews</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f1f5f9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f1f5f9;padding:40px 0;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="480" cellpadding="0" cellspacing="0" style="background-color:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.06);">
+          <!-- Header -->
+          <tr>
+            <td style="background:linear-gradient(135deg,#2563eb 0%,#1d4ed8 100%);padding:32px 40px;text-align:center;">
+              <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto;">
+                <tr>
+                  <td style="width:36px;height:36px;background-color:rgba(255,255,255,0.2);border-radius:10px;text-align:center;vertical-align:middle;padding:0;">
+                    <span style="font-size:20px;line-height:36px;color:#ffffff;">&#9733;</span>
+                  </td>
+                  <td style="padding-left:12px;">
+                    <span style="font-size:22px;font-weight:700;color:#ffffff;letter-spacing:-0.5px;">InsightReviews</span>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <!-- Body -->
+          <tr>
+            <td style="padding:40px;">
+              <h1 style="margin:0 0 8px;font-size:24px;font-weight:700;color:#0f172a;line-height:1.3;">
+                Sign in to your account
+              </h1>
+              <p style="margin:0 0 28px;font-size:15px;color:#64748b;line-height:1.6;">
+                Click the button below to securely sign in. This link expires in 10 minutes.
+              </p>
+              <!-- CTA Button -->
+              <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto 28px;">
+                <tr>
+                  <td style="background:linear-gradient(135deg,#2563eb 0%,#1d4ed8 100%);border-radius:10px;text-align:center;">
+                    <a href="{{ .ConfirmationURL }}"
+                       target="_blank"
+                       style="display:inline-block;padding:14px 36px;font-size:16px;font-weight:600;color:#ffffff;text-decoration:none;letter-spacing:0.2px;">
+                      Sign In to InsightReviews
+                    </a>
+                  </td>
+                </tr>
+              </table>
+              <!-- Divider -->
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td style="border-top:1px solid #e2e8f0;padding-top:20px;">
+                    <p style="margin:0 0 8px;font-size:13px;color:#94a3b8;line-height:1.5;">
+                      If the button doesn't work, copy and paste this link into your browser:
+                    </p>
+                    <p style="margin:0;font-size:12px;color:#2563eb;word-break:break-all;line-height:1.5;">
+                      {{ .ConfirmationURL }}
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <!-- Footer -->
+          <tr>
+            <td style="background-color:#f8fafc;padding:24px 40px;border-top:1px solid #e2e8f0;">
+              <p style="margin:0 0 4px;font-size:13px;color:#94a3b8;text-align:center;line-height:1.5;">
+                You received this because someone requested a sign-in link for this email.
+              </p>
+              <p style="margin:0;font-size:13px;color:#94a3b8;text-align:center;line-height:1.5;">
+                If you didn't request this, you can safely ignore it.
+              </p>
+            </td>
+          </tr>
+        </table>
+        <table role="presentation" width="480" cellpadding="0" cellspacing="0">
+          <tr>
+            <td style="padding:24px 0;text-align:center;">
+              <p style="margin:0;font-size:12px;color:#94a3b8;">
+                InsightReviews &mdash; Smart review collection for local businesses
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

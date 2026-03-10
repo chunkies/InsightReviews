@@ -2,15 +2,11 @@
  * Yelp Fusion API integration.
  *
  * Free tier: 5,000 API calls/day.
- * Limitation: Yelp ToS prohibits displaying individual review text from API.
- * We can show: overall rating, review count, business info, and up to 3 review excerpts
- * that the API returns with business details.
+ * Limitation: /reviews endpoint only works for US/Canada businesses.
+ * For international businesses, we fetch business details (rating + review_count)
+ * and create a summary record.
  *
  * No OAuth needed — just an API key.
- *
- * Required setup:
- * - Create app at https://www.yelp.com/developers/v3/manage_app
- * - Get API Key
  */
 
 const YELP_API_BASE = 'https://api.yelp.com/v3';
@@ -21,6 +17,7 @@ function getApiKey(): string {
 
 export interface YelpBusiness {
   id: string;
+  alias: string;
   name: string;
   url: string;
   rating: number;
@@ -75,8 +72,8 @@ export async function getYelpBusiness(businessId: string): Promise<YelpBusiness 
 }
 
 /**
- * Yelp API returns up to 3 review excerpts per business.
- * These are the only reviews we're allowed to display per ToS.
+ * Fetch Yelp reviews. The /reviews endpoint only works for US/Canada businesses.
+ * For international businesses, returns empty array (use getYelpBusinessSummary instead).
  */
 export async function getYelpReviews(businessId: string): Promise<YelpReview[]> {
   const apiKey = getApiKey();
@@ -90,10 +87,37 @@ export async function getYelpReviews(businessId: string): Promise<YelpReview[]> 
   });
 
   if (!res.ok) {
-    const text = await res.text();
-    console.error(`Yelp reviews API error (${res.status}):`, text);
+    // 404 = reviews not available for this region (non-US/Canada)
+    if (res.status === 404) {
+      console.log(`Yelp reviews not available for business ${businessId} (likely non-US/Canada)`);
+    } else {
+      const text = await res.text();
+      console.error(`Yelp reviews API error (${res.status}):`, text);
+    }
     return [];
   }
   const data = await res.json();
   return data.reviews || [];
+}
+
+/**
+ * Get business summary (rating + review_count) — works for ALL regions.
+ * Used as fallback when individual reviews aren't available.
+ */
+export interface YelpBusinessSummary {
+  rating: number;
+  review_count: number;
+  name: string;
+  url: string;
+}
+
+export async function getYelpBusinessSummary(businessId: string): Promise<YelpBusinessSummary | null> {
+  const business = await getYelpBusiness(businessId);
+  if (!business) return null;
+  return {
+    rating: business.rating,
+    review_count: business.review_count,
+    name: business.name,
+    url: business.url,
+  };
 }

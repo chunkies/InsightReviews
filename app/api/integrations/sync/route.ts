@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { createServerClient } from '@supabase/ssr';
 import { refreshGoogleToken, fetchGoogleReviews, starRatingToNumber } from '@/lib/integrations/google';
 import { fetchFacebookRatings, facebookRatingToNumber } from '@/lib/integrations/facebook';
-import { getYelpReviews } from '@/lib/integrations/yelp';
+import { getYelpReviews, getYelpBusinessSummary } from '@/lib/integrations/yelp';
 import type { OrganizationIntegration } from '@/lib/types/database';
 
 function getServiceClient() {
@@ -192,27 +192,53 @@ async function syncYelpReviews(
   integration: OrganizationIntegration
 ): Promise<number> {
   const businessId = integration.platform_account_id!;
+
+  // Try fetching individual reviews first (only works for US/Canada)
   const reviews = await getYelpReviews(businessId);
 
   let synced = 0;
 
-  for (const review of reviews) {
-    const { error } = await supabase.from('external_reviews').upsert({
-      organization_id: integration.organization_id,
-      integration_id: integration.id,
-      platform: 'yelp',
-      platform_review_id: review.id,
-      rating: review.rating,
-      comment: review.text || null,
-      reviewer_name: review.user.name,
-      reviewer_avatar_url: review.user.image_url,
-      review_date: review.time_created,
-      reply_text: null,
-      replied_at: null,
-      raw_data: review,
-    }, { onConflict: 'integration_id,platform_review_id' });
+  if (reviews.length > 0) {
+    for (const review of reviews) {
+      const { error } = await supabase.from('external_reviews').upsert({
+        organization_id: integration.organization_id,
+        integration_id: integration.id,
+        platform: 'yelp',
+        platform_review_id: review.id,
+        rating: review.rating,
+        comment: review.text || null,
+        reviewer_name: review.user.name,
+        reviewer_avatar_url: review.user.image_url,
+        review_date: review.time_created,
+        reply_text: null,
+        replied_at: null,
+        raw_data: review,
+      }, { onConflict: 'integration_id,platform_review_id' });
 
-    if (!error) synced++;
+      if (!error) synced++;
+    }
+  } else {
+    // Fallback: fetch business summary (works for all regions)
+    // Creates a single summary record showing the Yelp rating + review count
+    const summary = await getYelpBusinessSummary(businessId);
+    if (summary && summary.review_count > 0) {
+      const { error } = await supabase.from('external_reviews').upsert({
+        organization_id: integration.organization_id,
+        integration_id: integration.id,
+        platform: 'yelp',
+        platform_review_id: `yelp_summary_${businessId}`,
+        rating: summary.rating,
+        comment: `${summary.review_count} reviews on Yelp with an average rating of ${summary.rating} stars`,
+        reviewer_name: 'Yelp Summary',
+        reviewer_avatar_url: null,
+        review_date: new Date().toISOString(),
+        reply_text: null,
+        replied_at: null,
+        raw_data: summary,
+      }, { onConflict: 'integration_id,platform_review_id' });
+
+      if (!error) synced = 1;
+    }
   }
 
   return synced;

@@ -1,19 +1,19 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import {
   Box, Paper, Typography, Chip, Avatar, Rating,
   TextField, Select, MenuItem, FormControl, InputLabel,
-  Divider, ToggleButton,
+  Divider, ToggleButton, Button, CircularProgress, Alert,
 } from '@mui/material';
 import {
-  Star, MessageSquare, Search, Globe, Building2,
+  Star, MessageSquare, Search, Globe, Building2, RefreshCw,
 } from 'lucide-react';
 import type { Review, ExternalReview } from '@/lib/types/database';
 
 interface UnifiedReview {
   id: string;
-  source: 'internal' | 'google' | 'facebook' | 'yelp';
+  source: string;
   rating: number | null;
   comment: string | null;
   reviewer_name: string | null;
@@ -23,6 +23,14 @@ interface UnifiedReview {
   is_positive?: boolean;
   is_public?: boolean;
   has_reply: boolean;
+}
+
+interface ConnectedPlatform {
+  id: string;
+  platform: string;
+  platform_account_name: string | null;
+  sync_enabled: boolean;
+  last_synced_at: string | null;
 }
 
 const PLATFORM_BADGE: Record<string, {
@@ -41,16 +49,45 @@ const PLATFORM_BADGE: Record<string, {
 interface UnifiedReviewListProps {
   internalReviews: Review[];
   externalReviews: ExternalReview[];
+  connectedPlatforms: ConnectedPlatform[];
 }
 
 export function UnifiedReviewList({
   internalReviews,
   externalReviews,
+  connectedPlatforms,
 }: UnifiedReviewListProps) {
   const [search, setSearch] = useState('');
   const [platformFilter, setPlatformFilter] = useState<string>('all');
   const [ratingFilter, setRatingFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'highest' | 'lowest'>('newest');
+  const [syncing, setSyncing] = useState(false);
+  const [syncMessage, setSyncMessage] = useState<string | null>(null);
+
+  const handleSync = useCallback(async () => {
+    setSyncing(true);
+    setSyncMessage(null);
+    try {
+      const res = await fetch('/api/integrations/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const total = Object.values(data.results as Record<string, { synced: number }>)
+          .reduce((sum, r) => sum + r.synced, 0);
+        setSyncMessage(`Synced ${total} reviews. Refresh the page to see updates.`);
+      } else {
+        const err = await res.json();
+        setSyncMessage(err.error || 'Sync failed');
+      }
+    } catch {
+      setSyncMessage('Sync failed — check your connection.');
+    } finally {
+      setSyncing(false);
+    }
+  }, []);
 
   const allReviews = useMemo<UnifiedReview[]>(() => {
     const internal: UnifiedReview[] = internalReviews.map(r => ({
@@ -68,7 +105,7 @@ export function UnifiedReviewList({
 
     const external: UnifiedReview[] = externalReviews.map(r => ({
       id: r.id,
-      source: r.platform as UnifiedReview['source'],
+      source: r.platform,
       rating: r.rating,
       comment: r.comment,
       reviewer_name: r.reviewer_name,
@@ -120,15 +157,50 @@ export function UnifiedReviewList({
     return byPlatform;
   }, [allReviews]);
 
+  // Build filter platforms: always show "internal" + all connected platforms
+  const filterPlatforms = useMemo(() => {
+    const platforms = new Set<string>();
+    platforms.add('internal');
+    connectedPlatforms.forEach(p => platforms.add(p.platform));
+    // Also include any platforms that have reviews (in case integration was disconnected)
+    Object.keys(stats).forEach(p => platforms.add(p));
+    return Array.from(platforms);
+  }, [connectedPlatforms, stats]);
+
   const totalReviews = allReviews.length;
   const totalRated = allReviews.filter(r => r.rating).reduce((sum, r) => sum + (r.rating ?? 0), 0);
   const avgRating = allReviews.filter(r => r.rating).length > 0
     ? totalRated / allReviews.filter(r => r.rating).length
     : 0;
-  const availablePlatforms = Object.keys(stats);
 
   return (
     <Box>
+      {/* Sync bar */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+        <Typography variant="body2" color="text.secondary">
+          {connectedPlatforms.length} platform{connectedPlatforms.length !== 1 ? 's' : ''} connected
+          {connectedPlatforms.length > 0 && connectedPlatforms[0].last_synced_at && (
+            <> &middot; Last synced {new Date(connectedPlatforms[0].last_synced_at).toLocaleDateString()}</>
+          )}
+        </Typography>
+        <Button
+          size="small"
+          variant="outlined"
+          startIcon={syncing ? <CircularProgress size={14} /> : <RefreshCw size={14} />}
+          onClick={handleSync}
+          disabled={syncing || connectedPlatforms.length === 0}
+          sx={{ textTransform: 'none', borderRadius: 2 }}
+        >
+          {syncing ? 'Syncing...' : 'Sync Now'}
+        </Button>
+      </Box>
+
+      {syncMessage && (
+        <Alert severity={syncMessage.includes('failed') ? 'error' : 'success'} sx={{ mb: 2, borderRadius: 2 }} onClose={() => setSyncMessage(null)}>
+          {syncMessage}
+        </Alert>
+      )}
+
       {/* Platform filter chips with stats */}
       <Box sx={{ display: 'flex', gap: 1.5, mb: 3, flexWrap: 'wrap' }}>
         <ToggleButton
@@ -154,9 +226,9 @@ export function UnifiedReviewList({
           All ({totalReviews})
         </ToggleButton>
 
-        {availablePlatforms.map(platform => {
-          const badge = PLATFORM_BADGE[platform];
-          const s = stats[platform];
+        {filterPlatforms.map(platform => {
+          const badge = PLATFORM_BADGE[platform] || { label: platform, color: '#666', bgColor: '#f5f5f5', icon: '📋', gradient: '#666' };
+          const s = stats[platform] || { count: 0, totalRating: 0, ratedCount: 0 };
           const isActive = platformFilter === platform;
           return (
             <ToggleButton
@@ -173,20 +245,20 @@ export function UnifiedReviewList({
                 fontWeight: 600,
                 fontSize: '0.85rem',
                 gap: 1,
-                backgroundColor: isActive ? badge?.color : badge?.bgColor,
-                color: isActive ? 'white' : badge?.color,
+                backgroundColor: isActive ? badge.color : badge.bgColor,
+                color: isActive ? 'white' : badge.color,
                 '&:hover': {
-                  backgroundColor: isActive ? badge?.color : badge?.bgColor,
+                  backgroundColor: isActive ? badge.color : badge.bgColor,
                   filter: 'brightness(0.95)',
                 },
                 '&.Mui-selected': {
-                  backgroundColor: badge?.color,
+                  backgroundColor: badge.color,
                   color: 'white',
                 },
               }}
             >
-              <span>{badge?.icon}</span>
-              {badge?.label} ({s.count})
+              <span>{badge.icon}</span>
+              {badge.label} ({s.count})
             </ToggleButton>
           );
         })}
@@ -219,9 +291,9 @@ export function UnifiedReviewList({
             <Star size={20} fill="#f59e0b" color="#f59e0b" />
           </Box>
         </Paper>
-        {availablePlatforms.map(platform => {
-          const badge = PLATFORM_BADGE[platform];
-          const s = stats[platform];
+        {filterPlatforms.map(platform => {
+          const badge = PLATFORM_BADGE[platform] || { label: platform, color: '#666', bgColor: '#f5f5f5', icon: '📋' };
+          const s = stats[platform] || { count: 0, totalRating: 0, ratedCount: 0 };
           const avg = s.ratedCount > 0 ? (s.totalRating / s.ratedCount).toFixed(1) : '—';
           return (
             <Paper
@@ -229,14 +301,14 @@ export function UnifiedReviewList({
               elevation={0}
               sx={{
                 px: 3, py: 2, borderRadius: 3, flex: '1 1 140px', minWidth: 140,
-                background: badge?.bgColor,
-                border: `1px solid ${badge?.color}30`,
+                background: badge.bgColor,
+                border: `1px solid ${badge.color}30`,
               }}
             >
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.5 }}>
-                <span style={{ fontSize: 14 }}>{badge?.icon}</span>
+                <span style={{ fontSize: 14 }}>{badge.icon}</span>
                 <Typography variant="caption" color="text.secondary" fontWeight={600}>
-                  {badge?.label}
+                  {badge.label}
                 </Typography>
               </Box>
               <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1 }}>
@@ -289,7 +361,7 @@ export function UnifiedReviewList({
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
             {allReviews.length === 0
-              ? 'Connect your review platforms in the Integrations tab to see all your reviews here.'
+              ? 'Connect your review platforms in the Integrations tab, then click "Sync Now" to pull in your reviews.'
               : 'Try adjusting your filters or search query.'
             }
           </Typography>
@@ -306,7 +378,7 @@ export function UnifiedReviewList({
 }
 
 function ReviewCard({ review }: { review: UnifiedReview }) {
-  const badge = PLATFORM_BADGE[review.source];
+  const badge = PLATFORM_BADGE[review.source] || { label: review.source, color: '#666', bgColor: '#f5f5f5', gradient: '#666' };
 
   return (
     <Paper
@@ -317,7 +389,7 @@ function ReviewCard({ review }: { review: UnifiedReview }) {
         border: '1px solid',
         borderColor: 'divider',
         transition: 'border-color 0.15s ease',
-        '&:hover': { borderColor: badge?.color || 'primary.main' },
+        '&:hover': { borderColor: badge.color || 'primary.main' },
       }}
     >
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
@@ -327,7 +399,7 @@ function ReviewCard({ review }: { review: UnifiedReview }) {
             sx={{
               width: 38,
               height: 38,
-              background: badge?.gradient || '#888',
+              background: badge.gradient || '#888',
               fontSize: '0.9rem',
             }}
           >
@@ -342,15 +414,15 @@ function ReviewCard({ review }: { review: UnifiedReview }) {
                 {review.reviewer_name || 'Anonymous'}
               </Typography>
               <Chip
-                label={badge?.label || review.source}
+                label={badge.label || review.source}
                 size="small"
                 sx={{
                   height: 18,
                   fontSize: '0.6rem',
                   fontWeight: 700,
                   letterSpacing: 0.3,
-                  backgroundColor: badge?.bgColor,
-                  color: badge?.color,
+                  backgroundColor: badge.bgColor,
+                  color: badge.color,
                   '& .MuiChip-label': { px: 1 },
                 }}
               />

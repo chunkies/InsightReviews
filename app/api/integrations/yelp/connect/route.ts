@@ -65,6 +65,11 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Yelp business ID is required' }, { status: 400 });
     }
 
+    // Use the Yelp write-a-review URL so customers land directly on the review page
+    const reviewUrl = businessUrl
+      ? businessUrl.replace('/biz/', '/writeareview/biz/')
+      : `https://www.yelp.com/writeareview/biz/${yelpBusinessId}`;
+
     const serviceSupabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!,
@@ -79,7 +84,9 @@ export async function PUT(request: NextRequest) {
       token_expires_at: null,
       platform_account_id: yelpBusinessId,
       platform_account_name: businessName,
-      platform_url: businessUrl,
+      platform_url: reviewUrl,
+      sync_enabled: true,
+      show_on_review_form: true,
     }, { onConflict: 'organization_id,platform' });
 
     if (error) {

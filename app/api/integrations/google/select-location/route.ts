@@ -39,6 +39,8 @@ export async function POST(request: NextRequest) {
       token_expires_at: expiresAt,
       platform_account_id: locationName,
       platform_account_name: locationTitle,
+      sync_enabled: true,
+      show_on_review_form: true,
     }, { onConflict: 'organization_id,platform' });
 
     if (error) {

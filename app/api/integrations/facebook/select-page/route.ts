@@ -36,6 +36,8 @@ export async function POST(request: NextRequest) {
       platform_account_id: pageId,
       platform_account_name: pageName,
       platform_url: `https://facebook.com/${pageId}`,
+      sync_enabled: true,
+      show_on_review_form: true,
     }, { onConflict: 'organization_id,platform' });
 
     if (error) {

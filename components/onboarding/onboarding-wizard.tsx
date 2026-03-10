@@ -5,7 +5,7 @@ import {
   Box, Paper, TextField, Button, Typography, Stepper, Step, StepLabel,
   Alert, Divider,
 } from '@mui/material';
-import { ArrowRight, ArrowLeft, Check, Download, Printer, Copy, ExternalLink } from 'lucide-react';
+import { ArrowRight, ArrowLeft, Check, Download, Printer, Copy } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { SLUG_REGEX } from '@/lib/utils/constants';
 import { QRCodeDisplay, generateQRDataUrl } from '@/components/shared/qr-code';
@@ -380,8 +380,8 @@ export function OnboardingWizard({ userId: _userId }: OnboardingWizardProps) {
           <Button
             variant="contained"
             size="large"
-            endIcon={<ExternalLink size={18} />}
-            onClick={() => router.push('/dashboard')}
+            endIcon={<ArrowRight size={18} />}
+            onClick={() => router.push(`/subscribe?org=${orgId}`)}
             sx={{
               textTransform: 'none',
               fontWeight: 700,
@@ -390,7 +390,7 @@ export function OnboardingWizard({ userId: _userId }: OnboardingWizardProps) {
               px: 5,
             }}
           >
-            Go to Dashboard
+            Start Free Trial
           </Button>
         </Box>
       )}

@@ -188,6 +188,7 @@ interface SendNegativeReviewNotificationParams {
   rating: number;
   comment: string | null;
   customerName: string | null;
+  customerContact?: string | null;
   dashboardUrl: string;
 }
 
@@ -197,11 +198,12 @@ interface SendNegativeReviewNotificationParams {
 export async function sendNegativeReviewNotification(
   params: SendNegativeReviewNotificationParams
 ): Promise<boolean> {
-  const { to, businessName, rating, comment, customerName, dashboardUrl } = params;
+  const { to, businessName, rating, comment, customerName, customerContact, dashboardUrl } = params;
 
   const subject = `New negative review (${rating} star${rating !== 1 ? 's' : ''}) for ${businessName}`;
   const customerLabel = customerName || 'A customer';
   const commentText = comment ? `\n\nTheir comment:\n"${comment}"` : '';
+  const contactText = customerContact ? `\n\nContact: ${customerContact}` : '';
 
   const htmlBody = `
 <!DOCTYPE html>
@@ -219,6 +221,7 @@ export async function sendNegativeReviewNotification(
           ${customerLabel} left a <strong>${rating}-star</strong> review for <strong>${businessName}</strong>.
         </p>
         ${comment ? `<div style="background: #f9f9f9; border-left: 4px solid #e53935; padding: 12px 16px; border-radius: 4px; margin-bottom: 24px;"><p style="margin: 0; font-size: 14px; color: #333; line-height: 1.5;">&ldquo;${comment}&rdquo;</p></div>` : ''}
+        ${customerContact ? `<p style="margin: 0 0 16px 0; font-size: 14px; color: #555;"><strong>Contact:</strong> ${customerContact}</p>` : ''}
         <div style="text-align: center; margin: 32px 0;">
           <a href="${dashboardUrl}" style="display: inline-block; background: linear-gradient(135deg, #e53935 0%, #d32f2f 100%); color: #ffffff; text-decoration: none; padding: 14px 40px; border-radius: 12px; font-size: 16px; font-weight: 600;">
             View in Dashboard
@@ -233,7 +236,7 @@ export async function sendNegativeReviewNotification(
 </body>
 </html>`.trim();
 
-  const textBody = `Negative Review Alert\n\n${customerLabel} left a ${rating}-star review for ${businessName}.${commentText}\n\nView in dashboard: ${dashboardUrl}\n\nConsider reaching out to this customer to resolve their concern.`;
+  const textBody = `Negative Review Alert\n\n${customerLabel} left a ${rating}-star review for ${businessName}.${commentText}${contactText}\n\nView in dashboard: ${dashboardUrl}\n\nConsider reaching out to this customer to resolve their concern.`;
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;

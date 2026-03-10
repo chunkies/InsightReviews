@@ -91,8 +91,8 @@ const keyframes = `
 }
 
 @keyframes rf-slide-down {
-  from { opacity: 0; max-height: 0; transform: translateY(-12px); }
-  to   { opacity: 1; max-height: 600px; transform: translateY(0); }
+  from { opacity: 0; transform: translateY(-12px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes rf-check-draw {
@@ -261,6 +261,7 @@ export function ReviewFormContent({ org, platforms, reviewRequestId, config: cfg
   const [hoveredRating, setHoveredRating] = useState(0);
   const [comment, setComment] = useState('');
   const [customerName, setCustomerName] = useState('');
+  const [customerContact, setCustomerContact] = useState('');
   const [formState, setFormState] = useState<FormState>('rating');
   const [showConfetti, setShowConfetti] = useState(false);
   const [stylesInjected, setStylesInjected] = useState(false);
@@ -349,6 +350,7 @@ export function ReviewFormContent({ org, platforms, reviewRequestId, config: cfg
           rating,
           comment: comment || null,
           customerName: customerName || null,
+          customerContact: customerContact || null,
           reviewRequestId: reviewRequestId || null,
           photoUrl,
         }),
@@ -376,9 +378,9 @@ export function ReviewFormContent({ org, platforms, reviewRequestId, config: cfg
   const cardSx = {
     position: 'relative' as const,
     overflow: 'hidden',
-    p: { xs: 3, sm: 4 },
+    p: { xs: 3.5, sm: 4 },
     textAlign: 'center' as const,
-    borderRadius: `${config.cardBorderRadius}px`,
+    borderRadius: { xs: `${Math.min(config.cardBorderRadius, 20)}px`, sm: `${config.cardBorderRadius}px` },
     boxShadow: '0 20px 60px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.06)',
     border: '1px solid',
     borderColor: 'rgba(255,255,255,0.6)',
@@ -634,7 +636,10 @@ export function ReviewFormContent({ org, platforms, reviewRequestId, config: cfg
               fontFamily: config.bodyFont,
             }}
           >
-            {tyConfig.negativeMessage}
+            {(reviewRequestId || customerContact)
+              ? tyConfig.negativeMessage
+              : 'We appreciate you letting us know. Your feedback helps us improve.'
+            }
           </Typography>
 
           {/* Coupon Code Box (also shown on negative if configured) */}
@@ -793,8 +798,9 @@ export function ReviewFormContent({ org, platforms, reviewRequestId, config: cfg
           fontWeight={800}
           sx={{
             mb: 0.5,
-            fontSize: { xs: `${1.6 * config.headerSize}rem`, sm: `${2.1 * config.headerSize}rem` },
+            fontSize: { xs: `${1.45 * config.headerSize}rem`, sm: `${2.1 * config.headerSize}rem` },
             letterSpacing: '-0.02em',
+            wordBreak: 'break-word',
             color: config.headerColor,
             lineHeight: 1.2,
             fontFamily: config.headerFont,
@@ -817,7 +823,7 @@ export function ReviewFormContent({ org, platforms, reviewRequestId, config: cfg
         <Box sx={{
           display: 'flex',
           justifyContent: 'center',
-          gap: { xs: 0.5, sm: 1 },
+          gap: { xs: 0.75, sm: 1 },
           mb: 2,
         }}>
           {([1, 2, 3, 4, 5] as const).map((star) => {
@@ -831,7 +837,7 @@ export function ReviewFormContent({ org, platforms, reviewRequestId, config: cfg
                 onMouseLeave={() => setHoveredRating(0)}
                 disableRipple
                 sx={{
-                  p: { xs: 0.5, sm: 0.75 },
+                  p: { xs: 0.75, sm: 0.75 },
                   transition: 'transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1)',
                   animation: isPopping ? 'rf-star-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)' : 'none',
                   '&:hover': {
@@ -849,10 +855,10 @@ export function ReviewFormContent({ org, platforms, reviewRequestId, config: cfg
                 }}
               >
                 <Star
-                  size={56}
+                  size={52}
                   fill={isActive ? config.starColor : 'none'}
-                  color={isActive ? config.starColor : '#D1D5DB'}
-                  strokeWidth={isActive ? 1.2 : 1.5}
+                  color={isActive ? config.starColor : '#CBD5E1'}
+                  strokeWidth={isActive ? 1.2 : 1.8}
                   style={{
                     transition: 'fill 0.2s ease, color 0.2s ease',
                   }}
@@ -885,12 +891,12 @@ export function ReviewFormContent({ org, platforms, reviewRequestId, config: cfg
         {rating > 0 && (
           <Box sx={{
             animation: 'rf-slide-down 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards',
-            overflow: 'hidden',
             textAlign: 'left',
+            pt: 0.5,
           }}>
             <TextField
               fullWidth
-              label="Your name (optional)"
+              placeholder="Your name (optional)"
               value={customerName}
               onChange={(e) => setCustomerName(e.target.value)}
               variant="outlined"
@@ -898,30 +904,37 @@ export function ReviewFormContent({ org, platforms, reviewRequestId, config: cfg
                 mb: 2,
                 '& .MuiOutlinedInput-root': {
                   borderRadius: 2.5,
-                  transition: 'box-shadow 0.2s ease',
-                  '&.Mui-focused': {
-                    boxShadow: '0 0 0 3px rgba(99, 102, 241, 0.12)',
-                  },
                 },
               }}
             />
+            {/* Contact field for QR walk-ins (no SMS review request) */}
+            {!reviewRequestId && (
+              <TextField
+                fullWidth
+                placeholder="Email or phone (optional — for follow-up)"
+                value={customerContact}
+                onChange={(e) => setCustomerContact(e.target.value)}
+                variant="outlined"
+                sx={{
+                  mb: 2,
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: 2.5,
+                  },
+                }}
+              />
+            )}
             <TextField
               fullWidth
               multiline
               rows={3}
-              label="Tell us more (optional)"
+              placeholder={rating >= 4 ? "Tell us more (optional)" : "What could we improve? (optional)"}
               value={comment}
               onChange={(e) => setComment(e.target.value)}
-              placeholder={rating >= 4 ? "What made your experience great?" : "What could we improve?"}
               variant="outlined"
               sx={{
                 mb: 2,
                 '& .MuiOutlinedInput-root': {
                   borderRadius: 2.5,
-                  transition: 'box-shadow 0.2s ease',
-                  '&.Mui-focused': {
-                    boxShadow: '0 0 0 3px rgba(99, 102, 241, 0.12)',
-                  },
                 },
               }}
             />

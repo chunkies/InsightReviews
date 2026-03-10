@@ -157,15 +157,17 @@ export default function LandingPage() {
               InsightReviews
             </Typography>
           </Box>
-          <Button href="/auth/login" variant="text" sx={{ mr: 1, color: 'text.secondary' }}>
+          <Button href="/auth/login" variant="text" sx={{ mr: 0.5, color: 'text.secondary', minWidth: 'auto', px: { xs: 1, sm: 2 } }}>
             Sign In
           </Button>
           <Button
             href="/auth/login"
             variant="contained"
             sx={{
+              display: { xs: 'none', md: 'inline-flex' },
               background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
               boxShadow: '0 2px 8px rgba(37,99,235,0.3)',
+              px: 2,
             }}
           >
             Start Free Trial
@@ -299,15 +301,15 @@ export default function LandingPage() {
                   See How It Works
                 </Button>
               </Box>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, opacity: 0.6 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.5, sm: 1 }, opacity: 0.6, flexWrap: 'wrap' }}>
                 <CheckCircle2 size={14} />
-                <Typography variant="body2">No credit card required</Typography>
-                <Box sx={{ mx: 1 }}>|</Box>
+                <Typography variant="body2" fontSize={{ xs: '0.75rem', sm: '0.875rem' }}>No credit card</Typography>
+                <Box sx={{ mx: 0.5 }}>|</Box>
                 <CheckCircle2 size={14} />
-                <Typography variant="body2">Setup in 2 minutes</Typography>
-                <Box sx={{ mx: 1 }}>|</Box>
+                <Typography variant="body2" fontSize={{ xs: '0.75rem', sm: '0.875rem' }}>Setup in 2 min</Typography>
+                <Box sx={{ mx: 0.5 }}>|</Box>
                 <CheckCircle2 size={14} />
-                <Typography variant="body2">Cancel anytime</Typography>
+                <Typography variant="body2" fontSize={{ xs: '0.75rem', sm: '0.875rem' }}>Cancel anytime</Typography>
               </Box>
             </Grid>
 
@@ -1231,7 +1233,7 @@ export default function LandingPage() {
       </Box>
 
       {/* Spacer for sticky CTA on mobile */}
-      <Box sx={{ display: { xs: 'block', md: 'none' }, height: 72 }} />
+      <Box sx={{ display: { xs: 'block', md: 'none' }, height: 80 }} />
     </Box>
   );
 }

@@ -61,13 +61,15 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'You already have an organization' }, { status: 409 });
   }
 
-  // Create organization
+  // Create organization with 'pending' billing — requires Stripe setup
   const { data: org, error: orgError } = await supabase
     .from('organizations')
     .insert({
       name: businessName,
       slug,
       phone: phone || null,
+      billing_plan: 'pending',
+      trial_ends_at: null,
     })
     .select('id')
     .single();

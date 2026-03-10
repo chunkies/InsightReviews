@@ -68,7 +68,7 @@ export function StaffLeaderboard({ entries }: StaffLeaderboardProps) {
           <Box
             sx={{
               display: 'grid',
-              gridTemplateColumns: '56px 1fr 100px 100px 140px',
+              gridTemplateColumns: { xs: '40px 1fr 50px 50px 80px', sm: '56px 1fr 100px 100px 140px' },
               alignItems: 'center',
               px: 2.5,
               py: 1.5,
@@ -107,7 +107,7 @@ export function StaffLeaderboard({ entries }: StaffLeaderboardProps) {
                 key={entry.userId}
                 sx={{
                   display: 'grid',
-                  gridTemplateColumns: '56px 1fr 100px 100px 140px',
+                  gridTemplateColumns: { xs: '40px 1fr 50px 50px 80px', sm: '56px 1fr 100px 100px 140px' },
                   alignItems: 'center',
                   px: 2.5,
                   py: 1.5,

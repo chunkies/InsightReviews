@@ -44,11 +44,24 @@ export async function POST(request: NextRequest) {
       const subscriptionId = typeof session.subscription === 'string'
         ? session.subscription
         : null;
+
+      // Check if subscription has a trial — if so, set plan to 'trial' with trial end date
+      let billingPlan = 'active';
+      let trialEndsAt: string | null = null;
+      if (subscriptionId) {
+        const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+        if (subscription.trial_end) {
+          billingPlan = 'trial';
+          trialEndsAt = new Date(subscription.trial_end * 1000).toISOString();
+        }
+      }
+
       const { error } = await supabase
         .from('organizations')
         .update({
-          billing_plan: 'active',
+          billing_plan: billingPlan,
           stripe_subscription_id: subscriptionId,
+          trial_ends_at: trialEndsAt,
         })
         .eq('id', orgId);
       if (error) {

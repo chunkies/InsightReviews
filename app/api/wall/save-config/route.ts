@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { NextRequest, NextResponse } from 'next/server';
+import { requireBilling } from '@/lib/utils/admin';
 
 export async function POST(request: NextRequest) {
   try {
@@ -28,6 +29,10 @@ export async function POST(request: NextRequest) {
     if (!member || member.role !== 'owner') {
       return NextResponse.json({ error: 'Only owners can customize the wall' }, { status: 403 });
     }
+
+    // Verify active subscription
+    const billingError = await requireBilling(supabase, organizationId, user.email);
+    if (billingError) return billingError;
 
     const { data: org, error } = await supabase
       .from('organizations')

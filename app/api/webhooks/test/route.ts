@@ -1,17 +1,45 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@/lib/supabase/server';
 import { fireWebhook } from '@/lib/utils/webhook';
+import { requireBilling } from '@/lib/utils/admin';
 
 export async function POST(request: NextRequest) {
   try {
-    const { webhookUrl } = await request.json();
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
 
-    if (!webhookUrl || typeof webhookUrl !== 'string') {
-      return NextResponse.json({ error: 'Webhook URL is required' }, { status: 400 });
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Basic URL validation
+    const { organizationId, webhookUrl } = await request.json();
+
+    if (!organizationId || !webhookUrl || typeof webhookUrl !== 'string') {
+      return NextResponse.json({ error: 'Organization ID and webhook URL are required' }, { status: 400 });
+    }
+
+    // Verify user belongs to org
+    const { data: member } = await supabase
+      .from('organization_members')
+      .select('id')
+      .eq('organization_id', organizationId)
+      .eq('user_id', user.id)
+      .single();
+
+    if (!member) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
+    // Verify active subscription
+    const billingError = await requireBilling(supabase, organizationId, user.email);
+    if (billingError) return billingError;
+
+    // Validate URL — only allow https in production
     try {
-      new URL(webhookUrl);
+      const parsed = new URL(webhookUrl);
+      if (!['http:', 'https:'].includes(parsed.protocol)) {
+        return NextResponse.json({ error: 'Only HTTP(S) URLs are allowed' }, { status: 400 });
+      }
     } catch {
       return NextResponse.json({ error: 'Invalid URL' }, { status: 400 });
     }
@@ -27,7 +55,7 @@ export async function POST(request: NextRequest) {
         created_at: new Date().toISOString(),
       },
       organization: {
-        id: '00000000-0000-0000-0000-000000000000',
+        id: organizationId,
         name: 'Test Business',
         slug: 'test-business',
       },

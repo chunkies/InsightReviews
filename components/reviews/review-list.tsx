@@ -265,7 +265,7 @@ export function ReviewList({ reviews: initialReviews, isOwner, orgEmail, orgName
           placeholder="Search reviews..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          sx={{ minWidth: 250 }}
+          sx={{ minWidth: { xs: '100%', sm: 250 } }}
         />
         <ToggleButtonGroup
           value={filter}
@@ -293,15 +293,15 @@ export function ReviewList({ reviews: initialReviews, isOwner, orgEmail, orgName
         </Button>
       </Box>
 
-      <TableContainer component={Paper}>
-        <Table>
+      <TableContainer component={Paper} sx={{ overflowX: 'auto' }}>
+        <Table sx={{ minWidth: { xs: 600, md: 800 } }}>
           <TableHead>
             <TableRow>
               <TableCell>Rating</TableCell>
               <TableCell>Customer</TableCell>
               <TableCell>Comment</TableCell>
-              <TableCell>Photo</TableCell>
-              <TableCell>Date</TableCell>
+              <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>Photo</TableCell>
+              <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>Date</TableCell>
               <TableCell>Status</TableCell>
               {isOwner && <TableCell align="right">Actions</TableCell>}
             </TableRow>
@@ -325,7 +325,7 @@ export function ReviewList({ reviews: initialReviews, isOwner, orgEmail, orgName
                 <TableCell sx={{ maxWidth: 300, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {review.comment || '\u2014'}
                 </TableCell>
-                <TableCell>
+                <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>
                   {review.photo_url ? (
                     <Box
                       component="img"
@@ -352,7 +352,7 @@ export function ReviewList({ reviews: initialReviews, isOwner, orgEmail, orgName
                     </Box>
                   )}
                 </TableCell>
-                <TableCell>{format(new Date(review.created_at), 'dd MMM yyyy')}</TableCell>
+                <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>{format(new Date(review.created_at), 'dd MMM yyyy')}</TableCell>
                 <TableCell>
                   <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
                     <Chip
@@ -490,9 +490,19 @@ export function ReviewList({ reviews: initialReviews, isOwner, orgEmail, orgName
                 <Typography variant="subtitle2">
                   {selectedReview.customer_name || 'Anonymous'}
                 </Typography>
+                {(selectedReview.customer_email || selectedReview.customer_phone) && (
+                  <Typography variant="body2" color="primary" sx={{ mt: 0.5 }}>
+                    {selectedReview.customer_email || selectedReview.customer_phone}
+                  </Typography>
+                )}
                 {selectedReview.comment && (
                   <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
                     &ldquo;{selectedReview.comment}&rdquo;
+                  </Typography>
+                )}
+                {!selectedReview.customer_email && !selectedReview.customer_phone && !selectedReview.review_request_id && (
+                  <Typography variant="caption" color="text.disabled" sx={{ mt: 1, display: 'block' }}>
+                    No contact info — customer submitted via QR code without providing email or phone.
                   </Typography>
                 )}
               </Paper>

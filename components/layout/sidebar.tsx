@@ -4,7 +4,7 @@ import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import {
   Box, Drawer, List, ListItem, ListItemButton, ListItemIcon, ListItemText,
-  Typography, Divider, Chip,
+  Typography, Divider, Chip, useMediaQuery,
 } from '@mui/material';
 import {
   LayoutDashboard, Star, Send, Users, MessageSquareQuote,
@@ -28,13 +28,14 @@ interface SidebarProps {
   orgName?: string;
   billingPlan?: string | null;
   trialEndsAt?: string | null;
+  mobileOpen: boolean;
+  onMobileClose: () => void;
 }
 
 function getPlanDisplay(billingPlan?: string | null, trialEndsAt?: string | null) {
   if (billingPlan === 'active') return { label: 'Active', gradient: 'linear-gradient(135deg, #16a34a 0%, #22c55e 100%)' };
   if (billingPlan === 'past_due') return { label: 'Past Due', gradient: 'linear-gradient(135deg, #dc2626 0%, #ef4444 100%)' };
   if (billingPlan === 'cancelled') return { label: 'Cancelled', gradient: 'linear-gradient(135deg, #6b7280 0%, #9ca3af 100%)' };
-  // Default: trial
   if (trialEndsAt) {
     const daysLeft = Math.max(0, Math.ceil((new Date(trialEndsAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24)));
     return { label: `Trial · ${daysLeft}d left`, gradient: 'linear-gradient(135deg, #f59e0b 0%, #f97316 100%)' };
@@ -42,31 +43,14 @@ function getPlanDisplay(billingPlan?: string | null, trialEndsAt?: string | null
   return { label: 'Trial', gradient: 'linear-gradient(135deg, #f59e0b 0%, #f97316 100%)' };
 }
 
-export function Sidebar({ orgName, billingPlan, trialEndsAt }: SidebarProps) {
+export function Sidebar({ orgName, billingPlan, trialEndsAt, mobileOpen, onMobileClose }: SidebarProps) {
   const pathname = usePathname();
   const muiTheme = useTheme();
   const isDark = muiTheme.palette.mode === 'dark';
+  const isMobile = useMediaQuery(muiTheme.breakpoints.down('md'));
 
-  return (
-    <Drawer
-      variant="permanent"
-      sx={{
-        width: DRAWER_WIDTH,
-        flexShrink: 0,
-        '& .MuiDrawer-paper': {
-          width: DRAWER_WIDTH,
-          boxSizing: 'border-box',
-          borderRight: '1px solid',
-          borderColor: 'divider',
-          background: isDark
-            ? 'linear-gradient(180deg, #0f172a 0%, #131c2e 100%)'
-            : 'linear-gradient(180deg, #fafbff 0%, #f8f9fc 100%)',
-          transition: 'background 0.3s ease',
-          display: 'flex',
-          flexDirection: 'column',
-        },
-      }}
-    >
+  const drawerContent = (
+    <>
       {/* Logo + Branding */}
       <Box sx={{ p: 2.5, pb: 2 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
@@ -80,16 +64,17 @@ export function Sidebar({ orgName, billingPlan, trialEndsAt }: SidebarProps) {
               alignItems: 'center',
               justifyContent: 'center',
               boxShadow: '0 2px 8px rgba(37, 99, 235, 0.3)',
+              flexShrink: 0,
             }}
           >
             <Star size={18} color="white" fill="white" />
           </Box>
-          <Box>
+          <Box sx={{ minWidth: 0 }}>
             <Typography variant="subtitle1" fontWeight={800} sx={{ lineHeight: 1.2, letterSpacing: -0.3 }}>
               InsightReviews
             </Typography>
             {orgName && (
-              <Typography variant="caption" color="text.secondary" sx={{ lineHeight: 1.2 }}>
+              <Typography variant="caption" color="text.secondary" sx={{ lineHeight: 1.2 }} noWrap>
                 {orgName}
               </Typography>
             )}
@@ -110,12 +95,11 @@ export function Sidebar({ orgName, billingPlan, trialEndsAt }: SidebarProps) {
               <ListItemButton
                 component={Link}
                 href={item.href}
+                onClick={isMobile ? onMobileClose : undefined}
                 sx={{
                   borderRadius: 2,
                   py: 1,
                   px: 1.5,
-                  position: 'relative',
-                  transition: 'all 0.2s ease',
                   borderLeft: '3px solid',
                   borderColor: isActive ? 'primary.main' : 'transparent',
                   backgroundColor: isActive ? 'primary.main' : 'transparent',
@@ -123,11 +107,9 @@ export function Sidebar({ orgName, billingPlan, trialEndsAt }: SidebarProps) {
                   '&:hover': {
                     backgroundColor: isActive ? 'primary.dark' : (isDark ? 'rgba(37, 99, 235, 0.15)' : 'rgba(37, 99, 235, 0.06)'),
                     borderColor: isActive ? 'primary.dark' : 'rgba(37, 99, 235, 0.3)',
-                    transform: 'translateX(2px)',
                   },
                   '& .MuiListItemIcon-root': {
                     color: isActive ? 'white' : 'text.secondary',
-                    transition: 'color 0.2s ease',
                   },
                   '& .MuiListItemText-primary': {
                     fontWeight: isActive ? 600 : 400,
@@ -150,6 +132,7 @@ export function Sidebar({ orgName, billingPlan, trialEndsAt }: SidebarProps) {
         <Box
           component={Link}
           href="/dashboard/collect"
+          onClick={isMobile ? onMobileClose : undefined}
           sx={{
             display: 'flex',
             alignItems: 'center',
@@ -159,10 +142,8 @@ export function Sidebar({ orgName, billingPlan, trialEndsAt }: SidebarProps) {
             background: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)',
             color: 'white',
             textDecoration: 'none',
-            transition: 'all 0.25s ease',
             boxShadow: '0 2px 10px rgba(37, 99, 235, 0.25)',
             '&:hover': {
-              transform: 'translateY(-1px)',
               boxShadow: '0 4px 15px rgba(37, 99, 235, 0.35)',
             },
           }}
@@ -215,6 +196,49 @@ export function Sidebar({ orgName, billingPlan, trialEndsAt }: SidebarProps) {
           }}
         />
       </Box>
+    </>
+  );
+
+  const drawerPaperStyles = {
+    width: DRAWER_WIDTH,
+    boxSizing: 'border-box',
+    borderRight: '1px solid',
+    borderColor: 'divider',
+    background: isDark
+      ? 'linear-gradient(180deg, #0f172a 0%, #131c2e 100%)'
+      : 'linear-gradient(180deg, #fafbff 0%, #f8f9fc 100%)',
+    display: 'flex',
+    flexDirection: 'column',
+  } as const;
+
+  if (isMobile) {
+    return (
+      <Drawer
+        variant="temporary"
+        open={mobileOpen}
+        onClose={onMobileClose}
+        ModalProps={{ keepMounted: true }}
+        sx={{
+          display: { xs: 'block', md: 'none' },
+          '& .MuiDrawer-paper': drawerPaperStyles,
+        }}
+      >
+        {drawerContent}
+      </Drawer>
+    );
+  }
+
+  return (
+    <Drawer
+      variant="permanent"
+      sx={{
+        display: { xs: 'none', md: 'block' },
+        width: DRAWER_WIDTH,
+        flexShrink: 0,
+        '& .MuiDrawer-paper': drawerPaperStyles,
+      }}
+    >
+      {drawerContent}
     </Drawer>
   );
 }

@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { sendSms, buildReviewLink, buildSmsBody } from '@/lib/twilio/client';
 import { sendReviewEmail } from '@/lib/email/client';
 import { logActivity } from '@/lib/utils/activity-logger';
+import { requireBilling } from '@/lib/utils/admin';
 
 export async function POST(request: NextRequest) {
   try {
@@ -38,6 +39,10 @@ export async function POST(request: NextRequest) {
     if (!member) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
+
+    // Verify active subscription before sending (prevents expired trial abuse)
+    const billingError = await requireBilling(supabase, organizationId, user.email);
+    if (billingError) return billingError;
 
     // Get org details
     const { data: org } = await supabase

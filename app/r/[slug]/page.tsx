@@ -54,12 +54,13 @@ export default async function ReviewPage({ params, searchParams }: PageProps) {
         minHeight: '100vh',
         background: bgStyle,
         display: 'flex',
-        alignItems: 'center',
+        alignItems: { xs: 'flex-start', sm: 'center' },
         justifyContent: 'center',
-        p: 2,
+        px: { xs: 1.5, sm: 2 },
+        py: { xs: 3, sm: 2 },
       }}
     >
-      <Container maxWidth="sm">
+      <Container maxWidth="sm" disableGutters sx={{ px: { xs: 0.5, sm: 2 } }}>
         <ReviewFormContent
           org={{
             id: org.id,

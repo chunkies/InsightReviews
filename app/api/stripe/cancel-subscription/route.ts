@@ -1,9 +1,8 @@
 import { createClient } from '@/lib/supabase/server';
 import { createStripeClient } from '@/lib/stripe/server';
-import { NextRequest, NextResponse } from 'next/server';
-import { requireBilling } from '@/lib/utils/admin';
+import { NextResponse } from 'next/server';
 
-export async function POST(request: NextRequest) {
+export async function POST(request: Request) {
   try {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
@@ -26,31 +25,26 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    // Verify active subscription
-    const billingError = await requireBilling(supabase, organizationId, user.email);
-    if (billingError) return billingError;
-
     const { data: org } = await supabase
       .from('organizations')
-      .select('stripe_customer_id')
+      .select('stripe_subscription_id')
       .eq('id', organizationId)
       .single();
 
-    if (!org?.stripe_customer_id) {
-      return NextResponse.json({ error: 'No billing account' }, { status: 400 });
+    if (!org?.stripe_subscription_id) {
+      return NextResponse.json({ error: 'No active subscription found' }, { status: 400 });
     }
 
     const stripe = createStripeClient();
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL!;
 
-    const session = await stripe.billingPortal.sessions.create({
-      customer: org.stripe_customer_id,
-      return_url: `${siteUrl}/dashboard/billing`,
+    // Cancel at period end so they keep access until the billing cycle ends
+    await stripe.subscriptions.update(org.stripe_subscription_id, {
+      cancel_at_period_end: true,
     });
 
-    return NextResponse.json({ url: session.url });
+    return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Portal error:', error);
+    console.error('Cancel subscription error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

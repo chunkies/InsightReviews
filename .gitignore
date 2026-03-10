@@ -43,3 +43,6 @@ test-results/
 # local tooling
 .playwright-mcp/
 supabase/.temp/
+
+# Screenshots from testing
+*.png

@@ -5,7 +5,7 @@ import { sendNegativeReviewNotification } from '@/lib/email/client';
 
 export async function POST(request: NextRequest) {
   try {
-    const { slug, rating, comment, customerName, reviewRequestId, photoUrl } = await request.json();
+    const { slug, rating, comment, customerName, customerContact, reviewRequestId, photoUrl } = await request.json();
 
     if (!slug || !rating || rating < 1 || rating > 5) {
       return NextResponse.json({ error: 'Invalid data' }, { status: 400 });
@@ -36,6 +36,18 @@ export async function POST(request: NextRequest) {
 
     const isPositive = rating >= org.positive_threshold;
 
+    // Parse contact info from QR walk-ins (email or phone)
+    let contactEmail: string | null = null;
+    let contactPhone: string | null = null;
+    if (customerContact && typeof customerContact === 'string') {
+      const trimmed = customerContact.trim();
+      if (trimmed.includes('@')) {
+        contactEmail = trimmed;
+      } else {
+        contactPhone = trimmed;
+      }
+    }
+
     // Validate review_request_id if provided
     let validatedRequestId: string | null = null;
     if (reviewRequestId) {
@@ -60,6 +72,8 @@ export async function POST(request: NextRequest) {
         rating,
         comment: comment || null,
         customer_name: customerName || null,
+        customer_phone: contactPhone,
+        customer_email: contactEmail,
         is_positive: isPositive,
         is_public: isPositive, // Auto-publish positive reviews
         redirected_to: [],
@@ -120,13 +134,14 @@ export async function POST(request: NextRequest) {
         rating,
         comment: comment || null,
         customerName: customerName || null,
+        customerContact: contactEmail || contactPhone || null,
         dashboardUrl: `${siteUrl}/dashboard/reviews`,
       });
     }
 
     // Queue auto follow-up for negative reviews
     if (!isPositive && org.auto_followup_enabled) {
-      // Determine contact info: try review request first, then fall back to any available contact
+      // Determine contact info: try review request first, then fall back to QR walk-in contact
       let toContact: string | null = null;
       let channel: 'email' | 'sms' = 'email';
 
@@ -146,6 +161,15 @@ export async function POST(request: NextRequest) {
             channel = 'sms';
           }
         }
+      }
+
+      // Fall back to contact info from QR walk-in form
+      if (!toContact && contactEmail) {
+        toContact = contactEmail;
+        channel = 'email';
+      } else if (!toContact && contactPhone) {
+        toContact = contactPhone;
+        channel = 'sms';
       }
 
       if (toContact) {

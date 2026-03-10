@@ -1,9 +1,7 @@
-import { Box, Toolbar } from '@mui/material';
-import { Sidebar, DRAWER_WIDTH } from '@/components/layout/sidebar';
-import { Header } from '@/components/layout/header';
-import { ErrorBoundary } from '@/components/shared/error-boundary';
+import { DashboardShell } from '@/components/layout/dashboard-shell';
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
+import { hasValidBilling } from '@/lib/utils/admin';
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
@@ -21,29 +19,22 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   const { data: org } = await supabase
     .from('organizations')
-    .select('name, billing_plan, trial_ends_at')
+    .select('id, name, billing_plan, trial_ends_at')
     .eq('id', member.organization_id)
     .single();
 
+  // Gate access: require active subscription or valid trial (admins bypass)
+  if (!hasValidBilling(org?.billing_plan, org?.trial_ends_at, user.email)) {
+    redirect(`/subscribe?org=${org?.id ?? ''}`);
+  }
+
   return (
-    <Box sx={{ display: 'flex' }}>
-      <Sidebar orgName={org?.name} billingPlan={org?.billing_plan} trialEndsAt={org?.trial_ends_at} />
-      <Header />
-      <Box
-        component="main"
-        sx={{
-          flexGrow: 1,
-          p: 3,
-          width: `calc(100% - ${DRAWER_WIDTH}px)`,
-          minHeight: '100vh',
-          backgroundColor: 'background.default',
-        }}
-      >
-        <Toolbar />
-        <ErrorBoundary>
-          {children}
-        </ErrorBoundary>
-      </Box>
-    </Box>
+    <DashboardShell
+      orgName={org?.name}
+      billingPlan={org?.billing_plan}
+      trialEndsAt={org?.trial_ends_at}
+    >
+      {children}
+    </DashboardShell>
   );
 }

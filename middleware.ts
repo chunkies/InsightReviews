@@ -1,11 +1,20 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
+import { hasValidBilling } from '@/lib/utils/admin';
+
 const publicPrefixes = ['/auth/', '/r/', '/wall/'];
 
 function isPublicRoute(pathname: string): boolean {
   if (pathname === '/') return true;
   return publicPrefixes.some(prefix => pathname.startsWith(prefix));
+}
+
+// Routes that require auth but NOT an active subscription
+const authOnlyPrefixes = ['/onboarding', '/subscribe'];
+
+function isAuthOnlyRoute(pathname: string): boolean {
+  return authOnlyPrefixes.some(prefix => pathname.startsWith(prefix));
 }
 
 export async function middleware(request: NextRequest) {
@@ -52,6 +61,41 @@ export async function middleware(request: NextRequest) {
     const url = request.nextUrl.clone();
     url.pathname = '/dashboard';
     return NextResponse.redirect(url);
+  }
+
+  // Auth-only routes (onboarding, subscribe) — no billing check needed
+  if (isAuthOnlyRoute(pathname)) {
+    return supabaseResponse;
+  }
+
+  // For dashboard routes, check org membership and billing status
+  if (pathname.startsWith('/dashboard')) {
+    const { data: member } = await supabase
+      .from('organization_members')
+      .select('organization_id')
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    // No org yet → send to onboarding
+    if (!member) {
+      const url = request.nextUrl.clone();
+      url.pathname = '/onboarding';
+      return NextResponse.redirect(url);
+    }
+
+    // Check billing status
+    const { data: org } = await supabase
+      .from('organizations')
+      .select('billing_plan, trial_ends_at')
+      .eq('id', member.organization_id)
+      .single();
+
+    if (org && !hasValidBilling(org.billing_plan, org.trial_ends_at, user.email)) {
+      const url = request.nextUrl.clone();
+      url.pathname = '/subscribe';
+      url.search = `?org=${member.organization_id}`;
+      return NextResponse.redirect(url);
+    }
   }
 
   return supabaseResponse;

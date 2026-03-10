@@ -8,7 +8,7 @@ import {
   CircularProgress, Alert, Divider,
 } from '@mui/material';
 import {
-  Unlink, RefreshCw, ExternalLink,
+  Unlink, ExternalLink,
   Search, CheckCircle2, Clock, AlertCircle, Zap,
 } from 'lucide-react';
 import { useSnackbar } from '@/components/providers/snackbar-provider';
@@ -39,7 +39,7 @@ const PLATFORM_INFO = {
     color: '#D32323',
     bgGradient: 'linear-gradient(135deg, #D32323 0%, #FF5722 100%)',
     lightBg: 'linear-gradient(135deg, #FDE8E8 0%, #FFEBEE 100%)',
-    description: 'Import reviews via Yelp Fusion API',
+    description: 'Connect your Yelp business listing',
     icon: '⭐',
   },
 };
@@ -60,7 +60,6 @@ export function IntegrationsPanel({
   orgAddress,
 }: IntegrationsPanelProps) {
   const { showSnackbar } = useSnackbar();
-  const [syncing, setSyncing] = useState<Record<string, boolean>>({});
   const [disconnecting, setDisconnecting] = useState<string | null>(null);
   const [yelpDialog, setYelpDialog] = useState(false);
   const [yelpSearch, setYelpSearch] = useState({ name: orgName, location: orgAddress });
@@ -113,49 +112,6 @@ export function IntegrationsPanel({
       showSnackbar('Failed to disconnect', 'error');
     }
     setDisconnecting(null);
-  }
-
-  async function handleSync(platform: string) {
-    setSyncing(prev => ({ ...prev, [platform]: true }));
-    try {
-      const res = await fetch('/api/integrations/sync', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ platform }),
-      });
-      const data = await res.json();
-      if (res.ok && data.results?.[platform]) {
-        showSnackbar(`Synced ${data.results[platform].synced} reviews from ${PLATFORM_INFO[platform as keyof typeof PLATFORM_INFO]?.name}`);
-        window.location.reload();
-      } else {
-        showSnackbar(data.error || 'Sync failed', 'error');
-      }
-    } catch {
-      showSnackbar('Sync failed', 'error');
-    }
-    setSyncing(prev => ({ ...prev, [platform]: false }));
-  }
-
-  async function handleSyncAll() {
-    setSyncing({ google: true, facebook: true, yelp: true });
-    try {
-      const res = await fetch('/api/integrations/sync', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({}),
-      });
-      const data = await res.json();
-      if (res.ok) {
-        const total = Object.values(data.results || {}).reduce((sum: number, r: unknown) => sum + ((r as { synced: number }).synced || 0), 0);
-        showSnackbar(`Synced ${total} reviews across all platforms`);
-        window.location.reload();
-      } else {
-        showSnackbar(data.error || 'Sync failed', 'error');
-      }
-    } catch {
-      showSnackbar('Sync failed', 'error');
-    }
-    setSyncing({});
   }
 
   async function handleYelpSearch() {
@@ -211,34 +167,19 @@ export function IntegrationsPanel({
             borderColor: 'divider',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'space-between',
-            flexWrap: 'wrap',
             gap: 2,
           }}
         >
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Zap size={18} color="#7c3aed" />
-              <Typography variant="subtitle2" fontWeight={700}>
-                {connectedCount} platform{connectedCount !== 1 ? 's' : ''} connected
-              </Typography>
-            </Box>
-            <Divider orientation="vertical" flexItem />
-            <Typography variant="body2" color="text.secondary">
-              {totalSynced} reviews synced
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Zap size={18} color="#7c3aed" />
+            <Typography variant="subtitle2" fontWeight={700}>
+              {connectedCount} platform{connectedCount !== 1 ? 's' : ''} connected
             </Typography>
           </Box>
-          {connectedCount > 0 && (
-            <Button
-              size="small"
-              variant="outlined"
-              startIcon={<RefreshCw size={14} />}
-              onClick={handleSyncAll}
-              disabled={Object.values(syncing).some(Boolean)}
-            >
-              Sync All
-            </Button>
-          )}
+          <Divider orientation="vertical" flexItem />
+          <Typography variant="body2" color="text.secondary">
+            {totalSynced} reviews synced
+          </Typography>
         </Paper>
       )}
 
@@ -338,32 +279,17 @@ export function IntegrationsPanel({
                           )}
                         </Box>
                         <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                          <Button
-                            size="small"
-                            variant="contained"
-                            startIcon={syncing[platform] ? <CircularProgress size={14} color="inherit" /> : <RefreshCw size={14} />}
-                            onClick={() => handleSync(platform)}
-                            disabled={syncing[platform]}
-                            sx={{
-                              backgroundColor: info.color,
-                              '&:hover': { backgroundColor: info.color, filter: 'brightness(0.9)' },
-                              textTransform: 'none',
-                              fontWeight: 600,
-                            }}
-                          >
-                            {syncing[platform] ? 'Syncing...' : 'Sync'}
-                          </Button>
                           {integration.platform_url && (
                             <Button
                               size="small"
-                              variant="text"
+                              variant="outlined"
                               startIcon={<ExternalLink size={14} />}
                               href={integration.platform_url}
                               target="_blank"
                               component="a"
-                              sx={{ textTransform: 'none' }}
+                              sx={{ textTransform: 'none', fontWeight: 600 }}
                             >
-                              View
+                              View on {info.name}
                             </Button>
                           )}
                           {isOwner && (

@@ -134,6 +134,40 @@ export interface ReviewStats {
   detractorCount: number;
 }
 
+// Platform integrations (Google, Facebook, Yelp)
+export interface OrganizationIntegration {
+  id: string;
+  organization_id: string;
+  platform: 'google' | 'facebook' | 'yelp';
+  access_token: string | null;
+  refresh_token: string | null;
+  token_expires_at: string | null;
+  platform_account_id: string | null;
+  platform_account_name: string | null;
+  platform_url: string | null;
+  connected_at: string;
+  last_synced_at: string | null;
+  sync_enabled: boolean;
+  created_at: string;
+}
+
+export interface ExternalReview {
+  id: string;
+  organization_id: string;
+  integration_id: string;
+  platform: string;
+  platform_review_id: string | null;
+  rating: number | null;
+  comment: string | null;
+  reviewer_name: string | null;
+  reviewer_avatar_url: string | null;
+  review_date: string | null;
+  reply_text: string | null;
+  replied_at: string | null;
+  raw_data: Record<string, unknown>;
+  created_at: string;
+}
+
 // Platform display config
 export const PLATFORM_CONFIG: Record<string, { label: string; color: string; icon: string }> = {
   google: { label: 'Google', color: '#4285F4', icon: 'Star' },

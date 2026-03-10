@@ -8,7 +8,7 @@ import {
 } from '@mui/material';
 import {
   LayoutDashboard, Star, Send, Users, MessageSquareQuote,
-  Settings, CreditCard, Phone, Sparkles,
+  Settings, CreditCard, Phone, Sparkles, Globe, Link2,
 } from 'lucide-react';
 import { useTheme } from '@mui/material/styles';
 
@@ -17,8 +17,10 @@ const DRAWER_WIDTH = 260;
 const navItems = [
   { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { label: 'Reviews', href: '/dashboard/reviews', icon: Star },
+  { label: 'All Reviews', href: '/dashboard/all-reviews', icon: Globe },
   { label: 'Collect Reviews', href: '/dashboard/collect', icon: Send },
   { label: 'Testimonials', href: '/dashboard/testimonials', icon: MessageSquareQuote },
+  { label: 'Integrations', href: '/dashboard/integrations', icon: Link2 },
   { label: 'Staff', href: '/dashboard/staff', icon: Users },
   { label: 'Settings', href: '/dashboard/settings', icon: Settings },
   { label: 'Billing', href: '/dashboard/billing', icon: CreditCard },

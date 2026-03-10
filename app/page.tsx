@@ -730,7 +730,6 @@ export default function LandingPage() {
               mx: { xs: 0, md: 4 },
             }}
           >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/screenshots/dashboard-hero.png"
               alt="InsightReviews dashboard showing review stats, NPS score, and review funnel"

@@ -29,12 +29,18 @@ export default async function SettingsPage() {
     .eq('organization_id', member.organization_id)
     .order('display_order');
 
+  const { data: integrations } = await supabase
+    .from('organization_integrations')
+    .select('*')
+    .eq('organization_id', member.organization_id);
+
   return (
     <Box>
       <PageHeader title="Settings" subtitle="Manage your business profile and review platforms" />
       <SettingsForm
         org={org!}
         platforms={platforms ?? []}
+        integrations={integrations ?? []}
         isOwner={member.role === 'owner'}
       />
     </Box>

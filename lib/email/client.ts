@@ -1,3 +1,44 @@
+import sgMail from '@sendgrid/mail';
+
+const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
+const FROM_EMAIL = process.env.SENDGRID_FROM_EMAIL || 'noreply@insightreviews.com.au';
+const FROM_NAME = process.env.SENDGRID_FROM_NAME || 'InsightReviews';
+
+if (SENDGRID_API_KEY) {
+  sgMail.setApiKey(SENDGRID_API_KEY);
+}
+
+async function sendEmail(params: {
+  to: string;
+  subject: string;
+  html: string;
+  text: string;
+}): Promise<boolean> {
+  if (!SENDGRID_API_KEY) {
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`[EMAIL-DEV] To: ${params.to} | Subject: ${params.subject}`);
+      return true;
+    }
+    console.error('SENDGRID_API_KEY not configured');
+    return false;
+  }
+
+  try {
+    await sgMail.send({
+      to: params.to,
+      from: { email: FROM_EMAIL, name: FROM_NAME },
+      subject: params.subject,
+      html: params.html,
+      text: params.text,
+    });
+    return true;
+  } catch (error: unknown) {
+    const sgError = error as { response?: { body?: unknown }; message?: string };
+    console.error('SendGrid email error:', sgError.response?.body || sgError.message);
+    return false;
+  }
+}
+
 interface SendReviewEmailParams {
   to: string;
   businessName: string;
@@ -5,64 +46,15 @@ interface SendReviewEmailParams {
   customerName?: string;
 }
 
-/**
- * Send a review request email using Supabase Edge Functions or a simple fetch-based approach.
- * For production, swap this for Resend, SendGrid, or AWS SES.
- *
- * Currently uses a simple SMTP relay via the Supabase project's built-in email
- * (inbucket in local dev, or configured SMTP in production).
- */
 export async function sendReviewEmail(params: SendReviewEmailParams): Promise<boolean> {
   const { to, businessName, reviewLink, customerName } = params;
 
   const greeting = customerName ? `Hi ${customerName},` : 'Hi there,';
   const subject = `How was your experience at ${businessName}?`;
-  const htmlBody = buildEmailHtml({ greeting, businessName, reviewLink });
-  const textBody = buildEmailText({ greeting, businessName, reviewLink });
+  const html = buildEmailHtml({ greeting, businessName, reviewLink });
+  const text = buildEmailText({ greeting, businessName, reviewLink });
 
-  // Use Supabase's auth.admin to send a custom email via the project's SMTP config
-  // This works in both local dev (inbucket) and production (configured SMTP)
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-
-  try {
-    // Use the Supabase REST API to invoke a simple email send
-    // We send via the Edge Function endpoint if available, otherwise fall back to
-    // a direct SMTP approach using the functions API
-    const res = await fetch(`${supabaseUrl}/functions/v1/send-email`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${serviceRoleKey}`,
-      },
-      body: JSON.stringify({
-        to,
-        subject,
-        html: htmlBody,
-        text: textBody,
-      }),
-    });
-
-    if (res.ok) {
-      return true;
-    }
-
-    // Edge function not available
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`[EMAIL-DEV] To: ${to} | Subject: ${subject}`);
-      return true;
-    }
-
-    return false;
-  } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`[EMAIL-DEV] Fallback — To: ${to} | Subject: ${subject}`);
-      return true;
-    }
-    console.error('Email send error:', error instanceof Error ? error.message : 'Unknown error');
-
-    return false;
-  }
+  return sendEmail({ to, subject, html, text });
 }
 
 function buildEmailHtml(params: { greeting: string; businessName: string; reviewLink: string }): string {
@@ -109,16 +101,13 @@ interface SendFollowupEmailParams {
   customerName: string;
 }
 
-/**
- * Send a follow-up email to a customer after a review.
- */
 export async function sendFollowupEmail(params: SendFollowupEmailParams): Promise<boolean> {
   const { to, businessName, message, customerName } = params;
 
   const subject = `A message from ${businessName}`;
   const greeting = `Hi ${customerName},`;
 
-  const htmlBody = `
+  const html = `
 <!DOCTYPE html>
 <html>
 <head>
@@ -142,44 +131,9 @@ export async function sendFollowupEmail(params: SendFollowupEmailParams): Promis
 </body>
 </html>`.trim();
 
-  const textBody = `${greeting}\n\n${message}\n\n— ${businessName}`;
+  const text = `${greeting}\n\n${message}\n\n— ${businessName}`;
 
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-
-  try {
-    const res = await fetch(`${supabaseUrl}/functions/v1/send-email`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${serviceRoleKey}`,
-      },
-      body: JSON.stringify({
-        to,
-        subject,
-        html: htmlBody,
-        text: textBody,
-      }),
-    });
-
-    if (res.ok) {
-      return true;
-    }
-
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`[EMAIL-DEV] Followup — To: ${to} | Subject: ${subject}`);
-      return true;
-    }
-
-    return false;
-  } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`[EMAIL-DEV] Fallback followup — To: ${to} | Subject: ${subject}`);
-      return true;
-    }
-    console.error('Followup email error:', error instanceof Error ? error.message : 'Unknown error');
-    return false;
-  }
+  return sendEmail({ to, subject, html, text });
 }
 
 interface SendNegativeReviewNotificationParams {
@@ -192,9 +146,6 @@ interface SendNegativeReviewNotificationParams {
   dashboardUrl: string;
 }
 
-/**
- * Send a notification email to the business owner when a negative review is received.
- */
 export async function sendNegativeReviewNotification(
   params: SendNegativeReviewNotificationParams
 ): Promise<boolean> {
@@ -202,10 +153,8 @@ export async function sendNegativeReviewNotification(
 
   const subject = `New negative review (${rating} star${rating !== 1 ? 's' : ''}) for ${businessName}`;
   const customerLabel = customerName || 'A customer';
-  const commentText = comment ? `\n\nTheir comment:\n"${comment}"` : '';
-  const contactText = customerContact ? `\n\nContact: ${customerContact}` : '';
 
-  const htmlBody = `
+  const html = `
 <!DOCTYPE html>
 <html>
 <head>
@@ -236,42 +185,9 @@ export async function sendNegativeReviewNotification(
 </body>
 </html>`.trim();
 
-  const textBody = `Negative Review Alert\n\n${customerLabel} left a ${rating}-star review for ${businessName}.${commentText}${contactText}\n\nView in dashboard: ${dashboardUrl}\n\nConsider reaching out to this customer to resolve their concern.`;
+  const commentText = comment ? `\n\nTheir comment:\n"${comment}"` : '';
+  const contactText = customerContact ? `\n\nContact: ${customerContact}` : '';
+  const text = `Negative Review Alert\n\n${customerLabel} left a ${rating}-star review for ${businessName}.${commentText}${contactText}\n\nView in dashboard: ${dashboardUrl}\n\nConsider reaching out to this customer to resolve their concern.`;
 
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-
-  try {
-    const res = await fetch(`${supabaseUrl}/functions/v1/send-email`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${serviceRoleKey}`,
-      },
-      body: JSON.stringify({
-        to,
-        subject,
-        html: htmlBody,
-        text: textBody,
-      }),
-    });
-
-    if (res.ok) {
-      return true;
-    }
-
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`[EMAIL-DEV] Negative review notification — To: ${to} | Subject: ${subject}`);
-      return true;
-    }
-
-    return false;
-  } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`[EMAIL-DEV] Fallback negative review notification — To: ${to} | Subject: ${subject}`);
-      return true;
-    }
-    console.error('Negative review notification email error:', error instanceof Error ? error.message : 'Unknown error');
-    return false;
-  }
+  return sendEmail({ to, subject, html, text });
 }

@@ -49,7 +49,6 @@ export default async function IntegrationsPage() {
         integrations={integrations ?? []}
         reviewCounts={countByPlatform}
         isOwner={member.role === 'owner'}
-        organizationId={member.organization_id}
         orgName={org?.name ?? ''}
         orgAddress={org?.address ?? ''}
       />

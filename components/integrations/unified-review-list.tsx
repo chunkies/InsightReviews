@@ -41,8 +41,6 @@ const PLATFORM_BADGE: Record<string, {
 interface UnifiedReviewListProps {
   internalReviews: Review[];
   externalReviews: ExternalReview[];
-  integrations: { id: string; platform: string; platform_account_name: string | null }[];
-  isOwner: boolean;
 }
 
 export function UnifiedReviewList({

@@ -7,7 +7,7 @@ import { WallCustomizer } from '@/components/testimonials/wall-customizer';
 import { ReviewExperienceForm } from '@/components/testimonials/review-experience-form';
 import { mergeWallConfig } from '@/lib/types/wall-config';
 import { TestimonialPageTabs } from '@/components/testimonials/testimonial-page-tabs';
-import type { Organization } from '@/lib/types/database';
+import type { Organization, OrganizationIntegration } from '@/lib/types/database';
 
 export default async function TestimonialsPage() {
   const supabase = await createClient();
@@ -36,6 +36,11 @@ export default async function TestimonialsPage() {
     .eq('organization_id', member.organization_id)
     .eq('is_public', true)
     .order('created_at', { ascending: false });
+
+  const { data: integrations } = await supabase
+    .from('organization_integrations')
+    .select('*')
+    .eq('organization_id', member.organization_id);
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
   const wallUrl = `${siteUrl}/wall/${org.slug}`;
@@ -81,6 +86,7 @@ export default async function TestimonialsPage() {
           <ReviewExperienceForm
             org={org as unknown as Organization}
             isOwner={member.role === 'owner'}
+            integrations={(integrations ?? []) as unknown as OrganizationIntegration[]}
           />
         }
       />

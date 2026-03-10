@@ -6,19 +6,21 @@ import {
   IconButton, Select, MenuItem, FormControl, InputLabel,
   Switch, FormControlLabel,
 } from '@mui/material';
-import { Save, Plus, Trash2, Send, Mail } from 'lucide-react';
+import { Save, Plus, Trash2, Send, Mail, Link2, ExternalLink, CheckCircle } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { useSnackbar } from '@/components/providers/snackbar-provider';
 import { LogoUpload } from '@/components/shared/logo-upload';
-import type { Organization, ReviewPlatform } from '@/lib/types/database';
+import type { Organization, ReviewPlatform, OrganizationIntegration } from '@/lib/types/database';
+import { PLATFORM_CONFIG } from '@/lib/types/database';
 
 interface SettingsFormProps {
   org: Organization;
   platforms: ReviewPlatform[];
+  integrations: OrganizationIntegration[];
   isOwner: boolean;
 }
 
-export function SettingsForm({ org, platforms: initialPlatforms, isOwner }: SettingsFormProps) {
+export function SettingsForm({ org, platforms: initialPlatforms, integrations, isOwner }: SettingsFormProps) {
   const [name, setName] = useState(org.name);
   const [logoUrl, setLogoUrl] = useState(org.logo_url);
   const [phone, setPhone] = useState(org.phone ?? '');
@@ -285,10 +287,132 @@ export function SettingsForm({ org, platforms: initialPlatforms, isOwner }: Sett
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
           Connected integrations automatically appear as redirect options when customers leave positive reviews.
-          Connect platforms in the Reviews &rarr; Integrations tab.
         </Typography>
-        {platforms.length > 0 && (
+
+        {/* Connected Integrations */}
+        {integrations.length > 0 ? (
           <Box sx={{ mb: 2 }}>
+            <Typography variant="subtitle2" sx={{ mb: 1.5, color: 'text.secondary', textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: 0.5 }}>
+              Connected Platforms
+            </Typography>
+            {integrations.map((integration) => {
+              const config = PLATFORM_CONFIG[integration.platform] ?? PLATFORM_CONFIG.other;
+              return (
+                <Box
+                  key={integration.id}
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1.5,
+                    mb: 1.5,
+                    p: 1.5,
+                    borderRadius: 1,
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    bgcolor: 'background.paper',
+                  }}
+                >
+                  <Box
+                    sx={{
+                      width: 36,
+                      height: 36,
+                      borderRadius: 1,
+                      bgcolor: config.color,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0,
+                    }}
+                  >
+                    <CheckCircle size={18} color="#fff" />
+                  </Box>
+                  <Box sx={{ flex: 1, minWidth: 0 }}>
+                    <Typography variant="body2" fontWeight={600}>
+                      {config.label}
+                      {integration.platform_account_name ? ` — ${integration.platform_account_name}` : ''}
+                    </Typography>
+                    {integration.platform_url && (
+                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {integration.platform_url}
+                      </Typography>
+                    )}
+                  </Box>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexShrink: 0 }}>
+                    {integration.show_on_review_form ? (
+                      <Typography variant="caption" sx={{ color: 'success.main', fontWeight: 500 }}>
+                        Shown on form
+                      </Typography>
+                    ) : (
+                      <Typography variant="caption" sx={{ color: 'text.disabled' }}>
+                        Hidden
+                      </Typography>
+                    )}
+                    {integration.platform_url && (
+                      <IconButton
+                        size="small"
+                        component="a"
+                        href={integration.platform_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <ExternalLink size={14} />
+                      </IconButton>
+                    )}
+                  </Box>
+                </Box>
+              );
+            })}
+          </Box>
+        ) : (
+          <Box
+            sx={{
+              p: 3,
+              mb: 2,
+              borderRadius: 1,
+              border: '1px dashed',
+              borderColor: 'divider',
+              textAlign: 'center',
+            }}
+          >
+            <Link2 size={24} style={{ marginBottom: 8, opacity: 0.5 }} />
+            <Typography variant="body2" color="text.secondary">
+              No platforms connected yet. Connect Google, Facebook, or Yelp to automatically sync reviews and show redirect options.
+            </Typography>
+            {isOwner && (
+              <Button
+                component="a"
+                href="/dashboard/integrations"
+                variant="contained"
+                size="small"
+                sx={{ mt: 1.5 }}
+                startIcon={<Link2 size={14} />}
+              >
+                Connect Platforms
+              </Button>
+            )}
+          </Box>
+        )}
+
+        {/* Link to integrations page when integrations exist */}
+        {isOwner && integrations.length > 0 && (
+          <Button
+            component="a"
+            href="/dashboard/integrations"
+            variant="outlined"
+            size="small"
+            startIcon={<Link2 size={14} />}
+            sx={{ mb: 2 }}
+          >
+            Connect more platforms
+          </Button>
+        )}
+
+        {/* Manual Platforms */}
+        {platforms.length > 0 && (
+          <Box sx={{ mt: integrations.length > 0 ? 2 : 0 }}>
+            <Typography variant="subtitle2" sx={{ mb: 1.5, color: 'text.secondary', textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: 0.5 }}>
+              Manual Platforms
+            </Typography>
             {platforms.map((p) => (
               <Box key={p.id} sx={{ display: 'flex', gap: 1, mb: 1.5, alignItems: 'center' }}>
                 <FormControl size="small" sx={{ minWidth: 140 }}>
@@ -322,20 +446,9 @@ export function SettingsForm({ org, platforms: initialPlatforms, isOwner }: Sett
           </Box>
         )}
         {isOwner && (
-          <Box sx={{ display: 'flex', gap: 1 }}>
-            <Button
-              component="a"
-              href="/dashboard/reviews"
-              variant="outlined"
-              size="small"
-              startIcon={<Send size={14} />}
-            >
-              Manage Integrations
-            </Button>
-            <Button startIcon={<Plus size={16} />} onClick={addPlatform} size="small" variant="text">
-              Add Manual Platform
-            </Button>
-          </Box>
+          <Button startIcon={<Plus size={16} />} onClick={addPlatform} size="small" variant="text">
+            Add Manual Platform
+          </Button>
         )}
       </Paper>
 

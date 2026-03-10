@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
 import { createServerClient } from '@supabase/ssr';
 import { refreshGoogleToken, fetchGoogleReviews, starRatingToNumber } from '@/lib/integrations/google';
 import { fetchFacebookRatings, facebookRatingToNumber } from '@/lib/integrations/facebook';
@@ -14,78 +13,78 @@ function getServiceClient() {
   );
 }
 
-export async function POST(request: NextRequest) {
-  try {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+export async function GET(request: NextRequest) {
+  // Verify cron secret
+  const authHeader = request.headers.get('authorization');
+  const cronSecret = process.env.CRON_SECRET;
 
-    const { platform } = await request.json();
-
-    const { data: member } = await supabase
-      .from('organization_members')
-      .select('organization_id, role')
-      .eq('user_id', user.id)
-      .single();
-
-    if (!member) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    if (member.role !== 'owner' && member.role !== 'staff') {
-      return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
-    }
-
-    const serviceClient = getServiceClient();
-
-    // Get the integration
-    let query = serviceClient
-      .from('organization_integrations')
-      .select('*')
-      .eq('organization_id', member.organization_id)
-      .eq('sync_enabled', true);
-
-    if (platform) {
-      query = query.eq('platform', platform);
-    }
-
-    const { data: integrations } = await query;
-
-    if (!integrations || integrations.length === 0) {
-      return NextResponse.json({ error: 'No integrations found' }, { status: 404 });
-    }
-
-    const results: Record<string, { synced: number; errors: string[] }> = {};
-
-    for (const integration of integrations as OrganizationIntegration[]) {
-      try {
-        let synced = 0;
-
-        if (integration.platform === 'google') {
-          synced = await syncGoogleReviews(serviceClient, integration);
-        } else if (integration.platform === 'facebook') {
-          synced = await syncFacebookReviews(serviceClient, integration);
-        } else if (integration.platform === 'yelp') {
-          synced = await syncYelpReviews(serviceClient, integration);
-        }
-
-        // Update last_synced_at
-        await serviceClient
-          .from('organization_integrations')
-          .update({ last_synced_at: new Date().toISOString() })
-          .eq('id', integration.id);
-
-        results[integration.platform] = { synced, errors: [] };
-      } catch (error) {
-        results[integration.platform] = {
-          synced: 0,
-          errors: [error instanceof Error ? error.message : 'Unknown error'],
-        };
-      }
-    }
-
-    return NextResponse.json({ results });
-  } catch (error) {
-    console.error('Sync error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
+
+  const supabase = getServiceClient();
+
+  // Fetch all integrations where sync is enabled
+  const { data: integrations, error: fetchError } = await supabase
+    .from('organization_integrations')
+    .select('*')
+    .eq('sync_enabled', true);
+
+  if (fetchError) {
+    console.error('Failed to fetch integrations:', fetchError.message);
+    return NextResponse.json({ error: 'Failed to fetch integrations' }, { status: 500 });
+  }
+
+  if (!integrations || integrations.length === 0) {
+    return NextResponse.json({ message: 'No integrations with sync enabled', synced: 0 });
+  }
+
+  // Group by organization for logging
+  const orgIds = [...new Set(integrations.map((i) => i.organization_id))];
+  console.log(`Syncing ${integrations.length} integrations across ${orgIds.length} organizations`);
+
+  const results: Record<string, { synced: number; errors: string[] }> = {};
+  let totalSynced = 0;
+  let totalErrors = 0;
+
+  for (const integration of integrations as OrganizationIntegration[]) {
+    const key = `${integration.organization_id}:${integration.platform}`;
+    try {
+      let synced = 0;
+
+      if (integration.platform === 'google') {
+        synced = await syncGoogleReviews(supabase, integration);
+      } else if (integration.platform === 'facebook') {
+        synced = await syncFacebookReviews(supabase, integration);
+      } else if (integration.platform === 'yelp') {
+        synced = await syncYelpReviews(supabase, integration);
+      }
+
+      // Update last_synced_at
+      await supabase
+        .from('organization_integrations')
+        .update({ last_synced_at: new Date().toISOString() })
+        .eq('id', integration.id);
+
+      results[key] = { synced, errors: [] };
+      totalSynced += synced;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      console.error(`Sync failed for ${key}:`, message);
+      results[key] = { synced: 0, errors: [message] };
+      totalErrors++;
+    }
+  }
+
+  console.log(`Cron sync complete: ${totalSynced} reviews synced, ${totalErrors} errors`);
+
+  return NextResponse.json({
+    message: 'Integration sync complete',
+    totalSynced,
+    totalErrors,
+    integrations: integrations.length,
+    results,
+  });
 }
 
 async function syncGoogleReviews(
@@ -178,7 +177,6 @@ async function syncFacebookReviews(
     }
 
     cursor = result.nextCursor;
-    // Only fetch first 2 pages to avoid rate limits
     if (synced > 100) break;
   } while (cursor);
 

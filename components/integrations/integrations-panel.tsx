@@ -48,7 +48,6 @@ interface IntegrationsPanelProps {
   integrations: OrganizationIntegration[];
   reviewCounts: Record<string, number>;
   isOwner: boolean;
-  organizationId?: string;
   orgName: string;
   orgAddress: string;
 }

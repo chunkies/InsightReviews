@@ -22,7 +22,6 @@ additional_redirect_urls = ["https://insightreviews.com.au/auth/confirm", "https
 enable_signup = true
 double_confirm_changes = false
 enable_confirmations = false
-sender_name = "InsightReviews"
 
 [auth.email.template.magic_link]
 subject = "Your InsightReviews Login Link"

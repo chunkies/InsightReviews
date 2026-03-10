@@ -18,7 +18,7 @@ export default async function ReviewsPage() {
   if (!member) redirect('/onboarding');
 
   // Parallel queries
-  const [orgRes, reviewsRes, externalRes, integrationsRes] = await Promise.all([
+  const [orgRes, reviewsRes, externalRes] = await Promise.all([
     supabase
       .from('organizations')
       .select('email, name, slug')
@@ -36,10 +36,6 @@ export default async function ReviewsPage() {
       .eq('organization_id', member.organization_id)
       .order('review_date', { ascending: false })
       .limit(500),
-    supabase
-      .from('organization_integrations')
-      .select('*')
-      .eq('organization_id', member.organization_id),
   ]);
 
   return (
@@ -51,7 +47,6 @@ export default async function ReviewsPage() {
       <ReviewsPageContent
         reviews={reviewsRes.data || []}
         externalReviews={externalRes.data || []}
-        integrations={integrationsRes.data || []}
         isOwner={member.role === 'owner'}
         orgEmail={orgRes.data?.email ?? null}
         orgName={orgRes.data?.name ?? ''}

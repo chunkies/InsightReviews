@@ -5,12 +5,11 @@ import { Box, Tabs, Tab } from '@mui/material';
 import { Star, Globe } from 'lucide-react';
 import { ReviewList } from '@/components/reviews/review-list';
 import { UnifiedReviewList } from '@/components/integrations/unified-review-list';
-import type { Review, ExternalReview, OrganizationIntegration } from '@/lib/types/database';
+import type { Review, ExternalReview } from '@/lib/types/database';
 
 interface ReviewsPageContentProps {
   reviews: Review[];
   externalReviews: ExternalReview[];
-  integrations: OrganizationIntegration[];
   isOwner: boolean;
   orgEmail: string | null;
   orgName: string;
@@ -20,7 +19,6 @@ interface ReviewsPageContentProps {
 export function ReviewsPageContent({
   reviews,
   externalReviews,
-  integrations,
   isOwner,
   orgEmail,
   orgName,
@@ -73,8 +71,6 @@ export function ReviewsPageContent({
         <UnifiedReviewList
           internalReviews={reviews}
           externalReviews={externalReviews}
-          integrations={integrations}
-          isOwner={isOwner}
         />
       )}
     </Box>

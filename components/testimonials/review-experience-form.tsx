@@ -3,19 +3,25 @@
 import { useState } from 'react';
 import {
   Box, Paper, TextField, Button, Typography, Grid,
-  Switch, FormControlLabel,
+  Switch, FormControlLabel, Alert, Chip, Link as MuiLink,
 } from '@mui/material';
-import { Save, Gift, Instagram, Facebook, Clock } from 'lucide-react';
+import { Save, Gift, Instagram, Facebook, Clock, Globe, Star, ExternalLink } from 'lucide-react';
+import NextLink from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { useSnackbar } from '@/components/providers/snackbar-provider';
-import type { Organization } from '@/lib/types/database';
+import type { Organization, OrganizationIntegration } from '@/lib/types/database';
 
 interface ReviewExperienceFormProps {
   org: Organization;
   isOwner: boolean;
+  integrations: OrganizationIntegration[];
 }
 
-export function ReviewExperienceForm({ org, isOwner }: ReviewExperienceFormProps) {
+export function ReviewExperienceForm({ org, isOwner, integrations }: ReviewExperienceFormProps) {
+  const [integrationStates, setIntegrationStates] = useState<Record<string, boolean>>(
+    () => Object.fromEntries(integrations.map(i => [i.id, i.show_on_review_form]))
+  );
+  const [togglingId, setTogglingId] = useState<string | null>(null);
   const [tyPositiveTitle, setTyPositiveTitle] = useState(org.thankyou_positive_title ?? 'Thank You!');
   const [tyPositiveMessage, setTyPositiveMessage] = useState(org.thankyou_positive_message ?? 'We really appreciate your feedback. Would you mind sharing your experience on one of these platforms?');
   const [tyNegativeTitle, setTyNegativeTitle] = useState(org.thankyou_negative_title ?? 'Thank You for Your Feedback');
@@ -62,8 +68,129 @@ export function ReviewExperienceForm({ org, isOwner }: ReviewExperienceFormProps
     setSaving(false);
   }
 
+  async function handleToggleIntegration(integrationId: string, showOnReviewForm: boolean) {
+    setTogglingId(integrationId);
+    try {
+      const res = await fetch('/api/integrations/toggle-review-form', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ integrationId, showOnReviewForm }),
+      });
+      if (!res.ok) {
+        showSnackbar('Failed to update platform visibility', 'error');
+      } else {
+        setIntegrationStates(prev => ({ ...prev, [integrationId]: showOnReviewForm }));
+        showSnackbar(showOnReviewForm ? 'Platform will show on review form' : 'Platform hidden from review form');
+      }
+    } catch {
+      showSnackbar('Failed to update platform visibility', 'error');
+    }
+    setTogglingId(null);
+  }
+
+  function getPlatformIcon(platform: string) {
+    switch (platform) {
+      case 'google': return <Globe size={20} style={{ color: '#4285F4' }} />;
+      case 'facebook': return <Facebook size={20} style={{ color: '#1877F2' }} />;
+      case 'yelp': return <Star size={20} style={{ color: '#D32323' }} />;
+      default: return <Globe size={20} />;
+    }
+  }
+
+  function getPlatformLabel(platform: string) {
+    switch (platform) {
+      case 'google': return 'Google';
+      case 'facebook': return 'Facebook';
+      case 'yelp': return 'Yelp';
+      default: return platform.charAt(0).toUpperCase() + platform.slice(1);
+    }
+  }
+
   return (
     <Box sx={{ maxWidth: 700 }}>
+      {/* Review Redirect Platforms */}
+      <Paper sx={{ p: 3, mb: 3 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+          <ExternalLink size={20} />
+          <Typography variant="h6">
+            Review Redirect Platforms
+          </Typography>
+        </Box>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+          Choose which connected platforms appear as redirect options after a positive review.
+        </Typography>
+
+        {integrations.length === 0 ? (
+          <Alert severity="info" sx={{ mt: 1 }}>
+            Connect platforms in the{' '}
+            <MuiLink component={NextLink} href="/dashboard/integrations" sx={{ fontWeight: 600 }}>
+              Integrations page
+            </MuiLink>{' '}
+            to show them as review redirect options.
+          </Alert>
+        ) : (
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+            {integrations.map((integration) => (
+              <Paper
+                key={integration.id}
+                variant="outlined"
+                sx={{
+                  p: 2,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  bgcolor: integrationStates[integration.id] ? 'action.selected' : 'transparent',
+                  transition: 'background-color 0.2s',
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, minWidth: 0 }}>
+                  {getPlatformIcon(integration.platform)}
+                  <Box sx={{ minWidth: 0 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Typography variant="subtitle2">
+                        {getPlatformLabel(integration.platform)}
+                      </Typography>
+                      <Chip label="Connected" size="small" color="success" variant="outlined" />
+                    </Box>
+                    {integration.platform_url && (
+                      <Typography
+                        variant="caption"
+                        color="text.secondary"
+                        sx={{
+                          display: 'block',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                          maxWidth: 350,
+                        }}
+                      >
+                        {integration.platform_url}
+                      </Typography>
+                    )}
+                  </Box>
+                </Box>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={integrationStates[integration.id] ?? false}
+                      onChange={(e) => handleToggleIntegration(integration.id, e.target.checked)}
+                      disabled={!isOwner || togglingId === integration.id}
+                    />
+                  }
+                  label={
+                    <Typography variant="body2" color="text.secondary">
+                      {integrationStates[integration.id] ? 'Shown' : 'Hidden'}
+                    </Typography>
+                  }
+                  labelPlacement="start"
+                  sx={{ ml: 1, mr: 0 }}
+                />
+              </Paper>
+            ))}
+          </Box>
+        )}
+      </Paper>
+
       {/* Auto Follow-up */}
       <Paper sx={{ p: 3, mb: 3 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
@@ -231,14 +358,8 @@ export function ReviewExperienceForm({ org, isOwner }: ReviewExperienceFormProps
         <Typography variant="subtitle2" sx={{ mb: 1.5, fontWeight: 700 }}>
           Social Media Links (Optional)
         </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-          Show &ldquo;Follow us&rdquo; buttons on the thank-you page after a review.
-        </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          Looking to connect review platforms (Google, Facebook, Yelp)?{' '}
-          <a href="/dashboard/integrations" style={{ color: '#2563eb', fontWeight: 600 }}>
-            Go to Integrations
-          </a>
+          Show &ldquo;Follow us&rdquo; buttons on the thank-you page after a review.
         </Typography>
         <Grid container spacing={2}>
           <Grid size={{ xs: 12, sm: 6 }}>

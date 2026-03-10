@@ -80,11 +80,20 @@ export async function getYelpBusiness(businessId: string): Promise<YelpBusiness 
  */
 export async function getYelpReviews(businessId: string): Promise<YelpReview[]> {
   const apiKey = getApiKey();
-  const res = await fetch(`${YELP_API_BASE}/businesses/${businessId}/reviews?limit=20&sort_by=newest`, {
+  if (!apiKey) {
+    console.error('YELP_API_KEY not configured');
+    return [];
+  }
+
+  const res = await fetch(`${YELP_API_BASE}/businesses/${businessId}/reviews?limit=50&sort_by=yelp_sort`, {
     headers: { Authorization: `Bearer ${apiKey}` },
   });
 
-  if (!res.ok) return [];
+  if (!res.ok) {
+    const text = await res.text();
+    console.error(`Yelp reviews API error (${res.status}):`, text);
+    return [];
+  }
   const data = await res.json();
   return data.reviews || [];
 }

@@ -79,11 +79,15 @@ export function UnifiedReviewList({
           .reduce((sum, r) => sum + r.synced, 0);
         setSyncMessage(`Synced ${total} reviews. Refresh the page to see updates.`);
       } else {
-        const err = await res.json();
-        setSyncMessage(err.error || 'Sync failed');
+        try {
+          const err = await res.json();
+          setSyncMessage(err.error || `Sync failed (${res.status})`);
+        } catch {
+          setSyncMessage(`Sync failed with status ${res.status}`);
+        }
       }
-    } catch {
-      setSyncMessage('Sync failed — check your connection.');
+    } catch (e) {
+      setSyncMessage(`Sync failed: ${e instanceof Error ? e.message : 'check your connection'}`);
     } finally {
       setSyncing(false);
     }

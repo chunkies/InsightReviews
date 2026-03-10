@@ -83,8 +83,10 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ results });
   } catch (error) {
-    console.error('Sync error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    console.error('Sync error:', error instanceof Error ? error.stack : error);
+    return NextResponse.json({
+      error: error instanceof Error ? error.message : 'Internal server error',
+    }, { status: 500 });
   }
 }
 

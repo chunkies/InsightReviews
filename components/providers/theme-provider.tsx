@@ -114,14 +114,10 @@ export function AppThemeProvider({ children }: { children: ReactNode }) {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    // Check localStorage first
+    // Only use dark mode if the user explicitly toggled it
     const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored === 'light' || stored === 'dark') {
-      setMode(stored);
-    } else {
-      // Fall back to system preference
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      setMode(prefersDark ? 'dark' : 'light');
+    if (stored === 'dark') {
+      setMode('dark');
     }
     setMounted(true);
   }, []);

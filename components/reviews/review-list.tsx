@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import {
   Box, Button, Chip, TextField,
   ToggleButtonGroup, ToggleButton, IconButton, Tooltip,
@@ -8,14 +8,16 @@ import {
   Dialog, DialogTitle, DialogContent, DialogActions,
   Typography, Checkbox, FormControlLabel,
   Menu, MenuItem, ListItemIcon, ListItemText, Snackbar,
+  Select, FormControl, InputLabel, CircularProgress, Alert,
 } from '@mui/material';
 import {
   Star, Eye, EyeOff, Download, MessageSquare,
   Image as ImageIcon, Share2, Copy, Facebook, Twitter, ImageDown,
+  Globe, RefreshCw,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { createClient } from '@/lib/supabase/client';
-import type { Review } from '@/lib/types/database';
+import type { Review, ExternalReview } from '@/lib/types/database';
 import { RATING_COLORS } from '@/lib/utils/constants';
 import { EmptyState } from '@/components/shared/empty-state';
 import { generateReviewsCsv, downloadCsv } from '@/lib/utils/generate-csv';
@@ -49,8 +51,53 @@ const RESPONSE_TEMPLATES: ResponseTemplate[] = [
   },
 ];
 
+const PLATFORM_BADGE: Record<string, {
+  label: string;
+  color: string;
+  bgColor: string;
+  icon: string;
+}> = {
+  internal: { label: 'InsightReviews', color: '#7c3aed', bgColor: '#f3e8ff', icon: '\u2B50' },
+  google: { label: 'Google', color: '#4285F4', bgColor: '#E8F0FE', icon: '\uD83D\uDD0D' },
+  facebook: { label: 'Facebook', color: '#1877F2', bgColor: '#E7F3FF', icon: '\uD83D\uDCD8' },
+  yelp: { label: 'Yelp', color: '#D32323', bgColor: '#FDE8E8', icon: '\uD83D\uDD25' },
+};
+
+interface ConnectedPlatform {
+  id: string;
+  platform: string;
+  platform_account_name: string | null;
+  sync_enabled: boolean;
+  last_synced_at: string | null;
+}
+
+/** Unified row type for the table */
+interface UnifiedRow {
+  id: string;
+  source: string; // 'internal' | 'google' | 'facebook' | 'yelp'
+  rating: number | null;
+  comment: string | null;
+  reviewer_name: string | null;
+  date: string;
+  // Internal-only fields
+  is_positive?: boolean;
+  is_public?: boolean;
+  responded?: boolean;
+  response_notes?: string | null;
+  photo_url?: string | null;
+  customer_phone?: string | null;
+  customer_email?: string | null;
+  review_request_id?: string | null;
+  // External-only fields
+  reply_text?: string | null;
+  // Original review ref for internal actions
+  _internalReview?: Review;
+}
+
 interface ReviewListProps {
   reviews: Review[];
+  externalReviews?: ExternalReview[];
+  connectedPlatforms?: ConnectedPlatform[];
   isOwner: boolean;
   orgEmail?: string | null;
   orgName?: string;
@@ -78,10 +125,24 @@ function getWallUrl(orgSlug: string): string {
   return `${siteUrl}/wall/${orgSlug}`;
 }
 
-export function ReviewList({ reviews: initialReviews, isOwner, orgEmail, orgName = '', orgSlug = '' }: ReviewListProps) {
+export function ReviewList({
+  reviews: initialReviews,
+  externalReviews = [],
+  connectedPlatforms = [],
+  isOwner,
+  orgEmail,
+  orgName = '',
+  orgSlug = '',
+}: ReviewListProps) {
   const [reviews, setReviews] = useState(initialReviews);
   const [filter, setFilter] = useState<'all' | 'positive' | 'negative'>('all');
   const [search, setSearch] = useState('');
+  const [platformFilter, setPlatformFilter] = useState<string>('all');
+  const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'highest' | 'lowest'>('newest');
+
+  // Sync state
+  const [syncing, setSyncing] = useState(false);
+  const [syncMessage, setSyncMessage] = useState<string | null>(null);
 
   // Response dialog state
   const [respondDialogOpen, setRespondDialogOpen] = useState(false);
@@ -97,18 +158,124 @@ export function ReviewList({ reviews: initialReviews, isOwner, orgEmail, orgName
   const [shareReview, setShareReview] = useState<Review | null>(null);
   const [snackMessage, setSnackMessage] = useState<string | null>(null);
 
-  const filtered = reviews.filter((r) => {
-    if (filter === 'positive' && !r.is_positive) return false;
-    if (filter === 'negative' && r.is_positive) return false;
+  // Build unified rows
+  const allRows = useMemo<UnifiedRow[]>(() => {
+    const internalRows: UnifiedRow[] = reviews.map(r => ({
+      id: r.id,
+      source: 'internal',
+      rating: r.rating,
+      comment: r.comment,
+      reviewer_name: r.customer_name,
+      date: r.created_at,
+      is_positive: r.is_positive,
+      is_public: r.is_public,
+      responded: r.responded,
+      response_notes: r.response_notes,
+      photo_url: r.photo_url,
+      customer_phone: r.customer_phone,
+      customer_email: r.customer_email,
+      review_request_id: r.review_request_id,
+      _internalReview: r,
+    }));
+
+    const externalRows: UnifiedRow[] = externalReviews.map(r => ({
+      id: r.id,
+      source: r.platform,
+      rating: r.rating,
+      comment: r.comment,
+      reviewer_name: r.reviewer_name,
+      date: r.review_date || r.created_at,
+      reply_text: r.reply_text,
+    }));
+
+    return [...internalRows, ...externalRows];
+  }, [reviews, externalReviews]);
+
+  // Platform stats
+  const platformStats = useMemo(() => {
+    const stats: Record<string, number> = {};
+    allRows.forEach(r => {
+      stats[r.source] = (stats[r.source] || 0) + 1;
+    });
+    return stats;
+  }, [allRows]);
+
+  // Available platforms for filter
+  const filterPlatforms = useMemo(() => {
+    const platforms = new Set<string>();
+    platforms.add('internal');
+    connectedPlatforms.forEach(p => platforms.add(p.platform));
+    Object.keys(platformStats).forEach(p => platforms.add(p));
+    return Array.from(platforms);
+  }, [connectedPlatforms, platformStats]);
+
+  const hasExternalReviews = externalReviews.length > 0 || connectedPlatforms.length > 0;
+
+  // Filter and sort
+  const filtered = useMemo(() => {
+    let results = allRows;
+
+    // Platform filter
+    if (platformFilter !== 'all') {
+      results = results.filter(r => r.source === platformFilter);
+    }
+
+    // Positive/negative filter (only applies to internal reviews, or show all external)
+    if (filter === 'positive') {
+      results = results.filter(r => r.source !== 'internal' || r.is_positive);
+    } else if (filter === 'negative') {
+      results = results.filter(r => r.source === 'internal' && !r.is_positive);
+    }
+
+    // Search
     if (search) {
       const s = search.toLowerCase();
-      return (
-        r.customer_name?.toLowerCase().includes(s) ||
+      results = results.filter(r =>
+        r.reviewer_name?.toLowerCase().includes(s) ||
         r.comment?.toLowerCase().includes(s)
       );
     }
-    return true;
-  });
+
+    // Sort
+    results = [...results].sort((a, b) => {
+      if (sortBy === 'newest') return new Date(b.date).getTime() - new Date(a.date).getTime();
+      if (sortBy === 'oldest') return new Date(a.date).getTime() - new Date(b.date).getTime();
+      if (sortBy === 'highest') return (b.rating ?? 0) - (a.rating ?? 0);
+      return (a.rating ?? 0) - (b.rating ?? 0);
+    });
+
+    return results;
+  }, [allRows, platformFilter, filter, search, sortBy]);
+
+  // Sync handler
+  const handleSync = useCallback(async () => {
+    setSyncing(true);
+    setSyncMessage(null);
+    try {
+      const res = await fetch('/api/integrations/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const total = Object.values(data.results as Record<string, { synced: number }>)
+          .reduce((sum, r) => sum + r.synced, 0);
+        setSyncMessage(`Synced ${total} reviews. Refresh the page to see updates.`);
+      } else {
+        try {
+          const err = await res.json();
+          setSyncMessage(err.error || `Sync failed (${res.status})`);
+        } catch {
+          setSyncMessage(`Sync failed with status ${res.status}`);
+        }
+      }
+    } catch (e) {
+      setSyncMessage(`Sync failed: ${e instanceof Error ? e.message : 'check your connection'}`);
+    } finally {
+      setSyncing(false);
+    }
+  }, []);
 
   async function togglePublic(reviewId: string, currentPublic: boolean) {
     const supabase = createClient();
@@ -125,7 +292,11 @@ export function ReviewList({ reviews: initialReviews, isOwner, orgEmail, orgName
   }
 
   function handleDownloadCsv() {
-    const csv = generateReviewsCsv(filtered);
+    // Only export internal reviews that match current filters
+    const internalFiltered = filtered
+      .filter(r => r._internalReview)
+      .map(r => r._internalReview!);
+    const csv = generateReviewsCsv(internalFiltered);
     const today = format(new Date(), 'dd-MM-yyyy');
     downloadCsv(csv, `reviews-export-${today}.csv`);
   }
@@ -246,7 +417,7 @@ export function ReviewList({ reviews: initialReviews, isOwner, orgEmail, orgName
     handleShareClose();
   }, [shareReview, orgName, handleShareClose]);
 
-  if (reviews.length === 0) {
+  if (allRows.length === 0) {
     return (
       <EmptyState
         icon={<Star size={48} />}
@@ -257,8 +428,102 @@ export function ReviewList({ reviews: initialReviews, isOwner, orgEmail, orgName
     );
   }
 
+  const internalCount = reviews.length;
+  const positiveCount = reviews.filter(r => r.is_positive).length;
+  const negativeCount = reviews.filter(r => !r.is_positive).length;
+
   return (
     <Box>
+      {/* Platform filter chips */}
+      {hasExternalReviews && (
+        <Box sx={{ display: 'flex', gap: 1, mb: 2, flexWrap: 'wrap', alignItems: 'center' }}>
+          <ToggleButton
+            value="all"
+            selected={platformFilter === 'all'}
+            onChange={() => setPlatformFilter('all')}
+            sx={{
+              border: 'none',
+              borderRadius: '12px !important',
+              px: 2,
+              py: 0.75,
+              textTransform: 'none',
+              fontWeight: 600,
+              fontSize: '0.85rem',
+              gap: 0.75,
+              backgroundColor: platformFilter === 'all' ? 'primary.main' : 'action.hover',
+              color: platformFilter === 'all' ? 'white' : 'text.primary',
+              '&:hover': { backgroundColor: platformFilter === 'all' ? 'primary.dark' : 'action.selected' },
+              '&.Mui-selected': { backgroundColor: 'primary.main', color: 'white' },
+            }}
+          >
+            <Globe size={15} />
+            All ({allRows.length})
+          </ToggleButton>
+
+          {filterPlatforms.map(platform => {
+            const badge = PLATFORM_BADGE[platform] || { label: platform, color: '#666', bgColor: '#f5f5f5', icon: '\uD83D\uDCCB' };
+            const count = platformStats[platform] || 0;
+            const isActive = platformFilter === platform;
+            return (
+              <ToggleButton
+                key={platform}
+                value={platform}
+                selected={isActive}
+                onChange={() => setPlatformFilter(isActive ? 'all' : platform)}
+                sx={{
+                  border: 'none',
+                  borderRadius: '12px !important',
+                  px: 2,
+                  py: 0.75,
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  fontSize: '0.85rem',
+                  gap: 0.75,
+                  backgroundColor: isActive ? badge.color : badge.bgColor,
+                  color: isActive ? 'white' : badge.color,
+                  '&:hover': {
+                    backgroundColor: isActive ? badge.color : badge.bgColor,
+                    filter: 'brightness(0.95)',
+                  },
+                  '&.Mui-selected': {
+                    backgroundColor: badge.color,
+                    color: 'white',
+                  },
+                }}
+              >
+                <span>{badge.icon}</span>
+                {badge.label} ({count})
+              </ToggleButton>
+            );
+          })}
+
+          {/* Sync button */}
+          {connectedPlatforms.length > 0 && (
+            <Button
+              size="small"
+              variant="outlined"
+              startIcon={syncing ? <CircularProgress size={14} /> : <RefreshCw size={14} />}
+              onClick={handleSync}
+              disabled={syncing}
+              sx={{ textTransform: 'none', borderRadius: 3, ml: 'auto' }}
+            >
+              {syncing ? 'Syncing...' : 'Sync Now'}
+            </Button>
+          )}
+        </Box>
+      )}
+
+      {syncMessage && (
+        <Alert
+          severity={syncMessage.includes('failed') ? 'error' : 'success'}
+          sx={{ mb: 2, borderRadius: 2 }}
+          onClose={() => setSyncMessage(null)}
+        >
+          {syncMessage}
+        </Alert>
+      )}
+
+      {/* Filters row */}
       <Box sx={{ display: 'flex', gap: 2, mb: 3, flexWrap: 'wrap', alignItems: 'center' }}>
         <TextField
           size="small"
@@ -273,20 +538,29 @@ export function ReviewList({ reviews: initialReviews, isOwner, orgEmail, orgName
           onChange={(_, v) => v && setFilter(v)}
           size="small"
         >
-          <ToggleButton value="all">All ({reviews.length})</ToggleButton>
+          <ToggleButton value="all">All ({platformFilter === 'all' ? allRows.length : filtered.length})</ToggleButton>
           <ToggleButton value="positive">
-            Positive ({reviews.filter((r) => r.is_positive).length})
+            Positive ({positiveCount})
           </ToggleButton>
           <ToggleButton value="negative">
-            Negative ({reviews.filter((r) => !r.is_positive).length})
+            Negative ({negativeCount})
           </ToggleButton>
         </ToggleButtonGroup>
+        <FormControl size="small" sx={{ minWidth: 130 }}>
+          <InputLabel>Sort by</InputLabel>
+          <Select value={sortBy} label="Sort by" onChange={(e) => setSortBy(e.target.value as typeof sortBy)}>
+            <MenuItem value="newest">Newest first</MenuItem>
+            <MenuItem value="oldest">Oldest first</MenuItem>
+            <MenuItem value="highest">Highest rated</MenuItem>
+            <MenuItem value="lowest">Lowest rated</MenuItem>
+          </Select>
+        </FormControl>
         <Button
           variant="outlined"
           size="small"
           startIcon={<Download size={16} />}
           onClick={handleDownloadCsv}
-          disabled={filtered.length === 0}
+          disabled={filtered.filter(r => r.source === 'internal').length === 0}
           sx={{ ml: 'auto' }}
         >
           Download CSV
@@ -294,9 +568,10 @@ export function ReviewList({ reviews: initialReviews, isOwner, orgEmail, orgName
       </Box>
 
       <TableContainer component={Paper} sx={{ overflowX: 'auto' }}>
-        <Table sx={{ minWidth: { xs: 600, md: 800 } }}>
+        <Table sx={{ minWidth: { xs: 600, md: 900 } }}>
           <TableHead>
             <TableRow>
+              {hasExternalReviews && <TableCell>Source</TableCell>}
               <TableCell>Rating</TableCell>
               <TableCell>Customer</TableCell>
               <TableCell>Comment</TableCell>
@@ -307,103 +582,145 @@ export function ReviewList({ reviews: initialReviews, isOwner, orgEmail, orgName
             </TableRow>
           </TableHead>
           <TableBody>
-            {filtered.map((review) => (
-              <TableRow key={review.id}>
-                <TableCell>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                    {[1, 2, 3, 4, 5].map((s) => (
-                      <Star
-                        key={s}
-                        size={16}
-                        fill={s <= review.rating ? RATING_COLORS[review.rating] : 'none'}
-                        color={s <= review.rating ? RATING_COLORS[review.rating] : '#d1d5db'}
-                      />
-                    ))}
-                  </Box>
-                </TableCell>
-                <TableCell>{review.customer_name || '\u2014'}</TableCell>
-                <TableCell sx={{ maxWidth: 300, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {review.comment || '\u2014'}
-                </TableCell>
-                <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>
-                  {review.photo_url ? (
-                    <Box
-                      component="img"
-                      src={review.photo_url}
-                      alt="Review photo"
-                      onClick={() => {
-                        setPhotoDialogUrl(review.photo_url);
-                        setPhotoDialogOpen(true);
-                      }}
-                      sx={{
-                        width: 48,
-                        height: 48,
-                        objectFit: 'cover',
-                        borderRadius: 1,
-                        cursor: 'pointer',
-                        border: '1px solid rgba(0,0,0,0.1)',
-                        transition: 'opacity 0.2s',
-                        '&:hover': { opacity: 0.8 },
-                      }}
-                    />
-                  ) : (
-                    <Box sx={{ color: 'text.disabled' }}>
-                      <ImageIcon size={18} />
-                    </Box>
-                  )}
-                </TableCell>
-                <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>{format(new Date(review.created_at), 'dd MMM yyyy')}</TableCell>
-                <TableCell>
-                  <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
-                    <Chip
-                      label={review.is_positive ? 'Positive' : 'Negative'}
-                      color={review.is_positive ? 'success' : 'error'}
-                      size="small"
-                    />
-                    {review.responded && (
+            {filtered.map((row) => {
+              const badge = PLATFORM_BADGE[row.source] || { label: row.source, color: '#666', bgColor: '#f5f5f5', icon: '\uD83D\uDCCB' };
+              const isInternal = row.source === 'internal';
+
+              return (
+                <TableRow key={`${row.source}-${row.id}`}>
+                  {hasExternalReviews && (
+                    <TableCell>
                       <Chip
-                        label="Responded"
-                        color="info"
+                        label={badge.label}
                         size="small"
-                        variant="outlined"
+                        sx={{
+                          height: 22,
+                          fontSize: '0.7rem',
+                          fontWeight: 700,
+                          backgroundColor: badge.bgColor,
+                          color: badge.color,
+                          '& .MuiChip-label': { px: 1 },
+                        }}
                       />
+                    </TableCell>
+                  )}
+                  <TableCell>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                      {[1, 2, 3, 4, 5].map((s) => (
+                        <Star
+                          key={s}
+                          size={16}
+                          fill={row.rating && s <= row.rating ? RATING_COLORS[row.rating as keyof typeof RATING_COLORS] || '#d1d5db' : 'none'}
+                          color={row.rating && s <= row.rating ? RATING_COLORS[row.rating as keyof typeof RATING_COLORS] || '#d1d5db' : '#d1d5db'}
+                        />
+                      ))}
+                    </Box>
+                  </TableCell>
+                  <TableCell>{row.reviewer_name || '\u2014'}</TableCell>
+                  <TableCell sx={{ maxWidth: 300, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {row.comment || '\u2014'}
+                  </TableCell>
+                  <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>
+                    {isInternal && row.photo_url ? (
+                      <Box
+                        component="img"
+                        src={row.photo_url}
+                        alt="Review photo"
+                        onClick={() => {
+                          setPhotoDialogUrl(row.photo_url!);
+                          setPhotoDialogOpen(true);
+                        }}
+                        sx={{
+                          width: 48,
+                          height: 48,
+                          objectFit: 'cover',
+                          borderRadius: 1,
+                          cursor: 'pointer',
+                          border: '1px solid rgba(0,0,0,0.1)',
+                          transition: 'opacity 0.2s',
+                          '&:hover': { opacity: 0.8 },
+                        }}
+                      />
+                    ) : (
+                      <Box sx={{ color: 'text.disabled' }}>
+                        <ImageIcon size={18} />
+                      </Box>
                     )}
-                  </Box>
-                </TableCell>
-                {isOwner && (
-                  <TableCell align="right">
-                    <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 0.5 }}>
-                      <Tooltip title="Respond">
-                        <IconButton
-                          size="small"
-                          onClick={() => openRespondDialog(review)}
-                        >
-                          <MessageSquare size={18} />
-                        </IconButton>
-                      </Tooltip>
-                      <Tooltip title={review.is_public ? 'Hide from testimonials' : 'Show on testimonials'}>
-                        <IconButton
-                          size="small"
-                          onClick={() => togglePublic(review.id, review.is_public)}
-                        >
-                          {review.is_public ? <Eye size={18} /> : <EyeOff size={18} />}
-                        </IconButton>
-                      </Tooltip>
-                      {review.is_positive && (
-                        <Tooltip title="Share review">
-                          <IconButton
+                  </TableCell>
+                  <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>
+                    {format(new Date(row.date), 'dd MMM yyyy')}
+                  </TableCell>
+                  <TableCell>
+                    <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
+                      {isInternal ? (
+                        <>
+                          <Chip
+                            label={row.is_positive ? 'Positive' : 'Negative'}
+                            color={row.is_positive ? 'success' : 'error'}
                             size="small"
-                            onClick={(e) => handleShareClick(e, review)}
-                          >
-                            <Share2 size={18} />
-                          </IconButton>
-                        </Tooltip>
+                          />
+                          {row.responded && (
+                            <Chip
+                              label="Responded"
+                              color="info"
+                              size="small"
+                              variant="outlined"
+                            />
+                          )}
+                        </>
+                      ) : (
+                        <>
+                          {row.reply_text && (
+                            <Chip
+                              label="Replied"
+                              color="info"
+                              size="small"
+                              variant="outlined"
+                            />
+                          )}
+                        </>
                       )}
                     </Box>
                   </TableCell>
-                )}
-              </TableRow>
-            ))}
+                  {isOwner && (
+                    <TableCell align="right">
+                      {isInternal && row._internalReview ? (
+                        <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 0.5 }}>
+                          <Tooltip title="Respond">
+                            <IconButton
+                              size="small"
+                              onClick={() => openRespondDialog(row._internalReview!)}
+                            >
+                              <MessageSquare size={18} />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title={row.is_public ? 'Hide from testimonials' : 'Show on testimonials'}>
+                            <IconButton
+                              size="small"
+                              onClick={() => togglePublic(row.id, row.is_public!)}
+                            >
+                              {row.is_public ? <Eye size={18} /> : <EyeOff size={18} />}
+                            </IconButton>
+                          </Tooltip>
+                          {row.is_positive && (
+                            <Tooltip title="Share review">
+                              <IconButton
+                                size="small"
+                                onClick={(e) => handleShareClick(e, row._internalReview!)}
+                              >
+                                <Share2 size={18} />
+                              </IconButton>
+                            </Tooltip>
+                          )}
+                        </Box>
+                      ) : (
+                        <Typography variant="caption" color="text.disabled">\u2014</Typography>
+                      )}
+                    </TableCell>
+                  )}
+                </TableRow>
+              );
+            })}
           </TableBody>
         </Table>
       </TableContainer>

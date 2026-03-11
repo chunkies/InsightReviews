@@ -2,28 +2,22 @@
 
 import { useState } from 'react';
 import {
-  Box, Card, CardContent, TextField, Button, MenuItem,
-  Typography, Alert, Chip, CircularProgress,
+  Box, Paper, TextField, Button, MenuItem,
+  Typography, Alert, CircularProgress, Divider,
+  Accordion, AccordionSummary, AccordionDetails,
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import { Send, Clock, CheckCircle, AlertCircle, MessageSquare } from 'lucide-react';
-
-interface SupportTicket {
-  id: string;
-  subject: string;
-  message: string;
-  category: string;
-  priority: string;
-  status: string;
-  created_at: string;
-}
+import {
+  Send, HelpCircle,
+  ChevronDown, Bug, Lightbulb, CreditCard, User, Mail,
+} from 'lucide-react';
 
 const CATEGORIES = [
-  { value: 'general', label: 'General Question' },
-  { value: 'bug', label: 'Bug Report' },
-  { value: 'feature', label: 'Feature Request' },
-  { value: 'billing', label: 'Billing Issue' },
-  { value: 'account', label: 'Account Help' },
+  { value: 'general', label: 'General Question', icon: HelpCircle, color: '#2563eb' },
+  { value: 'bug', label: 'Bug Report', icon: Bug, color: '#dc2626' },
+  { value: 'feature', label: 'Feature Request', icon: Lightbulb, color: '#f59e0b' },
+  { value: 'billing', label: 'Billing Issue', icon: CreditCard, color: '#16a34a' },
+  { value: 'account', label: 'Account Help', icon: User, color: '#7c3aed' },
 ];
 
 const PRIORITIES = [
@@ -33,18 +27,33 @@ const PRIORITIES = [
   { value: 'urgent', label: 'Urgent' },
 ];
 
-const STATUS_CONFIG: Record<string, { label: string; color: string; icon: typeof Clock }> = {
-  open: { label: 'Open', color: '#2563eb', icon: Clock },
-  in_progress: { label: 'In Progress', color: '#f59e0b', icon: AlertCircle },
-  resolved: { label: 'Resolved', color: '#16a34a', icon: CheckCircle },
-  closed: { label: 'Closed', color: '#6b7280', icon: CheckCircle },
-};
+const FAQ_ITEMS = [
+  {
+    q: 'How do I connect my Google Business Profile?',
+    a: 'Go to Settings and paste your Google review URL. You can find this by searching for your business on Google, clicking "Write a review", and copying the URL.',
+  },
+  {
+    q: 'How does the smart routing work?',
+    a: 'When a customer leaves a 4 or 5-star review, they are prompted to share it on Google, Yelp, or other platforms you have configured. Reviews of 3 stars or below stay private so you can follow up directly.',
+  },
+  {
+    q: 'Can I customise the SMS message?',
+    a: 'Yes! Go to Settings and edit the SMS template. Use {business_name} and {link} as placeholders that will be automatically filled in.',
+  },
+  {
+    q: 'How do I cancel my subscription?',
+    a: 'Go to Billing and click "Manage Subscription" to access the Stripe customer portal where you can cancel, update payment methods, or view invoices.',
+  },
+  {
+    q: 'Can staff members see billing information?',
+    a: 'No. Only the account owner can access billing settings. Staff members can only use the review collection terminal and view reviews.',
+  },
+];
 
-export function SupportForm({ tickets: initialTickets }: { tickets: SupportTicket[] }) {
+export function SupportForm({ userEmail }: { userEmail: string }) {
   const muiTheme = useTheme();
   const isDark = muiTheme.palette.mode === 'dark';
 
-  const [tickets, setTickets] = useState(initialTickets);
   const [subject, setSubject] = useState('');
   const [message, setMessage] = useState('');
   const [category, setCategory] = useState('general');
@@ -73,7 +82,6 @@ export function SupportForm({ tickets: initialTickets }: { tickets: SupportTicke
         return;
       }
 
-      setTickets([data.ticket, ...tickets]);
       setSubject('');
       setMessage('');
       setCategory('general');
@@ -88,17 +96,107 @@ export function SupportForm({ tickets: initialTickets }: { tickets: SupportTicke
   };
 
   return (
-    <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', lg: '1fr 1fr' }, gap: 3 }}>
-      {/* Submit New Ticket */}
-      <Card sx={{ border: '1px solid', borderColor: 'divider' }}>
-        <CardContent sx={{ p: 3 }}>
-          <Typography variant="subtitle1" fontWeight={700} sx={{ mb: 2 }}>
-            Submit a Support Request
-          </Typography>
+    <Box sx={{ display: 'flex', justifyContent: 'center', pt: 1 }}>
+      <Box sx={{ width: '100%', maxWidth: 800 }}>
+
+        {/* Hero header */}
+        <Paper sx={{ p: 0, mb: 3, overflow: 'hidden' }}>
+          <Box
+            sx={{
+              background: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)',
+              px: 4,
+              py: 3.5,
+              color: 'white',
+              textAlign: 'center',
+            }}
+          >
+            <Box
+              sx={{
+                width: 48,
+                height: 48,
+                borderRadius: '50%',
+                backgroundColor: 'rgba(255,255,255,0.2)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                mx: 'auto',
+                mb: 1.5,
+              }}
+            >
+              <HelpCircle size={24} color="white" />
+            </Box>
+            <Typography variant="h5" fontWeight={800}>
+              How can we help?
+            </Typography>
+            <Typography variant="body2" sx={{ opacity: 0.85, mt: 0.5 }}>
+              Submit a support request or browse common questions below
+            </Typography>
+          </Box>
+
+          {/* Quick contact info */}
+          <Box
+            sx={{
+              px: 4,
+              py: 2,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 1,
+              backgroundColor: isDark ? 'rgba(37, 99, 235, 0.08)' : 'rgba(37, 99, 235, 0.04)',
+            }}
+          >
+            <Mail size={14} color="#2563eb" />
+            <Typography variant="body2" color="text.secondary">
+              Logged in as <strong>{userEmail}</strong> &mdash; we&apos;ll respond to this address
+            </Typography>
+          </Box>
+        </Paper>
+
+        {/* Category quick-picks */}
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: `repeat(${CATEGORIES.length}, 1fr)` }, gap: 1.5, mb: 3 }}>
+          {CATEGORIES.map((c) => {
+            const Icon = c.icon;
+            const isSelected = category === c.value;
+            return (
+              <Paper
+                key={c.value}
+                onClick={() => setCategory(c.value)}
+                sx={{
+                  p: 2,
+                  textAlign: 'center',
+                  cursor: 'pointer',
+                  border: '2px solid',
+                  borderColor: isSelected ? c.color : 'divider',
+                  backgroundColor: isSelected ? `${c.color}0a` : 'transparent',
+                  transition: 'all 0.15s ease',
+                  '&:hover': {
+                    borderColor: c.color,
+                    backgroundColor: `${c.color}0a`,
+                  },
+                }}
+              >
+                <Icon size={20} color={isSelected ? c.color : (isDark ? '#94a3b8' : '#64748b')} style={{ marginBottom: 4 }} />
+                <Typography variant="caption" fontWeight={isSelected ? 700 : 500} sx={{ display: 'block', color: isSelected ? c.color : 'text.secondary' }}>
+                  {c.label}
+                </Typography>
+              </Paper>
+            );
+          })}
+        </Box>
+
+        {/* Support form */}
+        <Paper sx={{ p: 3, mb: 3 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+            <Send size={18} />
+            <Typography variant="subtitle2" fontWeight={700}>
+              Submit a Request
+            </Typography>
+          </Box>
+          <Divider sx={{ mb: 2.5 }} />
 
           {success && (
             <Alert severity="success" sx={{ mb: 2 }}>
-              Your support request has been submitted. We&apos;ll get back to you soon.
+              Your support request has been submitted. We&apos;ll get back to you via email soon.
             </Alert>
           )}
           {error && (
@@ -107,7 +205,7 @@ export function SupportForm({ tickets: initialTickets }: { tickets: SupportTicke
             </Alert>
           )}
 
-          <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
             <TextField
               label="Subject"
               value={subject}
@@ -115,6 +213,7 @@ export function SupportForm({ tickets: initialTickets }: { tickets: SupportTicke
               required
               fullWidth
               placeholder="Brief description of your issue"
+              size="small"
             />
             <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
               <TextField
@@ -123,6 +222,7 @@ export function SupportForm({ tickets: initialTickets }: { tickets: SupportTicke
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
                 fullWidth
+                size="small"
               >
                 {CATEGORIES.map((c) => (
                   <MenuItem key={c.value} value={c.value}>{c.label}</MenuItem>
@@ -134,6 +234,7 @@ export function SupportForm({ tickets: initialTickets }: { tickets: SupportTicke
                 value={priority}
                 onChange={(e) => setPriority(e.target.value)}
                 fullWidth
+                size="small"
               >
                 {PRIORITIES.map((p) => (
                   <MenuItem key={p.value} value={p.value}>{p.label}</MenuItem>
@@ -147,7 +248,7 @@ export function SupportForm({ tickets: initialTickets }: { tickets: SupportTicke
               required
               fullWidth
               multiline
-              rows={5}
+              rows={4}
               placeholder="Describe your issue or feedback in detail..."
             />
             <Button
@@ -157,6 +258,8 @@ export function SupportForm({ tickets: initialTickets }: { tickets: SupportTicke
               startIcon={submitting ? <CircularProgress size={16} color="inherit" /> : <Send size={16} />}
               sx={{
                 alignSelf: 'flex-start',
+                px: 4,
+                py: 1.2,
                 background: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)',
                 '&:hover': {
                   background: 'linear-gradient(135deg, #1d4ed8 0%, #6d28d9 100%)',
@@ -166,85 +269,39 @@ export function SupportForm({ tickets: initialTickets }: { tickets: SupportTicke
               {submitting ? 'Submitting...' : 'Submit Request'}
             </Button>
           </Box>
-        </CardContent>
-      </Card>
+        </Paper>
 
-      {/* Previous Tickets */}
-      <Box>
-        <Typography variant="subtitle1" fontWeight={700} sx={{ mb: 2 }}>
-          Your Tickets
-        </Typography>
-
-        {tickets.length === 0 ? (
-          <Card sx={{ border: '1px solid', borderColor: 'divider' }}>
-            <CardContent sx={{ p: 4, textAlign: 'center' }}>
-              <MessageSquare size={40} color={isDark ? '#475569' : '#cbd5e1'} style={{ marginBottom: 8 }} />
-              <Typography color="text.secondary">
-                No support tickets yet. Submit one if you need help.
-              </Typography>
-            </CardContent>
-          </Card>
-        ) : (
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-            {tickets.map((ticket) => {
-              const statusConfig = STATUS_CONFIG[ticket.status] || STATUS_CONFIG.open;
-              return (
-                <Card
-                  key={ticket.id}
-                  sx={{
-                    border: '1px solid',
-                    borderColor: 'divider',
-                    '&:hover': {
-                      borderColor: 'primary.main',
-                      boxShadow: isDark
-                        ? '0 2px 8px rgba(37, 99, 235, 0.15)'
-                        : '0 2px 8px rgba(37, 99, 235, 0.1)',
-                    },
-                    transition: 'all 0.15s ease',
-                  }}
-                >
-                  <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 0.5 }}>
-                      <Typography variant="body2" fontWeight={600} sx={{ flex: 1, mr: 1 }}>
-                        {ticket.subject}
-                      </Typography>
-                      <Chip
-                        label={statusConfig.label}
-                        size="small"
-                        sx={{
-                          height: 22,
-                          fontSize: '0.7rem',
-                          fontWeight: 600,
-                          backgroundColor: `${statusConfig.color}18`,
-                          color: statusConfig.color,
-                          flexShrink: 0,
-                        }}
-                      />
-                    </Box>
-                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
-                      {CATEGORIES.find((c) => c.value === ticket.category)?.label || ticket.category}
-                      {' · '}
-                      {new Date(ticket.created_at).toLocaleDateString()}
-                    </Typography>
-                    <Typography
-                      variant="body2"
-                      color="text.secondary"
-                      sx={{
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        display: '-webkit-box',
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: 'vertical',
-                      }}
-                    >
-                      {ticket.message}
-                    </Typography>
-                  </CardContent>
-                </Card>
-              );
-            })}
+        {/* FAQ */}
+        <Paper sx={{ p: 3, mb: 3 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+            <HelpCircle size={18} />
+            <Typography variant="subtitle2" fontWeight={700}>
+              Frequently Asked Questions
+            </Typography>
           </Box>
-        )}
+          <Divider sx={{ mb: 1 }} />
+          {FAQ_ITEMS.map((faq, i) => (
+            <Accordion
+              key={i}
+              disableGutters
+              elevation={0}
+              sx={{
+                '&:before': { display: 'none' },
+                backgroundColor: 'transparent',
+              }}
+            >
+              <AccordionSummary expandIcon={<ChevronDown size={16} />} sx={{ px: 0 }}>
+                <Typography variant="body2" fontWeight={600}>{faq.q}</Typography>
+              </AccordionSummary>
+              <AccordionDetails sx={{ px: 0, pt: 0 }}>
+                <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6 }}>
+                  {faq.a}
+                </Typography>
+              </AccordionDetails>
+            </Accordion>
+          ))}
+        </Paper>
+
       </Box>
     </Box>
   );

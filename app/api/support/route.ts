@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { sendSupportTicketNotification } from '@/lib/email/client';
 
 export async function POST(req: NextRequest) {
   const supabase = await createClient();
@@ -25,6 +26,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Subject and message are required' }, { status: 400 });
   }
 
+  const { data: org } = await supabase
+    .from('organizations')
+    .select('name')
+    .eq('id', member.organization_id)
+    .single();
+
   const { data: ticket, error } = await supabase
     .from('support_tickets')
     .insert({
@@ -41,6 +48,19 @@ export async function POST(req: NextRequest) {
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
+
+  // Send email notification (fire and forget — don't block the response)
+  sendSupportTicketNotification({
+    orgName: org?.name || 'Unknown',
+    userEmail: user.email || 'unknown',
+    subject: subject.trim(),
+    message: message.trim(),
+    category: category || 'general',
+    priority: priority || 'normal',
+    ticketId: ticket.id,
+  }).catch((err) => {
+    console.error('Failed to send support ticket email:', err);
+  });
 
   return NextResponse.json({ ticket });
 }

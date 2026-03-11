@@ -136,6 +136,82 @@ export async function sendFollowupEmail(params: SendFollowupEmailParams): Promis
   return sendEmail({ to, subject, html, text });
 }
 
+interface SendSupportTicketParams {
+  orgName: string;
+  userEmail: string;
+  subject: string;
+  message: string;
+  category: string;
+  priority: string;
+  ticketId: string;
+}
+
+export async function sendSupportTicketNotification(params: SendSupportTicketParams): Promise<boolean> {
+  const { orgName, userEmail, subject, message, category, priority, ticketId } = params;
+  const supportEmail = process.env.SUPPORT_EMAIL || FROM_EMAIL;
+
+  const priorityColors: Record<string, string> = {
+    low: '#6b7280',
+    normal: '#2563eb',
+    high: '#f59e0b',
+    urgent: '#dc2626',
+  };
+  const pColor = priorityColors[priority] || '#2563eb';
+
+  const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 0; background-color: #f5f5f5;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 480px; margin: 0 auto; padding: 40px 20px;">
+    <tr>
+      <td style="background-color: #ffffff; border-radius: 16px; padding: 40px 32px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
+        <h2 style="margin: 0 0 8px 0; font-size: 20px; color: #1a1a1a;">New Support Ticket</h2>
+        <p style="margin: 0 0 24px 0; font-size: 14px; color: #999;">Ticket #${ticketId.slice(0, 8)}</p>
+        <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 24px;">
+          <tr>
+            <td style="padding: 8px 0; font-size: 14px; color: #555; border-bottom: 1px solid #eee;"><strong>From:</strong></td>
+            <td style="padding: 8px 0; font-size: 14px; color: #333; border-bottom: 1px solid #eee;">${userEmail}</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 0; font-size: 14px; color: #555; border-bottom: 1px solid #eee;"><strong>Business:</strong></td>
+            <td style="padding: 8px 0; font-size: 14px; color: #333; border-bottom: 1px solid #eee;">${orgName}</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 0; font-size: 14px; color: #555; border-bottom: 1px solid #eee;"><strong>Category:</strong></td>
+            <td style="padding: 8px 0; font-size: 14px; color: #333; border-bottom: 1px solid #eee;">${category}</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 0; font-size: 14px; color: #555;"><strong>Priority:</strong></td>
+            <td style="padding: 8px 0; font-size: 14px;"><span style="color: ${pColor}; font-weight: 600;">${priority.charAt(0).toUpperCase() + priority.slice(1)}</span></td>
+          </tr>
+        </table>
+        <h3 style="margin: 0 0 8px 0; font-size: 16px; color: #1a1a1a;">${subject}</h3>
+        <div style="background: #f9f9f9; border-left: 4px solid #2563eb; padding: 12px 16px; border-radius: 4px; margin-bottom: 24px;">
+          <p style="margin: 0; font-size: 14px; color: #333; line-height: 1.6; white-space: pre-wrap;">${message}</p>
+        </div>
+        <p style="margin: 0; font-size: 13px; color: #999; text-align: center;">
+          Reply to this email or respond to ${userEmail} directly.
+        </p>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`.trim();
+
+  const text = `New Support Ticket (#${ticketId.slice(0, 8)})\n\nFrom: ${userEmail}\nBusiness: ${orgName}\nCategory: ${category}\nPriority: ${priority}\n\nSubject: ${subject}\n\n${message}\n\nReply to ${userEmail} directly.`;
+
+  return sendEmail({
+    to: supportEmail,
+    subject: `[Support] ${subject} — ${orgName}`,
+    html,
+    text,
+  });
+}
+
 interface SendNegativeReviewNotificationParams {
   to: string;
   businessName: string;

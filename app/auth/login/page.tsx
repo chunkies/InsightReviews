@@ -1,7 +1,14 @@
 import { Box, Container, Typography } from '@mui/material';
 import { LoginForm } from '@/components/auth/login-form';
 
-export default function LoginPage() {
+interface PageProps {
+  searchParams: Promise<{ mode?: string }>;
+}
+
+export default async function LoginPage({ searchParams }: PageProps) {
+  const { mode } = await searchParams;
+  const isSignup = mode === 'signup';
+
   return (
     <Container maxWidth="sm">
       <Box
@@ -18,9 +25,9 @@ export default function LoginPage() {
           InsightReviews
         </Typography>
         <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
-          Sign in to manage your reviews
+          {isSignup ? 'Create your account to get started' : 'Sign in to manage your reviews'}
         </Typography>
-        <LoginForm />
+        <LoginForm isSignup={isSignup} />
       </Box>
     </Container>
   );

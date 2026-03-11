@@ -1,10 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { Button, TextField, Alert, Paper } from '@mui/material';
+import { Button, TextField, Alert, Paper, Typography, Link as MuiLink } from '@mui/material';
 import { createClient } from '@/lib/supabase/client';
+import NextLink from 'next/link';
 
-export function LoginForm() {
+export function LoginForm({ isSignup = false }: { isSignup?: boolean }) {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -56,9 +57,16 @@ export function LoginForm() {
           size="large"
           disabled={loading || !email}
         >
-          {loading ? 'Sending...' : 'Send Magic Link'}
+          {loading ? 'Sending...' : isSignup ? 'Create Account' : 'Send Magic Link'}
         </Button>
       </form>
+      <Typography variant="body2" color="text.secondary" sx={{ mt: 2, textAlign: 'center' }}>
+        {isSignup ? (
+          <>Already have an account?{' '}<MuiLink component={NextLink} href="/auth/login">Sign in</MuiLink></>
+        ) : (
+          <>New to InsightReviews?{' '}<MuiLink component={NextLink} href="/auth/login?mode=signup">Create an account</MuiLink></>
+        )}
+      </Typography>
     </Paper>
   );
 }

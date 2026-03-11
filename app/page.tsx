@@ -161,7 +161,7 @@ export default function LandingPage() {
             Sign In
           </Button>
           <Button
-            href="/auth/login"
+            href="/auth/login?mode=signup"
             variant="contained"
             sx={{
               display: { xs: 'none', md: 'inline-flex' },
@@ -263,7 +263,7 @@ export default function LandingPage() {
               </Typography>
               <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', mb: 3 }}>
                 <Button
-                  href="/auth/login"
+                  href="/auth/login?mode=signup"
                   variant="contained"
                   size="large"
                   endIcon={<ArrowRight size={20} />}
@@ -985,7 +985,7 @@ export default function LandingPage() {
               </Box>
 
               <Button
-                href="/auth/login"
+                href="/auth/login?mode=signup"
                 variant="contained"
                 size="large"
                 fullWidth
@@ -1097,7 +1097,7 @@ export default function LandingPage() {
             Join local businesses across Melbourne already using InsightReviews to build their online reputation.
           </Typography>
           <Button
-            href="/auth/login"
+            href="/auth/login?mode=signup"
             variant="contained"
             size="large"
             endIcon={<ArrowRight size={20} />}
@@ -1185,7 +1185,7 @@ export default function LandingPage() {
         }}
       >
         <Button
-          href="/auth/login"
+          href="/auth/login?mode=signup"
           variant="contained"
           fullWidth
           size="large"

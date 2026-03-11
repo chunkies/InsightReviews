@@ -260,9 +260,24 @@ export function SupportForm({ userEmail }: { userEmail: string }) {
                 alignSelf: 'flex-start',
                 px: 4,
                 py: 1.2,
+                transition: 'all 0.3s ease',
                 background: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)',
+                boxShadow: '0 4px 15px rgba(37, 99, 235, 0.3)',
+                transform: 'translateY(0)',
                 '&:hover': {
                   background: 'linear-gradient(135deg, #1d4ed8 0%, #6d28d9 100%)',
+                  boxShadow: '0 6px 20px rgba(37, 99, 235, 0.4)',
+                  transform: 'translateY(-1px)',
+                },
+                '&:active': {
+                  transform: 'translateY(1px)',
+                  boxShadow: '0 2px 8px rgba(37, 99, 235, 0.3)',
+                },
+                '&.Mui-disabled': {
+                  background: '#d1d5db',
+                  color: '#9ca3af',
+                  boxShadow: 'none',
+                  transform: 'none',
                 },
               }}
             >

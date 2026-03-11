@@ -9,12 +9,12 @@ import { ErrorBoundary } from '@/components/shared/error-boundary';
 interface DashboardShellProps {
   orgName?: string;
   billingPlan?: string | null;
-  billingTier?: string | null;
   trialEndsAt?: string | null;
+  subscriptionEndsAt?: string | null;
   children: React.ReactNode;
 }
 
-export function DashboardShell({ orgName, billingPlan, billingTier, trialEndsAt, children }: DashboardShellProps) {
+export function DashboardShell({ orgName, billingPlan, trialEndsAt, subscriptionEndsAt, children }: DashboardShellProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
@@ -22,8 +22,8 @@ export function DashboardShell({ orgName, billingPlan, billingTier, trialEndsAt,
       <Sidebar
         orgName={orgName}
         billingPlan={billingPlan}
-        billingTier={billingTier}
         trialEndsAt={trialEndsAt}
+        subscriptionEndsAt={subscriptionEndsAt}
         mobileOpen={mobileOpen}
         onMobileClose={() => setMobileOpen(false)}
       />

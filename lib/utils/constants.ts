@@ -14,42 +14,19 @@ export const RATING_COLORS: Record<number, string> = {
   5: '#2e7d32',
 };
 
-export const PLANS = {
-  STARTER: {
-    name: 'Starter',
-    price: 79,
-    priceId: process.env.STRIPE_PRICE_ID_STARTER || process.env.STRIPE_PRICE_ID || '',
-    locations: 1,
-    smsPerMonth: 200,
-    staffAccounts: 3,
-    features: ['1 location', '200 SMS/month', '3 staff accounts', 'Review collection & routing', 'Testimonial wall', 'CSV export', 'Email notifications'],
-  },
-  GROWTH: {
-    name: 'Growth',
-    price: 149,
-    priceId: process.env.STRIPE_PRICE_ID_GROWTH || '',
-    locations: 3,
-    smsPerMonth: 1000,
-    staffAccounts: 10,
-    features: ['Up to 3 locations', '1,000 SMS/month', '10 staff accounts', 'Everything in Starter', 'Auto-sync (every 6 hours)', 'Custom wall themes', 'Webhook integrations', 'Priority email support'],
-  },
-  AGENCY: {
-    name: 'Agency',
-    price: 249,
-    priceId: process.env.STRIPE_PRICE_ID_AGENCY || '',
-    locations: 5,
-    extraLocationPrice: 49,
-    smsPerMonth: -1, // unlimited
-    staffAccounts: -1, // unlimited
-    features: ['5 locations + $49/extra', 'Unlimited SMS', 'Unlimited staff', 'Everything in Growth', 'Auto-sync (every hour)', 'White-label mode', 'Dedicated support', 'Setup included'],
-  },
-  TRIAL_DAYS: 14,
-  CURRENCY: 'aud',
+export const PLAN = {
+  name: 'InsightReviews Pro',
+  price: 79,
+  priceId: process.env.STRIPE_PRICE_ID || '',
+  trialDays: 14,
+  currency: 'aud',
 } as const;
 
-// Keep backward compat
-export const BILLING_PLANS = {
-  MONTHLY_PRICE: 79,
+// Legacy aliases — referenced in webhook
+export const PLANS = {
+  STARTER: { priceId: process.env.STRIPE_PRICE_ID || '' },
+  GROWTH: { priceId: process.env.STRIPE_PRICE_ID_GROWTH || '' },
+  AGENCY: { priceId: process.env.STRIPE_PRICE_ID_AGENCY || '' },
   TRIAL_DAYS: 14,
   CURRENCY: 'aud',
 } as const;

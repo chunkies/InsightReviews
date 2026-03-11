@@ -8,7 +8,7 @@ import {
 } from '@mui/material';
 import {
   LayoutDashboard, Star, Send, Users, Palette, Link2,
-  Settings, CreditCard, Phone, Sparkles,
+  Settings, CreditCard, Phone, Sparkles, HelpCircle,
 } from 'lucide-react';
 import { useTheme } from '@mui/material/styles';
 
@@ -23,36 +23,34 @@ const navItems = [
   { label: 'Customization', href: '/dashboard/testimonials', icon: Palette },
   { label: 'Billing', href: '/dashboard/billing', icon: CreditCard },
   { label: 'Settings', href: '/dashboard/settings', icon: Settings },
+  { label: 'Support', href: '/dashboard/support', icon: HelpCircle },
 ];
 
 interface SidebarProps {
   orgName?: string;
   billingPlan?: string | null;
-  billingTier?: string | null;
   trialEndsAt?: string | null;
+  subscriptionEndsAt?: string | null;
   mobileOpen: boolean;
   onMobileClose: () => void;
 }
 
-const tierNames: Record<string, string> = {
-  starter: 'Starter',
-  growth: 'Growth',
-  agency: 'Agency',
-};
-
-function getPlanDisplay(billingPlan?: string | null, trialEndsAt?: string | null, billingTier?: string | null) {
-  const tierLabel = billingTier && tierNames[billingTier] ? tierNames[billingTier] : null;
-  if (billingPlan === 'active') return { label: tierLabel ? `${tierLabel} · Active` : 'Active', gradient: 'linear-gradient(135deg, #16a34a 0%, #22c55e 100%)' };
-  if (billingPlan === 'past_due') return { label: tierLabel ? `${tierLabel} · Past Due` : 'Past Due', gradient: 'linear-gradient(135deg, #dc2626 0%, #ef4444 100%)' };
+function getPlanDisplay(billingPlan?: string | null, trialEndsAt?: string | null, subscriptionEndsAt?: string | null) {
+  if (billingPlan === 'active') return { label: 'Active', gradient: 'linear-gradient(135deg, #16a34a 0%, #22c55e 100%)' };
+  if (billingPlan === 'cancelling' && subscriptionEndsAt) {
+    const daysLeft = Math.max(0, Math.ceil((new Date(subscriptionEndsAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24)));
+    return { label: `Cancelling · ${daysLeft}d left`, gradient: 'linear-gradient(135deg, #dc2626 0%, #f97316 100%)' };
+  }
+  if (billingPlan === 'past_due') return { label: 'Past Due', gradient: 'linear-gradient(135deg, #dc2626 0%, #ef4444 100%)' };
   if (billingPlan === 'cancelled') return { label: 'Cancelled', gradient: 'linear-gradient(135deg, #6b7280 0%, #9ca3af 100%)' };
-  if (trialEndsAt) {
+  if (billingPlan === 'trial' && trialEndsAt) {
     const daysLeft = Math.max(0, Math.ceil((new Date(trialEndsAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24)));
     return { label: `Trial · ${daysLeft}d left`, gradient: 'linear-gradient(135deg, #f59e0b 0%, #f97316 100%)' };
   }
   return { label: 'Trial', gradient: 'linear-gradient(135deg, #f59e0b 0%, #f97316 100%)' };
 }
 
-export function Sidebar({ orgName, billingPlan, billingTier, trialEndsAt, mobileOpen, onMobileClose }: SidebarProps) {
+export function Sidebar({ orgName, billingPlan, trialEndsAt, subscriptionEndsAt, mobileOpen, onMobileClose }: SidebarProps) {
   const pathname = usePathname();
   const muiTheme = useTheme();
   const isDark = muiTheme.palette.mode === 'dark';
@@ -193,13 +191,13 @@ export function Sidebar({ orgName, billingPlan, billingTier, trialEndsAt, mobile
           </Typography>
         </Box>
         <Chip
-          label={getPlanDisplay(billingPlan, trialEndsAt, billingTier).label}
+          label={getPlanDisplay(billingPlan, trialEndsAt, subscriptionEndsAt).label}
           size="small"
           sx={{
             height: 22,
             fontSize: '0.7rem',
             fontWeight: 600,
-            background: getPlanDisplay(billingPlan, trialEndsAt, billingTier).gradient,
+            background: getPlanDisplay(billingPlan, trialEndsAt, subscriptionEndsAt).gradient,
             color: 'white',
             letterSpacing: 0.3,
           }}

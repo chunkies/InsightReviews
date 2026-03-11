@@ -72,7 +72,7 @@ export async function middleware(request: NextRequest) {
   if (pathname.startsWith('/dashboard')) {
     const { data: member } = await supabase
       .from('organization_members')
-      .select('organization_id, organizations(billing_plan, trial_ends_at)')
+      .select('organization_id, organizations(billing_plan, trial_ends_at, subscription_ends_at)')
       .eq('user_id', user.id)
       .maybeSingle();
 
@@ -84,8 +84,8 @@ export async function middleware(request: NextRequest) {
     }
 
     // Check billing status (org data is joined in the same query)
-    const org = member.organizations as unknown as { billing_plan: string; trial_ends_at: string | null } | null;
-    if (org && !hasValidBilling(org.billing_plan, org.trial_ends_at, user.email)) {
+    const org = member.organizations as unknown as { billing_plan: string; trial_ends_at: string | null; subscription_ends_at: string | null } | null;
+    if (org && !hasValidBilling(org.billing_plan, org.trial_ends_at, user.email, org.subscription_ends_at)) {
       const url = request.nextUrl.clone();
       url.pathname = '/subscribe';
       url.search = `?org=${member.organization_id}`;

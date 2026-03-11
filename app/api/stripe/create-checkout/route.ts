@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { createStripeClient } from '@/lib/stripe/server';
-import { PLANS } from '@/lib/utils/constants';
+import { PLAN } from '@/lib/utils/constants';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
@@ -12,17 +12,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { organizationId, tier = 'starter' } = await request.json();
+    const { organizationId } = await request.json();
 
-    // Look up price ID from PLANS based on tier
-    const tierKey = tier.toUpperCase() as 'STARTER' | 'GROWTH' | 'AGENCY';
-    const plan = PLANS[tierKey];
-    if (!plan || typeof plan === 'number' || typeof plan === 'string') {
-      return NextResponse.json({ error: 'Invalid tier' }, { status: 400 });
-    }
-    const priceId = plan.priceId;
-    if (!priceId) {
-      return NextResponse.json({ error: 'Price not configured for this tier' }, { status: 400 });
+    if (!PLAN.priceId) {
+      return NextResponse.json({ error: 'Price not configured' }, { status: 400 });
     }
 
     // Verify user is owner
@@ -40,7 +33,7 @@ export async function POST(request: NextRequest) {
     // Get org
     const { data: org } = await supabase
       .from('organizations')
-      .select('id, name, stripe_customer_id')
+      .select('id, name, stripe_customer_id, billing_plan')
       .eq('id', organizationId)
       .single();
 
@@ -49,7 +42,6 @@ export async function POST(request: NextRequest) {
     }
 
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL!;
-
     const stripe = createStripeClient();
 
     // Create or reuse Stripe customer
@@ -67,16 +59,17 @@ export async function POST(request: NextRequest) {
         .eq('id', org.id);
     }
 
+    // Only give trial to new subscribers (not cancelled/returning users)
+    const isNewSubscriber = org.billing_plan === 'trial' || org.billing_plan === 'pending' || !org.billing_plan;
+
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       mode: 'subscription',
-      line_items: [{ price: priceId, quantity: 1 }],
-      subscription_data: {
-        trial_period_days: 14,
-      },
+      line_items: [{ price: PLAN.priceId, quantity: 1 }],
+      ...(isNewSubscriber ? { subscription_data: { trial_period_days: PLAN.trialDays } } : {}),
       success_url: `${siteUrl}/dashboard?billing=success`,
       cancel_url: `${siteUrl}/subscribe?org=${org.id}`,
-      metadata: { organizationId: org.id, tier },
+      metadata: { organizationId: org.id },
     });
 
     return NextResponse.json({ url: session.url });

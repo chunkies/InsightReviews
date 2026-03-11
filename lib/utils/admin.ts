@@ -17,14 +17,19 @@ export function hasValidBilling(
   billingPlan: string | null | undefined,
   trialEndsAt: string | null | undefined,
   email?: string | null,
+  subscriptionEndsAt?: string | null,
 ): boolean {
   if (isAdminEmail(email)) return true;
 
   const plan = billingPlan ?? 'none';
-  const validPlans = ['trial', 'active'];
+  const validPlans = ['trial', 'active', 'cancelling'];
   if (!validPlans.includes(plan)) return false;
 
   if (plan === 'trial' && trialEndsAt && new Date(trialEndsAt) < new Date()) {
+    return false;
+  }
+
+  if (plan === 'cancelling' && subscriptionEndsAt && new Date(subscriptionEndsAt) < new Date()) {
     return false;
   }
 

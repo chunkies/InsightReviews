@@ -42,6 +42,21 @@ export async function POST(request: Request) {
       cancel_at_period_end: true,
     });
 
+    // Retrieve updated subscription to get cancel_at (set automatically by Stripe)
+    const subscription = await stripe.subscriptions.retrieve(org.stripe_subscription_id);
+
+    // cancel_at is set when cancel_at_period_end is true
+    const periodEnd = subscription.cancel_at
+      ? new Date(subscription.cancel_at * 1000).toISOString()
+      : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(); // fallback 30 days
+    await supabase
+      .from('organizations')
+      .update({
+        billing_plan: 'cancelling',
+        subscription_ends_at: periodEnd,
+      })
+      .eq('id', organizationId);
+
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Cancel subscription error:', error);

@@ -120,6 +120,19 @@ export interface FollowupQueue {
   created_at: string;
 }
 
+export interface SupportTicket {
+  id: string;
+  organization_id: string;
+  user_id: string;
+  subject: string;
+  message: string;
+  category: 'general' | 'bug' | 'feature' | 'billing' | 'account';
+  priority: 'low' | 'normal' | 'high' | 'urgent';
+  status: 'open' | 'in_progress' | 'resolved' | 'closed';
+  created_at: string;
+  updated_at: string;
+}
+
 // Dashboard stats
 export interface ReviewStats {
   totalReviews: number;

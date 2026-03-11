@@ -9,11 +9,11 @@ import { ConfirmDialog } from '@/components/shared/confirm-dialog';
 interface BillingActionsProps {
   orgId: string;
   hasSubscription: boolean;
+  hasActiveSubscription: boolean;
   billingPlan: string;
-  tier?: string;
 }
 
-export function BillingActions({ orgId, hasSubscription, billingPlan, tier = 'starter' }: BillingActionsProps) {
+export function BillingActions({ orgId, hasSubscription, hasActiveSubscription, billingPlan }: BillingActionsProps) {
   const [loading, setLoading] = useState(false);
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const { showSnackbar } = useSnackbar();
@@ -24,7 +24,7 @@ export function BillingActions({ orgId, hasSubscription, billingPlan, tier = 'st
       const res = await fetch('/api/stripe/create-checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ organizationId: orgId, tier }),
+        body: JSON.stringify({ organizationId: orgId }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -91,12 +91,20 @@ export function BillingActions({ orgId, hasSubscription, billingPlan, tier = 'st
     }
   }
 
-  const canCancel = hasSubscription && (billingPlan === 'active' || billingPlan === 'trial');
+  // Show "Subscribe Now" if no active sub, or cancelling (they can resubscribe)
+  const showSubscribe = !hasActiveSubscription && (billingPlan === 'trial' || billingPlan === 'cancelled' || billingPlan === 'pending')
+    || billingPlan === 'cancelling';
+
+  // Show "Manage Billing" if they have a Stripe customer (can view invoices, update payment)
+  const showManage = hasSubscription && (hasActiveSubscription || billingPlan === 'cancelling');
+
+  // Show "Cancel" only if they have an active Stripe subscription and haven't already cancelled
+  const showCancel = hasActiveSubscription && (billingPlan === 'active' || billingPlan === 'trial');
 
   return (
     <>
       <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', justifyContent: 'center' }}>
-        {billingPlan === 'trial' || billingPlan === 'cancelled' ? (
+        {showSubscribe && (
           <Button
             variant="contained"
             onClick={handleCheckout}
@@ -104,8 +112,8 @@ export function BillingActions({ orgId, hasSubscription, billingPlan, tier = 'st
           >
             {loading ? 'Loading...' : 'Subscribe Now'}
           </Button>
-        ) : null}
-        {hasSubscription && (
+        )}
+        {showManage && (
           <Button
             variant="outlined"
             startIcon={<ExternalLink size={16} />}
@@ -115,7 +123,7 @@ export function BillingActions({ orgId, hasSubscription, billingPlan, tier = 'st
             Manage Billing
           </Button>
         )}
-        {canCancel && (
+        {showCancel && (
           <Button
             variant="outlined"
             color="error"

@@ -1,18 +1,21 @@
-import { Box, Paper, Typography, Chip, Divider, Button } from '@mui/material';
+import { Box, Paper, Typography, Chip, Divider, LinearProgress } from '@mui/material';
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
-import { CreditCard, Check, ArrowUpRight } from 'lucide-react';
+import { CreditCard, Check, Calendar, Receipt, Shield } from 'lucide-react';
 import { BillingActions } from '@/components/settings/billing-actions';
 
-const tierDetails = {
-  starter: { name: 'Starter', price: '$79', features: ['1 location', '200 SMS/mo', '3 staff accounts', 'Smart review routing', 'Dashboard & analytics', 'Testimonial wall'] },
-  growth: { name: 'Growth', price: '$149', features: ['Up to 3 locations', '1,000 SMS/mo', '10 staff accounts', 'Auto-sync', 'Custom themes', 'Webhooks'] },
-  agency: { name: 'Agency', price: '$249', features: ['5+ locations', 'Unlimited SMS', 'Unlimited staff', 'White-label', 'Priority support', 'Dedicated account manager'] },
-} as const;
-
-type TierKey = keyof typeof tierDetails;
-
-const tierOrder: TierKey[] = ['starter', 'growth', 'agency'];
+const planFeatures = [
+  'Unlimited reviews',
+  'Smart review routing to Google, Yelp & more',
+  'QR code + SMS review collection',
+  'Real-time dashboard & analytics',
+  'Auto-sync with review platforms',
+  'Public testimonial wall',
+  'Private negative feedback capture',
+  'Staff accounts & team management',
+  'Email & SMS notifications',
+  'Custom branding',
+];
 
 export default async function BillingPage() {
   const supabase = await createClient();
@@ -29,7 +32,7 @@ export default async function BillingPage() {
 
   const { data: org } = await supabase
     .from('organizations')
-    .select('id, billing_plan, billing_tier, trial_ends_at, stripe_customer_id')
+    .select('id, name, billing_plan, trial_ends_at, stripe_customer_id, stripe_subscription_id, subscription_ends_at')
     .eq('id', member.organization_id)
     .single();
 
@@ -37,157 +40,228 @@ export default async function BillingPage() {
 
   const isTrialing = org.billing_plan === 'trial';
   const isActive = org.billing_plan === 'active';
+  const isPastDue = org.billing_plan === 'past_due';
+  const isCancelled = org.billing_plan === 'cancelled';
+  const isCancelling = org.billing_plan === 'cancelling';
+
   const trialDaysLeft = org.trial_ends_at
     ? Math.max(0, Math.ceil((new Date(org.trial_ends_at).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
     : 0;
+  const trialTotalDays = 14;
+  const trialProgress = isTrialing ? ((trialTotalDays - trialDaysLeft) / trialTotalDays) * 100 : 0;
 
-  const chipLabel = isTrialing
-    ? `Trial — ${trialDaysLeft} days left`
-    : isActive
-      ? 'Active'
-      : org.billing_plan === 'past_due'
-        ? 'Past Due'
-        : org.billing_plan === 'cancelled'
-          ? 'Cancelled'
-          : org.billing_plan;
+  const subDaysLeft = org.subscription_ends_at
+    ? Math.max(0, Math.ceil((new Date(org.subscription_ends_at).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
+    : 0;
 
-  const chipColor: 'warning' | 'success' | 'error' = isTrialing
-    ? 'warning'
-    : isActive
-      ? 'success'
-      : 'error';
-
-  const currentTier: TierKey = (org.billing_tier as TierKey) || 'starter';
-  const currentTierInfo = tierDetails[currentTier];
-  const currentTierIndex = tierOrder.indexOf(currentTier);
-  const nextTier: TierKey | null = currentTierIndex < tierOrder.length - 1 ? tierOrder[currentTierIndex + 1] : null;
-  const nextTierInfo = nextTier ? tierDetails[nextTier] : null;
+  const statusConfig = isActive
+    ? { label: 'Active', color: 'success' as const, gradient: 'linear-gradient(135deg, #16a34a 0%, #22c55e 100%)' }
+    : isCancelling
+      ? { label: `Cancelling · ${subDaysLeft} days left`, color: 'warning' as const, gradient: 'linear-gradient(135deg, #dc2626 0%, #f97316 100%)' }
+      : isTrialing
+        ? { label: `Trial · ${trialDaysLeft} days left`, color: 'warning' as const, gradient: 'linear-gradient(135deg, #f59e0b 0%, #f97316 100%)' }
+        : isPastDue
+          ? { label: 'Past Due', color: 'error' as const, gradient: 'linear-gradient(135deg, #dc2626 0%, #ef4444 100%)' }
+          : isCancelled
+            ? { label: 'Cancelled', color: 'error' as const, gradient: 'linear-gradient(135deg, #6b7280 0%, #9ca3af 100%)' }
+            : { label: 'Inactive', color: 'error' as const, gradient: 'linear-gradient(135deg, #6b7280 0%, #9ca3af 100%)' };
 
   return (
     <Box sx={{ display: 'flex', justifyContent: 'center', pt: 2 }}>
-      <Box sx={{ width: '100%', maxWidth: 520 }}>
+      <Box sx={{ width: '100%', maxWidth: 560 }}>
         <Box sx={{ textAlign: 'center', mb: 3 }}>
           <Typography variant="h5" fontWeight={700}>Billing</Typography>
           <Typography variant="body2" color="text.secondary">Manage your subscription and payment</Typography>
         </Box>
 
-        <Paper sx={{ p: 4, mb: 3, textAlign: 'center' }}>
+        {/* Status card */}
+        <Paper
+          sx={{
+            p: 0,
+            mb: 3,
+            overflow: 'hidden',
+            border: isPastDue ? '2px solid' : 'none',
+            borderColor: isPastDue ? 'error.main' : undefined,
+          }}
+        >
           <Box
             sx={{
-              width: 56,
-              height: 56,
-              borderRadius: '50%',
-              background: isActive
-                ? 'linear-gradient(135deg, #16a34a 0%, #22c55e 100%)'
-                : 'linear-gradient(135deg, #2563eb 0%, #60a5fa 100%)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              mx: 'auto',
-              mb: 2,
+              background: statusConfig.gradient,
+              px: 4,
+              py: 3,
+              color: 'white',
+              textAlign: 'center',
             }}
           >
-            <CreditCard size={28} color="white" />
-          </Box>
-
-          <Typography variant="body2" color="text.secondary" fontWeight={500} sx={{ mb: 0.5, textTransform: 'uppercase', letterSpacing: 1 }}>
-            Current Plan
-          </Typography>
-
-          <Typography variant="overline" sx={{ color: 'primary.main', fontWeight: 700, letterSpacing: 1.5 }}>
-            {currentTierInfo.name}
-          </Typography>
-
-          <Typography variant="h3" fontWeight={800} sx={{ mb: 0.5 }}>
-            {currentTierInfo.price}
-          </Typography>
-          <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
-            per month
-          </Typography>
-
-          <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>
-            <Chip label={chipLabel} color={chipColor} />
-          </Box>
-
-          {org.billing_plan === 'past_due' && (
-            <Typography variant="body2" color="error" sx={{ mb: 2, px: 2 }}>
-              Your last payment failed. Please update your payment method to avoid service interruption.
+            <Box
+              sx={{
+                width: 48,
+                height: 48,
+                borderRadius: '50%',
+                backgroundColor: 'rgba(255,255,255,0.2)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                mx: 'auto',
+                mb: 1.5,
+              }}
+            >
+              <CreditCard size={24} color="white" />
+            </Box>
+            <Typography variant="overline" sx={{ opacity: 0.9, letterSpacing: 1.5, fontSize: '0.7rem' }}>
+              {org.name}
             </Typography>
-          )}
+            <Box sx={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: 0.5, mt: 0.5 }}>
+              <Typography variant="h3" fontWeight={800}>$79</Typography>
+              <Typography variant="h6" sx={{ opacity: 0.8 }}>/mo</Typography>
+            </Box>
+            <Typography variant="body2" sx={{ opacity: 0.85, mt: 0.5 }}>
+              per location
+            </Typography>
+          </Box>
 
-          <BillingActions
-            orgId={org.id}
-            hasSubscription={!!org.stripe_customer_id}
-            billingPlan={org.billing_plan}
-            tier={currentTier}
-          />
+          <Box sx={{ px: 4, py: 3 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+              <Typography variant="body2" color="text.secondary" fontWeight={600}>
+                Subscription Status
+              </Typography>
+              <Chip label={statusConfig.label} color={statusConfig.color} size="small" />
+            </Box>
+
+            {isTrialing && (
+              <Box sx={{ mb: 2 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+                  <Typography variant="caption" color="text.secondary">Trial progress</Typography>
+                  <Typography variant="caption" color="text.secondary">{trialDaysLeft} of {trialTotalDays} days remaining</Typography>
+                </Box>
+                <LinearProgress
+                  variant="determinate"
+                  value={trialProgress}
+                  sx={{
+                    height: 6,
+                    borderRadius: 3,
+                    backgroundColor: 'action.hover',
+                    '& .MuiLinearProgress-bar': {
+                      borderRadius: 3,
+                      background: 'linear-gradient(90deg, #f59e0b, #f97316)',
+                    },
+                  }}
+                />
+                {trialDaysLeft <= 3 && trialDaysLeft > 0 && (
+                  <Typography variant="caption" color="warning.main" sx={{ mt: 0.5, display: 'block' }}>
+                    Your trial ends soon. Subscribe to keep access to all features.
+                  </Typography>
+                )}
+              </Box>
+            )}
+
+            {isCancelling && org.subscription_ends_at && (
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="body2" color="error" sx={{ mb: 1 }}>
+                  Your subscription has been cancelled. You have access until {new Date(org.subscription_ends_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })}.
+                </Typography>
+                <LinearProgress
+                  variant="determinate"
+                  value={Math.max(0, 100 - (subDaysLeft / 30) * 100)}
+                  sx={{
+                    height: 6,
+                    borderRadius: 3,
+                    backgroundColor: 'action.hover',
+                    '& .MuiLinearProgress-bar': {
+                      borderRadius: 3,
+                      background: 'linear-gradient(90deg, #dc2626, #f97316)',
+                    },
+                  }}
+                />
+                <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
+                  {subDaysLeft} days remaining · Subscribe again to keep your account
+                </Typography>
+              </Box>
+            )}
+
+            {isPastDue && (
+              <Typography variant="body2" color="error" sx={{ mb: 2 }}>
+                Your last payment failed. Please update your payment method to avoid service interruption.
+              </Typography>
+            )}
+
+            {isCancelled && (
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                Your subscription has been cancelled. Subscribe again to regain access.
+              </Typography>
+            )}
+
+            <BillingActions
+              orgId={org.id}
+              hasSubscription={!!org.stripe_customer_id}
+              hasActiveSubscription={!!org.stripe_subscription_id}
+              billingPlan={org.billing_plan ?? 'pending'}
+            />
+          </Box>
         </Paper>
 
-        <Paper sx={{ p: 3 }}>
-          <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 2, textTransform: 'uppercase', letterSpacing: 0.5 }}>
-            {currentTierInfo.name} Plan Includes
-          </Typography>
+        {/* What's included */}
+        <Paper sx={{ p: 3, mb: 3 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+            <Shield size={18} />
+            <Typography variant="subtitle2" fontWeight={700}>
+              What&apos;s Included
+            </Typography>
+          </Box>
           <Divider sx={{ mb: 2 }} />
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-            {currentTierInfo.features.map((label) => (
-              <Box key={label} sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                <Box
-                  sx={{
-                    width: 32,
-                    height: 32,
-                    borderRadius: '8px',
-                    backgroundColor: 'action.hover',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    flexShrink: 0,
-                  }}
-                >
-                  <Check size={16} color="#16a34a" />
-                </Box>
-                <Typography variant="body2">{label}</Typography>
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
+              gap: 1.5,
+            }}
+          >
+            {planFeatures.map((feature) => (
+              <Box key={feature} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Check size={14} color="#16a34a" />
+                <Typography variant="body2" color="text.secondary">{feature}</Typography>
               </Box>
             ))}
           </Box>
         </Paper>
 
-        {nextTierInfo && (
-          <Paper sx={{ p: 3, mt: 3, border: '1px solid', borderColor: 'primary.light', background: 'linear-gradient(180deg, #fafbff 0%, #eff6ff 100%)' }}>
-            <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1, textTransform: 'uppercase', letterSpacing: 0.5 }}>
-              Upgrade Your Plan
+        {/* Billing info */}
+        <Paper sx={{ p: 3 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+            <Receipt size={18} />
+            <Typography variant="subtitle2" fontWeight={700}>
+              Billing Info
             </Typography>
-            <Divider sx={{ mb: 2 }} />
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-              <Box>
-                <Typography variant="body1" fontWeight={700}>
-                  {nextTierInfo.name}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  {nextTierInfo.price}/mo — unlock more features
-                </Typography>
+          </Box>
+          <Divider sx={{ mb: 2 }} />
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+              <Typography variant="body2" color="text.secondary">Plan</Typography>
+              <Typography variant="body2" fontWeight={600}>InsightReviews Pro</Typography>
+            </Box>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+              <Typography variant="body2" color="text.secondary">Price</Typography>
+              <Typography variant="body2" fontWeight={600}>$79/month per location</Typography>
+            </Box>
+            {isTrialing && org.trial_ends_at && (
+              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                <Typography variant="body2" color="text.secondary">Trial ends</Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  <Calendar size={14} />
+                  <Typography variant="body2" fontWeight={600}>
+                    {new Date(org.trial_ends_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })}
+                  </Typography>
+                </Box>
               </Box>
-              <Chip
-                label={`${currentTierInfo.price} → ${nextTierInfo.price}`}
-                size="small"
-                sx={{ fontWeight: 600 }}
-              />
+            )}
+            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+              <Typography variant="body2" color="text.secondary">Payment method</Typography>
+              <Typography variant="body2" fontWeight={600}>
+                {org.stripe_customer_id ? 'Card on file' : 'None'}
+              </Typography>
             </Box>
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
-              {nextTierInfo.features.slice(0, 4).map((f) => (
-                <Chip key={f} label={f} size="small" variant="outlined" sx={{ fontSize: '0.75rem' }} />
-              ))}
-            </Box>
-            <Button
-              href={`/subscribe?tier=${nextTier}`}
-              variant="contained"
-              size="small"
-              endIcon={<ArrowUpRight size={16} />}
-              sx={{ fontWeight: 600 }}
-            >
-              Upgrade to {nextTierInfo.name}
-            </Button>
-          </Paper>
-        )}
+          </Box>
+        </Paper>
       </Box>
     </Box>
   );

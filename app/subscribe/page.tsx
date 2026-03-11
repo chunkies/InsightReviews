@@ -52,6 +52,8 @@ export default async function SubscribePage({ searchParams }: PageProps) {
   }
 
   const isTrialExpired = org.billing_plan === 'trial' && org.trial_ends_at && new Date(org.trial_ends_at) < new Date();
+  const isCancelled = org.billing_plan === 'cancelled';
+  const isReturning = isTrialExpired || isCancelled;
 
   return (
     <Box
@@ -67,10 +69,13 @@ export default async function SubscribePage({ searchParams }: PageProps) {
       <Container maxWidth="sm">
         <Paper sx={{ p: 4, textAlign: 'center' }}>
           <Typography variant="h4" fontWeight={700} gutterBottom>
-            Start Your Free Trial
+            {isReturning ? 'Subscribe to Continue' : 'Start Your Free Trial'}
           </Typography>
           <Typography color="text.secondary" sx={{ mb: 3 }}>
-            Get 14 days free to try InsightReviews for <strong>{org.name}</strong>.
+            {isReturning
+              ? <>Reactivate your account for <strong>{org.name}</strong>.</>
+              : <>Get 14 days free to try InsightReviews for <strong>{org.name}</strong>.</>
+            }
           </Typography>
 
           <Box sx={{ mb: 3, p: 3, borderRadius: 2, backgroundColor: 'action.hover' }}>
@@ -79,7 +84,10 @@ export default async function SubscribePage({ searchParams }: PageProps) {
               <Typography variant="h6" color="text.secondary">/mo</Typography>
             </Box>
             <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-              per location &middot; after your 14-day free trial
+              {isReturning
+                ? 'per location'
+                : 'per location \u00B7 after your 14-day free trial'
+              }
             </Typography>
           </Box>
 
@@ -92,9 +100,9 @@ export default async function SubscribePage({ searchParams }: PageProps) {
             ))}
           </Box>
 
-          <SubscribeButton orgId={org.id} tier="starter" />
+          <SubscribeButton orgId={org.id} isReturning={isReturning} />
 
-          {org.billing_plan === 'cancelled' && (
+          {isCancelled && (
             <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
               Your subscription was cancelled. Subscribe again to regain access.
             </Typography>

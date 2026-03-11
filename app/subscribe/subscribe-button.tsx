@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Button } from '@mui/material';
 import { useSnackbar } from '@/components/providers/snackbar-provider';
 
-export function SubscribeButton({ orgId }: { orgId: string }) {
+export function SubscribeButton({ orgId, tier = 'starter' }: { orgId: string; tier?: string }) {
   const [loading, setLoading] = useState(false);
   const { showSnackbar } = useSnackbar();
 
@@ -14,7 +14,7 @@ export function SubscribeButton({ orgId }: { orgId: string }) {
       const res = await fetch('/api/stripe/create-checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ organizationId: orgId }),
+        body: JSON.stringify({ organizationId: orgId, tier }),
       });
       const data = await res.json();
       if (!res.ok) {

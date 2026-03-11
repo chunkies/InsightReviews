@@ -28,14 +28,22 @@ const navItems = [
 interface SidebarProps {
   orgName?: string;
   billingPlan?: string | null;
+  billingTier?: string | null;
   trialEndsAt?: string | null;
   mobileOpen: boolean;
   onMobileClose: () => void;
 }
 
-function getPlanDisplay(billingPlan?: string | null, trialEndsAt?: string | null) {
-  if (billingPlan === 'active') return { label: 'Active', gradient: 'linear-gradient(135deg, #16a34a 0%, #22c55e 100%)' };
-  if (billingPlan === 'past_due') return { label: 'Past Due', gradient: 'linear-gradient(135deg, #dc2626 0%, #ef4444 100%)' };
+const tierNames: Record<string, string> = {
+  starter: 'Starter',
+  growth: 'Growth',
+  agency: 'Agency',
+};
+
+function getPlanDisplay(billingPlan?: string | null, trialEndsAt?: string | null, billingTier?: string | null) {
+  const tierLabel = billingTier && tierNames[billingTier] ? tierNames[billingTier] : null;
+  if (billingPlan === 'active') return { label: tierLabel ? `${tierLabel} · Active` : 'Active', gradient: 'linear-gradient(135deg, #16a34a 0%, #22c55e 100%)' };
+  if (billingPlan === 'past_due') return { label: tierLabel ? `${tierLabel} · Past Due` : 'Past Due', gradient: 'linear-gradient(135deg, #dc2626 0%, #ef4444 100%)' };
   if (billingPlan === 'cancelled') return { label: 'Cancelled', gradient: 'linear-gradient(135deg, #6b7280 0%, #9ca3af 100%)' };
   if (trialEndsAt) {
     const daysLeft = Math.max(0, Math.ceil((new Date(trialEndsAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24)));
@@ -44,7 +52,7 @@ function getPlanDisplay(billingPlan?: string | null, trialEndsAt?: string | null
   return { label: 'Trial', gradient: 'linear-gradient(135deg, #f59e0b 0%, #f97316 100%)' };
 }
 
-export function Sidebar({ orgName, billingPlan, trialEndsAt, mobileOpen, onMobileClose }: SidebarProps) {
+export function Sidebar({ orgName, billingPlan, billingTier, trialEndsAt, mobileOpen, onMobileClose }: SidebarProps) {
   const pathname = usePathname();
   const muiTheme = useTheme();
   const isDark = muiTheme.palette.mode === 'dark';
@@ -185,13 +193,13 @@ export function Sidebar({ orgName, billingPlan, trialEndsAt, mobileOpen, onMobil
           </Typography>
         </Box>
         <Chip
-          label={getPlanDisplay(billingPlan, trialEndsAt).label}
+          label={getPlanDisplay(billingPlan, trialEndsAt, billingTier).label}
           size="small"
           sx={{
             height: 22,
             fontSize: '0.7rem',
             fontWeight: 600,
-            background: getPlanDisplay(billingPlan, trialEndsAt).gradient,
+            background: getPlanDisplay(billingPlan, trialEndsAt, billingTier).gradient,
             color: 'white',
             letterSpacing: 0.3,
           }}

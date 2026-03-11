@@ -1,8 +1,18 @@
-import { Box, Paper, Typography, Chip, Divider } from '@mui/material';
+import { Box, Paper, Typography, Chip, Divider, Button } from '@mui/material';
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
-import { CreditCard, Check, Shield, Zap, Users, MessageSquare, Star } from 'lucide-react';
+import { CreditCard, Check, ArrowUpRight } from 'lucide-react';
 import { BillingActions } from '@/components/settings/billing-actions';
+
+const tierDetails = {
+  starter: { name: 'Starter', price: '$79', features: ['1 location', '200 SMS/mo', '3 staff accounts', 'Smart review routing', 'Dashboard & analytics', 'Testimonial wall'] },
+  growth: { name: 'Growth', price: '$149', features: ['Up to 3 locations', '1,000 SMS/mo', '10 staff accounts', 'Auto-sync', 'Custom themes', 'Webhooks'] },
+  agency: { name: 'Agency', price: '$249', features: ['5+ locations', 'Unlimited SMS', 'Unlimited staff', 'White-label', 'Priority support', 'Dedicated account manager'] },
+} as const;
+
+type TierKey = keyof typeof tierDetails;
+
+const tierOrder: TierKey[] = ['starter', 'growth', 'agency'];
 
 export default async function BillingPage() {
   const supabase = await createClient();
@@ -19,7 +29,7 @@ export default async function BillingPage() {
 
   const { data: org } = await supabase
     .from('organizations')
-    .select('id, billing_plan, trial_ends_at, stripe_customer_id')
+    .select('id, billing_plan, billing_tier, trial_ends_at, stripe_customer_id')
     .eq('id', member.organization_id)
     .single();
 
@@ -47,13 +57,11 @@ export default async function BillingPage() {
       ? 'success'
       : 'error';
 
-  const features = [
-    { icon: Star, label: 'Smart review routing to Google, Yelp & more' },
-    { icon: Shield, label: 'Private negative review capture' },
-    { icon: MessageSquare, label: 'SMS & QR code review collection' },
-    { icon: Users, label: 'Unlimited staff accounts' },
-    { icon: Zap, label: 'Testimonial wall for your website' },
-  ];
+  const currentTier: TierKey = (org.billing_tier as TierKey) || 'starter';
+  const currentTierInfo = tierDetails[currentTier];
+  const currentTierIndex = tierOrder.indexOf(currentTier);
+  const nextTier: TierKey | null = currentTierIndex < tierOrder.length - 1 ? tierOrder[currentTierIndex + 1] : null;
+  const nextTierInfo = nextTier ? tierDetails[nextTier] : null;
 
   return (
     <Box sx={{ display: 'flex', justifyContent: 'center', pt: 2 }}>
@@ -86,11 +94,15 @@ export default async function BillingPage() {
             Current Plan
           </Typography>
 
+          <Typography variant="overline" sx={{ color: 'primary.main', fontWeight: 700, letterSpacing: 1.5 }}>
+            {currentTierInfo.name}
+          </Typography>
+
           <Typography variant="h3" fontWeight={800} sx={{ mb: 0.5 }}>
-            $29
+            {currentTierInfo.price}
           </Typography>
           <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
-            per month, per location
+            per month
           </Typography>
 
           <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>
@@ -107,16 +119,17 @@ export default async function BillingPage() {
             orgId={org.id}
             hasSubscription={!!org.stripe_customer_id}
             billingPlan={org.billing_plan}
+            tier={currentTier}
           />
         </Paper>
 
         <Paper sx={{ p: 3 }}>
           <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 2, textTransform: 'uppercase', letterSpacing: 0.5 }}>
-            What&apos;s included
+            {currentTierInfo.name} Plan Includes
           </Typography>
           <Divider sx={{ mb: 2 }} />
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-            {features.map(({ icon: Icon, label }) => (
+            {currentTierInfo.features.map((label) => (
               <Box key={label} sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                 <Box
                   sx={{
@@ -130,16 +143,51 @@ export default async function BillingPage() {
                     flexShrink: 0,
                   }}
                 >
-                  <Icon size={16} />
-                </Box>
-                <Typography variant="body2">{label}</Typography>
-                <Box sx={{ ml: 'auto' }}>
                   <Check size={16} color="#16a34a" />
                 </Box>
+                <Typography variant="body2">{label}</Typography>
               </Box>
             ))}
           </Box>
         </Paper>
+
+        {nextTierInfo && (
+          <Paper sx={{ p: 3, mt: 3, border: '1px solid', borderColor: 'primary.light', background: 'linear-gradient(180deg, #fafbff 0%, #eff6ff 100%)' }}>
+            <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+              Upgrade Your Plan
+            </Typography>
+            <Divider sx={{ mb: 2 }} />
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+              <Box>
+                <Typography variant="body1" fontWeight={700}>
+                  {nextTierInfo.name}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {nextTierInfo.price}/mo — unlock more features
+                </Typography>
+              </Box>
+              <Chip
+                label={`${currentTierInfo.price} → ${nextTierInfo.price}`}
+                size="small"
+                sx={{ fontWeight: 600 }}
+              />
+            </Box>
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
+              {nextTierInfo.features.slice(0, 4).map((f) => (
+                <Chip key={f} label={f} size="small" variant="outlined" sx={{ fontSize: '0.75rem' }} />
+              ))}
+            </Box>
+            <Button
+              href={`/subscribe?tier=${nextTier}`}
+              variant="contained"
+              size="small"
+              endIcon={<ArrowUpRight size={16} />}
+              sx={{ fontWeight: 600 }}
+            >
+              Upgrade to {nextTierInfo.name}
+            </Button>
+          </Paper>
+        )}
       </Box>
     </Box>
   );

@@ -1,7 +1,7 @@
 'use client';
 
 import { Grid, Card, CardContent, Typography, Box } from '@mui/material';
-import { Star, TrendingUp, Send, ArrowUp, ArrowDown, Clock, MessageSquare } from 'lucide-react';
+import { Star, TrendingUp, Send, ArrowUp, ArrowDown, Clock, MessageSquare, CheckCircle2, Circle, Link2, Users, Megaphone, Layout } from 'lucide-react';
 import {
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
 } from 'recharts';
@@ -36,8 +36,107 @@ export function DashboardStats({ stats, recentReviews, chartData, funnelData }: 
   const isDark = muiTheme.palette.mode === 'dark';
   const weekChange = stats.thisWeekReviews - stats.lastWeekReviews;
 
+  const checklistItems = [
+    {
+      label: 'Connect a review platform',
+      done: false, // Will be overridden below if integrations data is available
+      href: '/dashboard/integrations',
+      icon: <Link2 size={16} />,
+    },
+    {
+      label: 'Send your first review request',
+      done: stats.totalReviews > 0,
+      href: '/dashboard/collect',
+      icon: <Send size={16} />,
+    },
+    {
+      label: 'Customize your testimonial wall',
+      done: false,
+      href: '/dashboard/testimonials',
+      icon: <Layout size={16} />,
+    },
+    {
+      label: 'Invite your team',
+      done: false,
+      href: '/dashboard/staff',
+      icon: <Users size={16} />,
+    },
+  ];
+
+  const showChecklist = stats.totalReviews < 5;
+
   return (
     <Box>
+      {showChecklist && (
+        <Card
+          sx={{
+            mb: 3,
+            background: 'linear-gradient(135deg, #f0f9ff 0%, #f5f3ff 50%, #fdf2f8 100%)',
+            border: '1px solid',
+            borderColor: 'divider',
+            overflow: 'hidden',
+          }}
+        >
+          <CardContent sx={{ p: 3 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+              <Megaphone size={20} color="#7c3aed" />
+              <Typography variant="h6" fontWeight={700}>
+                Getting Started
+              </Typography>
+            </Box>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              Complete these steps to get the most out of InsightReviews.
+            </Typography>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+              {checklistItems.map((item) => (
+                <Box
+                  key={item.label}
+                  component="a"
+                  href={item.href}
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1.5,
+                    px: 2,
+                    py: 1.5,
+                    borderRadius: 2,
+                    backgroundColor: item.done ? 'rgba(22, 163, 74, 0.06)' : 'rgba(255,255,255,0.7)',
+                    border: '1px solid',
+                    borderColor: item.done ? 'rgba(22, 163, 74, 0.2)' : 'transparent',
+                    textDecoration: 'none',
+                    color: 'inherit',
+                    transition: 'all 0.15s ease',
+                    '&:hover': {
+                      backgroundColor: item.done ? 'rgba(22, 163, 74, 0.1)' : 'rgba(255,255,255,0.95)',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+                    },
+                  }}
+                >
+                  {item.done ? (
+                    <CheckCircle2 size={18} color="#16a34a" />
+                  ) : (
+                    <Circle size={18} color="#d1d5db" />
+                  )}
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flex: 1 }}>
+                    {item.icon}
+                    <Typography
+                      variant="body2"
+                      fontWeight={600}
+                      sx={{
+                        textDecoration: item.done ? 'line-through' : 'none',
+                        color: item.done ? 'text.secondary' : 'text.primary',
+                      }}
+                    >
+                      {item.label}
+                    </Typography>
+                  </Box>
+                </Box>
+              ))}
+            </Box>
+          </CardContent>
+        </Card>
+      )}
+
       <Grid container spacing={2.5}>
         {/* This Week - prominent card */}
         <Grid size={{ xs: 12, md: 8 }}>

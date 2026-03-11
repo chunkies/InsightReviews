@@ -3,12 +3,47 @@ import { NextRequest, NextResponse } from 'next/server';
 import { fireWebhook } from '@/lib/utils/webhook';
 import { sendNegativeReviewNotification } from '@/lib/email/client';
 
+// Simple in-memory rate limiting: IP -> { count, resetAt }
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+const RATE_LIMIT_MAX = 10;
+const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000; // 1 hour
+
+function isRateLimited(ip: string): boolean {
+  const now = Date.now();
+  const entry = rateLimitMap.get(ip);
+
+  if (!entry || now >= entry.resetAt) {
+    rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+    return false;
+  }
+
+  entry.count++;
+  return entry.count > RATE_LIMIT_MAX;
+}
+
+const MAX_COMMENT_LENGTH = 10000;
+const MAX_NAME_LENGTH = 200;
+
 export async function POST(request: NextRequest) {
   try {
+    // Rate limit by IP
+    const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
+    if (isRateLimited(ip)) {
+      return NextResponse.json({ error: 'Too many submissions. Please try again later.' }, { status: 429 });
+    }
+
     const { slug, rating, comment, customerName, customerContact, reviewRequestId, photoUrl } = await request.json();
 
     if (!slug || !rating || rating < 1 || rating > 5) {
       return NextResponse.json({ error: 'Invalid data' }, { status: 400 });
+    }
+
+    if (comment && typeof comment === 'string' && comment.length > MAX_COMMENT_LENGTH) {
+      return NextResponse.json({ error: `Comment must be under ${MAX_COMMENT_LENGTH} characters` }, { status: 400 });
+    }
+
+    if (customerName && typeof customerName === 'string' && customerName.length > MAX_NAME_LENGTH) {
+      return NextResponse.json({ error: `Name must be under ${MAX_NAME_LENGTH} characters` }, { status: 400 });
     }
 
     // Service role client — this is a public endpoint

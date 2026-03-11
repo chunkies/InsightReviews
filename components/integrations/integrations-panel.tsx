@@ -8,10 +8,10 @@ import {
   CircularProgress, Alert, Divider,
 } from '@mui/material';
 import {
-  Unlink, ExternalLink,
-  Search, CheckCircle2, Clock, AlertCircle, Zap,
+  Unlink, ExternalLink, Search, CheckCircle2, Clock, AlertCircle, Zap,
 } from 'lucide-react';
 import { useSnackbar } from '@/components/providers/snackbar-provider';
+import { ConfirmDialog } from '@/components/shared/confirm-dialog';
 import type { OrganizationIntegration } from '@/lib/types/database';
 
 const PLATFORM_INFO = {
@@ -61,6 +61,7 @@ export function IntegrationsPanel({
 }: IntegrationsPanelProps) {
   const { showSnackbar } = useSnackbar();
   const [disconnecting, setDisconnecting] = useState<string | null>(null);
+  const [confirmDisconnect, setConfirmDisconnect] = useState<string | null>(null);
   const [yelpDialog, setYelpDialog] = useState(false);
   const [yelpSearch, setYelpSearch] = useState({ name: orgName, location: orgAddress });
   const [yelpResults, setYelpResults] = useState<Array<{
@@ -180,6 +181,23 @@ export function IntegrationsPanel({
           <Typography variant="body2" color="text.secondary">
             {totalSynced} reviews synced
           </Typography>
+          <Divider orientation="vertical" flexItem />
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+            <Clock size={14} style={{ opacity: 0.5 }} />
+            <Typography variant="body2" color="text.secondary">
+              Reviews auto-sync every 6 hours
+              {(() => {
+                const lastSync = integrations
+                  .map(i => i.last_synced_at)
+                  .filter(Boolean)
+                  .sort()
+                  .pop();
+                return lastSync
+                  ? ` \u00b7 Last synced ${new Date(lastSync).toLocaleDateString()}`
+                  : '';
+              })()}
+            </Typography>
+          </Box>
         </Paper>
       )}
 
@@ -298,7 +316,7 @@ export function IntegrationsPanel({
                               color="error"
                               variant="text"
                               startIcon={disconnecting === platform ? <CircularProgress size={14} /> : <Unlink size={14} />}
-                              onClick={() => handleDisconnect(platform)}
+                              onClick={() => setConfirmDisconnect(platform)}
                               disabled={disconnecting === platform}
                               sx={{ textTransform: 'none', ml: 'auto' }}
                             >
@@ -339,6 +357,21 @@ export function IntegrationsPanel({
           }
         )}
       </Grid>
+
+      {/* Disconnect confirmation dialog */}
+      <ConfirmDialog
+        open={!!confirmDisconnect}
+        title={`Disconnect ${PLATFORM_INFO[confirmDisconnect as keyof typeof PLATFORM_INFO]?.name || confirmDisconnect}?`}
+        message={`This will stop syncing reviews from ${PLATFORM_INFO[confirmDisconnect as keyof typeof PLATFORM_INFO]?.name || confirmDisconnect}. Reviews already synced will be kept.`}
+        confirmLabel="Disconnect"
+        onConfirm={() => {
+          if (confirmDisconnect) {
+            handleDisconnect(confirmDisconnect);
+          }
+          setConfirmDisconnect(null);
+        }}
+        onCancel={() => setConfirmDisconnect(null)}
+      />
 
       {/* Yelp search dialog */}
       <Dialog open={yelpDialog} onClose={() => setYelpDialog(false)} maxWidth="sm" fullWidth>

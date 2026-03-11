@@ -12,14 +12,14 @@ export default async function DashboardLayout({ children }: { children: React.Re
   // Single query: get org membership + org details in one round trip
   const { data: member } = await supabase
     .from('organization_members')
-    .select('organization_id, organizations(id, name, billing_plan, trial_ends_at)')
+    .select('organization_id, organizations(id, name, billing_plan, billing_tier, trial_ends_at)')
     .eq('user_id', user.id)
     .maybeSingle();
 
   if (!member) redirect('/onboarding');
 
   const org = member.organizations as unknown as {
-    id: string; name: string; billing_plan: string; trial_ends_at: string | null;
+    id: string; name: string; billing_plan: string; billing_tier: string | null; trial_ends_at: string | null;
   } | null;
 
   // Gate access: require active subscription or valid trial (admins bypass)
@@ -35,6 +35,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
     <DashboardShell
       orgName={org?.name}
       billingPlan={displayPlan}
+      billingTier={org?.billing_tier}
       trialEndsAt={displayTrialEndsAt}
     >
       {children}

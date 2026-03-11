@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Box, Paper, Typography, TextField, Button, Avatar, IconButton,
 } from '@mui/material';
-import { Star, ExternalLink, MessageCircle, Instagram, Facebook, Gift, Camera, X } from 'lucide-react';
+import { Star, ExternalLink, MessageCircle, Instagram, Facebook, Gift, Camera, X, Copy, Check, Globe } from 'lucide-react';
 
 import type { WallConfig } from '@/lib/types/wall-config';
 import { DEFAULT_WALL_CONFIG } from '@/lib/types/wall-config';
@@ -269,6 +269,7 @@ export function ReviewFormContent({ org, platforms, reviewRequestId, config: cfg
   const [reviewId, setReviewId] = useState<string | null>(null);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [couponCopied, setCouponCopied] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Inject keyframes once
@@ -514,18 +515,35 @@ export function ReviewFormContent({ org, platforms, reviewRequestId, config: cfg
                   {tyConfig.couponText}
                 </Typography>
               </Box>
-              <Typography
-                variant="h6"
-                fontWeight={800}
-                sx={{
-                  letterSpacing: '0.1em',
-                  color: '#B45309',
-                  fontFamily: 'monospace',
-                  fontSize: '1.3rem',
-                }}
-              >
-                {tyConfig.couponCode}
-              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
+                <Typography
+                  variant="h6"
+                  fontWeight={800}
+                  sx={{
+                    letterSpacing: '0.1em',
+                    color: '#B45309',
+                    fontFamily: 'monospace',
+                    fontSize: '1.3rem',
+                  }}
+                >
+                  {tyConfig.couponCode}
+                </Typography>
+                <IconButton
+                  size="small"
+                  onClick={() => {
+                    navigator.clipboard.writeText(tyConfig.couponCode!);
+                    setCouponCopied(true);
+                    setTimeout(() => setCouponCopied(false), 2000);
+                  }}
+                  sx={{
+                    color: couponCopied ? '#16A34A' : '#B45309',
+                    transition: 'color 0.2s ease',
+                    '&:hover': { backgroundColor: 'rgba(180,83,9,0.08)' },
+                  }}
+                >
+                  {couponCopied ? <Check size={16} /> : <Copy size={16} />}
+                </IconButton>
+              </Box>
             </Box>
           )}
 
@@ -534,36 +552,51 @@ export function ReviewFormContent({ org, platforms, reviewRequestId, config: cfg
             <Box sx={{
               animation: 'rf-fade-in 0.5s ease 0.95s both',
               mt: 2.5,
-              display: 'flex',
-              justifyContent: 'center',
-              gap: 1.5,
             }}>
-              {tyConfig.socialLinks.instagram && (
-                <IconButton
-                  href={tyConfig.socialLinks.instagram}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  sx={{
-                    color: '#E4405F',
-                    '&:hover': { backgroundColor: 'rgba(228,64,95,0.08)' },
-                  }}
-                >
-                  <Instagram size={22} />
-                </IconButton>
-              )}
-              {tyConfig.socialLinks.facebook && (
-                <IconButton
-                  href={tyConfig.socialLinks.facebook}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  sx={{
-                    color: '#1877F2',
-                    '&:hover': { backgroundColor: 'rgba(24,119,242,0.08)' },
-                  }}
-                >
-                  <Facebook size={22} />
-                </IconButton>
-              )}
+              <Typography variant="body2" fontWeight={600} color="text.secondary" sx={{ mb: 1 }}>
+                Follow us
+              </Typography>
+              <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1.5 }}>
+                {tyConfig.socialLinks.instagram && (
+                  <IconButton
+                    href={tyConfig.socialLinks.instagram}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    sx={{
+                      color: '#E4405F',
+                      '&:hover': { backgroundColor: 'rgba(228,64,95,0.08)' },
+                    }}
+                  >
+                    <Instagram size={22} />
+                  </IconButton>
+                )}
+                {tyConfig.socialLinks.facebook && (
+                  <IconButton
+                    href={tyConfig.socialLinks.facebook}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    sx={{
+                      color: '#1877F2',
+                      '&:hover': { backgroundColor: 'rgba(24,119,242,0.08)' },
+                    }}
+                  >
+                    <Facebook size={22} />
+                  </IconButton>
+                )}
+                {tyConfig.socialLinks.google && (
+                  <IconButton
+                    href={tyConfig.socialLinks.google}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    sx={{
+                      color: '#4285F4',
+                      '&:hover': { backgroundColor: 'rgba(66,133,244,0.08)' },
+                    }}
+                  >
+                    <Globe size={22} />
+                  </IconButton>
+                )}
+              </Box>
             </Box>
           )}
 
@@ -660,18 +693,35 @@ export function ReviewFormContent({ org, platforms, reviewRequestId, config: cfg
                   {tyConfig.couponText}
                 </Typography>
               </Box>
-              <Typography
-                variant="h6"
-                fontWeight={800}
-                sx={{
-                  letterSpacing: '0.1em',
-                  color: '#B45309',
-                  fontFamily: 'monospace',
-                  fontSize: '1.3rem',
-                }}
-              >
-                {tyConfig.couponCode}
-              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
+                <Typography
+                  variant="h6"
+                  fontWeight={800}
+                  sx={{
+                    letterSpacing: '0.1em',
+                    color: '#B45309',
+                    fontFamily: 'monospace',
+                    fontSize: '1.3rem',
+                  }}
+                >
+                  {tyConfig.couponCode}
+                </Typography>
+                <IconButton
+                  size="small"
+                  onClick={() => {
+                    navigator.clipboard.writeText(tyConfig.couponCode!);
+                    setCouponCopied(true);
+                    setTimeout(() => setCouponCopied(false), 2000);
+                  }}
+                  sx={{
+                    color: couponCopied ? '#16A34A' : '#B45309',
+                    transition: 'color 0.2s ease',
+                    '&:hover': { backgroundColor: 'rgba(180,83,9,0.08)' },
+                  }}
+                >
+                  {couponCopied ? <Check size={16} /> : <Copy size={16} />}
+                </IconButton>
+              </Box>
             </Box>
           )}
 
@@ -696,36 +746,51 @@ export function ReviewFormContent({ org, platforms, reviewRequestId, config: cfg
             <Box sx={{
               animation: 'rf-fade-in 0.5s ease 0.8s both',
               mt: 2.5,
-              display: 'flex',
-              justifyContent: 'center',
-              gap: 1.5,
             }}>
-              {tyConfig.socialLinks.instagram && (
-                <IconButton
-                  href={tyConfig.socialLinks.instagram}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  sx={{
-                    color: '#E4405F',
-                    '&:hover': { backgroundColor: 'rgba(228,64,95,0.08)' },
-                  }}
-                >
-                  <Instagram size={22} />
-                </IconButton>
-              )}
-              {tyConfig.socialLinks.facebook && (
-                <IconButton
-                  href={tyConfig.socialLinks.facebook}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  sx={{
-                    color: '#1877F2',
-                    '&:hover': { backgroundColor: 'rgba(24,119,242,0.08)' },
-                  }}
-                >
-                  <Facebook size={22} />
-                </IconButton>
-              )}
+              <Typography variant="body2" fontWeight={600} color="text.secondary" sx={{ mb: 1 }}>
+                Follow us
+              </Typography>
+              <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1.5 }}>
+                {tyConfig.socialLinks.instagram && (
+                  <IconButton
+                    href={tyConfig.socialLinks.instagram}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    sx={{
+                      color: '#E4405F',
+                      '&:hover': { backgroundColor: 'rgba(228,64,95,0.08)' },
+                    }}
+                  >
+                    <Instagram size={22} />
+                  </IconButton>
+                )}
+                {tyConfig.socialLinks.facebook && (
+                  <IconButton
+                    href={tyConfig.socialLinks.facebook}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    sx={{
+                      color: '#1877F2',
+                      '&:hover': { backgroundColor: 'rgba(24,119,242,0.08)' },
+                    }}
+                  >
+                    <Facebook size={22} />
+                  </IconButton>
+                )}
+                {tyConfig.socialLinks.google && (
+                  <IconButton
+                    href={tyConfig.socialLinks.google}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    sx={{
+                      color: '#4285F4',
+                      '&:hover': { backgroundColor: 'rgba(66,133,244,0.08)' },
+                    }}
+                  >
+                    <Globe size={22} />
+                  </IconButton>
+                )}
+              </Box>
             </Box>
           )}
         </Box>

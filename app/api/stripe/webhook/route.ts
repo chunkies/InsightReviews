@@ -1,4 +1,5 @@
 import { createStripeClient } from '@/lib/stripe/server';
+import { PLANS } from '@/lib/utils/constants';
 import { createServerClient } from '@supabase/ssr';
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
@@ -48,11 +49,23 @@ export async function POST(request: NextRequest) {
       // Check if subscription has a trial — if so, set plan to 'trial' with trial end date
       let billingPlan = 'active';
       let trialEndsAt: string | null = null;
+      let billingTier: string | null = session.metadata?.tier || null;
+
       if (subscriptionId) {
         const subscription = await stripe.subscriptions.retrieve(subscriptionId);
         if (subscription.trial_end) {
           billingPlan = 'trial';
           trialEndsAt = new Date(subscription.trial_end * 1000).toISOString();
+        }
+
+        // Detect billing tier from price ID if not in metadata
+        if (!billingTier) {
+          const priceId = subscription.items.data[0]?.price?.id;
+          if (priceId) {
+            if (priceId === PLANS.STARTER.priceId) billingTier = 'starter';
+            else if (priceId === PLANS.GROWTH.priceId) billingTier = 'growth';
+            else if (priceId === PLANS.AGENCY.priceId) billingTier = 'agency';
+          }
         }
       }
 
@@ -60,6 +73,7 @@ export async function POST(request: NextRequest) {
         .from('organizations')
         .update({
           billing_plan: billingPlan,
+          billing_tier: billingTier,
           stripe_subscription_id: subscriptionId,
           trial_ends_at: trialEndsAt,
         })

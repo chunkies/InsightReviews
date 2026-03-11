@@ -10,9 +10,10 @@ interface BillingActionsProps {
   orgId: string;
   hasSubscription: boolean;
   billingPlan: string;
+  tier?: string;
 }
 
-export function BillingActions({ orgId, hasSubscription, billingPlan }: BillingActionsProps) {
+export function BillingActions({ orgId, hasSubscription, billingPlan, tier = 'starter' }: BillingActionsProps) {
   const [loading, setLoading] = useState(false);
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const { showSnackbar } = useSnackbar();
@@ -23,7 +24,7 @@ export function BillingActions({ orgId, hasSubscription, billingPlan }: BillingA
       const res = await fetch('/api/stripe/create-checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ organizationId: orgId }),
+        body: JSON.stringify({ organizationId: orgId, tier }),
       });
       const data = await res.json();
       if (!res.ok) {

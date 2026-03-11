@@ -66,7 +66,7 @@ const steps = [
 const faqs = [
   {
     q: 'How does the 14-day free trial work?',
-    a: 'Sign up with just your email - no credit card needed. You get full access to every feature for 14 days. If you love it (and you will), add a payment method to continue. If not, your account simply pauses.',
+    a: 'Sign up and get full access to every feature for 14 days. Set up your review platforms, send your first requests, and see the results. After 14 days, your subscription begins automatically.',
   },
   {
     q: 'Will this work for my type of business?',
@@ -303,13 +303,13 @@ export default function LandingPage() {
               </Box>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.5, sm: 1 }, opacity: 0.6, flexWrap: 'wrap' }}>
                 <CheckCircle2 size={14} />
-                <Typography variant="body2" fontSize={{ xs: '0.75rem', sm: '0.875rem' }}>No credit card</Typography>
+                <Typography variant="body2" fontSize={{ xs: '0.75rem', sm: '0.875rem' }}>14-day free trial</Typography>
                 <Box sx={{ mx: 0.5 }}>|</Box>
                 <CheckCircle2 size={14} />
                 <Typography variant="body2" fontSize={{ xs: '0.75rem', sm: '0.875rem' }}>Setup in 2 min</Typography>
                 <Box sx={{ mx: 0.5 }}>|</Box>
                 <CheckCircle2 size={14} />
-                <Typography variant="body2" fontSize={{ xs: '0.75rem', sm: '0.875rem' }}>Cancel anytime</Typography>
+                <Typography variant="body2" fontSize={{ xs: '0.75rem', sm: '0.875rem' }}>Works with Google, Yelp & more</Typography>
               </Box>
             </Grid>
 
@@ -923,10 +923,10 @@ export default function LandingPage() {
             Plans That Grow With You
           </Typography>
           <Typography variant="body1" color="text.secondary" sx={{ mb: 1 }}>
-            Start with a 14-day free trial on any plan. No credit card required.
+            Simple pricing for local businesses. Start with a 14-day free trial.
           </Typography>
           <Chip
-            label="14 days free on all plans"
+            label="14-day free trial included"
             size="small"
             sx={{
               mb: 5,
@@ -937,243 +937,74 @@ export default function LandingPage() {
             }}
           />
 
-          <Grid container spacing={3} justifyContent="center" alignItems="stretch">
-            {/* Starter Tier */}
-            <Grid size={{ xs: 12, md: 4 }}>
-              <Card
+          <Box sx={{ maxWidth: 420, mx: 'auto' }}>
+            <Card
+              sx={{
+                p: { xs: 3, md: 4 },
+                display: 'flex',
+                flexDirection: 'column',
+                border: '2px solid',
+                borderColor: 'primary.main',
+                borderRadius: 3,
+                boxShadow: '0 12px 40px rgba(37,99,235,0.15)',
+                position: 'relative',
+                overflow: 'visible',
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', mb: 0.5 }}>
+                <Typography variant="h2" fontWeight={900} color="primary" sx={{ fontSize: { xs: '2.5rem', md: '3rem' } }}>
+                  $79
+                </Typography>
+                <Typography variant="h6" color="text.secondary" sx={{ ml: 1 }}>
+                  /mo
+                </Typography>
+              </Box>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                per location
+              </Typography>
+
+              <Box sx={{ textAlign: 'left', mb: 3 }}>
+                {[
+                  'Smart review routing to Google, Yelp & more',
+                  'QR code + SMS review collection',
+                  'Real-time dashboard & analytics',
+                  'Auto-sync with review platforms',
+                  'Public testimonial wall',
+                  'Private negative feedback capture',
+                  'Staff accounts & team management',
+                  'Email & SMS notifications',
+                  'Custom branding',
+                ].map((item) => (
+                  <Box key={item} sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 0.6 }}>
+                    <CheckCircle2 size={16} color="#16a34a" />
+                    <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                      {item}
+                    </Typography>
+                  </Box>
+                ))}
+              </Box>
+
+              <Button
+                href="/auth/login"
+                variant="contained"
+                size="large"
+                fullWidth
+                endIcon={<ArrowRight size={18} />}
                 sx={{
-                  p: { xs: 3, md: 4 },
-                  height: '100%',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  border: '1px solid',
-                  borderColor: 'divider',
-                  borderRadius: 3,
-                  position: 'relative',
+                  py: 1.5,
+                  fontSize: '1rem',
+                  fontWeight: 700,
+                  background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
+                  boxShadow: '0 4px 14px rgba(37,99,235,0.3)',
+                  '&:hover': {
+                    boxShadow: '0 6px 20px rgba(37,99,235,0.4)',
+                  },
                 }}
               >
-                <Typography variant="overline" sx={{ color: 'text.secondary', letterSpacing: 1.5, fontWeight: 700 }}>
-                  Starter
-                </Typography>
-                <Box sx={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', mb: 0.5 }}>
-                  <Typography variant="h2" fontWeight={900} sx={{ fontSize: { xs: '2.5rem', md: '3rem' } }}>
-                    $79
-                  </Typography>
-                  <Typography variant="h6" color="text.secondary" sx={{ ml: 1 }}>
-                    /mo
-                  </Typography>
-                </Box>
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-                  Perfect for a single location
-                </Typography>
-
-                <Box sx={{ textAlign: 'left', mb: 3, flex: 1 }}>
-                  {[
-                    '1 location',
-                    '200 SMS / month',
-                    '3 staff accounts',
-                    'Smart routing to Google, Yelp & more',
-                    'Real-time dashboard & analytics',
-                    'Public testimonial wall',
-                    'Private negative feedback capture',
-                    'QR code review collection',
-                    'Email notifications',
-                  ].map((item) => (
-                    <Box key={item} sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 0.6 }}>
-                      <CheckCircle2 size={16} color="#16a34a" />
-                      <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                        {item}
-                      </Typography>
-                    </Box>
-                  ))}
-                </Box>
-
-                <Button
-                  href="/subscribe?tier=starter"
-                  variant="outlined"
-                  size="large"
-                  fullWidth
-                  endIcon={<ArrowRight size={18} />}
-                  sx={{
-                    py: 1.5,
-                    fontSize: '1rem',
-                    fontWeight: 700,
-                    borderWidth: 2,
-                    '&:hover': { borderWidth: 2 },
-                  }}
-                >
-                  Start Free Trial
-                </Button>
-              </Card>
-            </Grid>
-
-            {/* Growth Tier (Most Popular) */}
-            <Grid size={{ xs: 12, md: 4 }}>
-              <Card
-                sx={{
-                  p: { xs: 3, md: 4 },
-                  height: '100%',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  border: '2px solid',
-                  borderColor: 'primary.main',
-                  borderRadius: 3,
-                  boxShadow: '0 12px 40px rgba(37,99,235,0.15)',
-                  position: 'relative',
-                  overflow: 'visible',
-                  transform: { md: 'scale(1.04)' },
-                  zIndex: 1,
-                }}
-              >
-                <Chip
-                  label="Most Popular"
-                  sx={{
-                    position: 'absolute',
-                    top: -14,
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                    background: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)',
-                    color: 'white',
-                    fontWeight: 700,
-                    fontSize: '0.8rem',
-                  }}
-                />
-                <Typography variant="overline" sx={{ color: '#2563eb', letterSpacing: 1.5, fontWeight: 700 }}>
-                  Growth
-                </Typography>
-                <Box sx={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', mb: 0.5 }}>
-                  <Typography variant="h2" fontWeight={900} color="primary" sx={{ fontSize: { xs: '2.5rem', md: '3rem' } }}>
-                    $149
-                  </Typography>
-                  <Typography variant="h6" color="text.secondary" sx={{ ml: 1 }}>
-                    /mo
-                  </Typography>
-                </Box>
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-                  For growing multi-location businesses
-                </Typography>
-
-                <Box sx={{ textAlign: 'left', mb: 3, flex: 1 }}>
-                  {[
-                    'Up to 3 locations',
-                    '1,000 SMS / month',
-                    '10 staff accounts',
-                    'Everything in Starter, plus:',
-                    'Auto-sync with review platforms',
-                    'Custom branded themes',
-                    'Webhook integrations',
-                    'Priority email support',
-                  ].map((item, i) => (
-                    <Box key={item} sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 0.6 }}>
-                      <CheckCircle2 size={16} color={i === 3 ? '#2563eb' : '#16a34a'} />
-                      <Typography variant="body2" sx={{ fontWeight: i === 3 ? 700 : 500, color: i === 3 ? '#2563eb' : undefined }}>
-                        {item}
-                      </Typography>
-                    </Box>
-                  ))}
-                </Box>
-
-                <Button
-                  href="/subscribe?tier=growth"
-                  variant="contained"
-                  size="large"
-                  fullWidth
-                  endIcon={<ArrowRight size={18} />}
-                  sx={{
-                    py: 1.5,
-                    fontSize: '1rem',
-                    fontWeight: 700,
-                    background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
-                    boxShadow: '0 4px 14px rgba(37,99,235,0.3)',
-                    '&:hover': {
-                      boxShadow: '0 6px 20px rgba(37,99,235,0.4)',
-                    },
-                  }}
-                >
-                  Start Free Trial
-                </Button>
-              </Card>
-            </Grid>
-
-            {/* Agency Tier */}
-            <Grid size={{ xs: 12, md: 4 }}>
-              <Card
-                sx={{
-                  p: { xs: 3, md: 4 },
-                  height: '100%',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  border: '1px solid',
-                  borderColor: 'divider',
-                  borderRadius: 3,
-                  position: 'relative',
-                  background: 'linear-gradient(180deg, #fafbff 0%, #f0f4ff 100%)',
-                }}
-              >
-                <Typography variant="overline" sx={{ color: '#7c3aed', letterSpacing: 1.5, fontWeight: 700 }}>
-                  Agency
-                </Typography>
-                <Box sx={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', mb: 0.5 }}>
-                  <Typography variant="h2" fontWeight={900} sx={{ fontSize: { xs: '2.5rem', md: '3rem' }, color: '#7c3aed' }}>
-                    $249
-                  </Typography>
-                  <Typography variant="h6" color="text.secondary" sx={{ ml: 1 }}>
-                    /mo
-                  </Typography>
-                </Box>
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-                  5+ locations ($49/extra)
-                </Typography>
-
-                <Box sx={{ textAlign: 'left', mb: 3, flex: 1 }}>
-                  {[
-                    '5 locations included',
-                    'Unlimited SMS',
-                    'Unlimited staff accounts',
-                    'Everything in Growth, plus:',
-                    'White-label branding',
-                    'Priority phone & email support',
-                    'Dedicated account manager',
-                    'Custom integrations',
-                  ].map((item, i) => (
-                    <Box key={item} sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 0.6 }}>
-                      <CheckCircle2 size={16} color={i === 3 ? '#7c3aed' : '#16a34a'} />
-                      <Typography variant="body2" sx={{ fontWeight: i === 3 ? 700 : 500, color: i === 3 ? '#7c3aed' : undefined }}>
-                        {item}
-                      </Typography>
-                    </Box>
-                  ))}
-                </Box>
-
-                <Button
-                  href="/subscribe?tier=agency"
-                  variant="outlined"
-                  size="large"
-                  fullWidth
-                  endIcon={<ArrowRight size={18} />}
-                  sx={{
-                    py: 1.5,
-                    fontSize: '1rem',
-                    fontWeight: 700,
-                    borderWidth: 2,
-                    borderColor: '#7c3aed',
-                    color: '#7c3aed',
-                    '&:hover': {
-                      borderWidth: 2,
-                      borderColor: '#6d28d9',
-                      backgroundColor: 'rgba(124, 58, 237, 0.04)',
-                    },
-                  }}
-                >
-                  Start Free Trial
-                </Button>
-              </Card>
-            </Grid>
-          </Grid>
-
-          <Typography variant="caption" color="text.secondary" sx={{ mt: 3, display: 'block' }}>
-            No credit card required. Cancel anytime with one click.
-          </Typography>
+                Start Free Trial
+              </Button>
+            </Card>
+          </Box>
         </Container>
       </Box>
 
@@ -1287,7 +1118,7 @@ export default function LandingPage() {
             Start Free 14-Day Trial
           </Button>
           <Typography variant="body2" sx={{ mt: 2, opacity: 0.6 }}>
-            No credit card required. Setup takes 2 minutes.
+            Setup takes 2 minutes. 14-day free trial included.
           </Typography>
         </Container>
       </Box>

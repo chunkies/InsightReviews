@@ -145,13 +145,13 @@ export default function LandingPage() {
                 width: 32,
                 height: 32,
                 borderRadius: '8px',
-                background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
+                background: 'linear-gradient(135deg, #1565c0 0%, #7c3aed 100%)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
               }}
             >
-              <Star size={18} color="#fbbf24" fill="#fbbf24" />
+              <Star size={18} color="#fff" fill="#fff" />
             </Box>
             <Typography variant="h6" fontWeight={800} color="primary">
               InsightReviews
@@ -1163,6 +1163,57 @@ export default function LandingPage() {
             <Typography variant="body2" color="text.secondary">
               &copy; {new Date().getFullYear()} InsightReviews. All rights reserved.
             </Typography>
+          </Box>
+          <Box
+            sx={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              justifyContent: 'center',
+              alignItems: 'center',
+              gap: { xs: 1, md: 1.5 },
+              mt: 3,
+              pt: 3,
+              borderTop: '1px solid',
+              borderColor: 'divider',
+            }}
+          >
+            <Typography variant="caption" color="text.disabled" sx={{ mr: 0.5 }}>
+              Featured on
+            </Typography>
+            {[
+              { name: 'Startup Fame', url: 'https://startupfame.com' },
+              { name: 'Fazier', url: 'https://fazier.com' },
+              { name: 'Findly.tools', url: 'https://findly.tools' },
+              { name: 'NewTool.site', url: 'https://newtool.site' },
+              { name: 'Turbo0', url: 'https://turbo0.com' },
+              { name: 'Dofollow.Tools', url: 'https://dofollow.tools' },
+              { name: 'Twelve Tools', url: 'https://twelvetools.com' },
+              { name: 'Wired Business', url: 'https://wiredbusiness.com' },
+              { name: 'FrogDR', url: 'https://frogdr.com' },
+              { name: 'Stack Directory', url: 'https://stackdirectory.com' },
+              { name: 'Startup Fast', url: 'https://startupfa.st' },
+              { name: 'LaunchVoid', url: 'https://launchvoid.com' },
+            ].map((dir) => (
+              <Typography
+                key={dir.name}
+                component="a"
+                href={dir.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                variant="caption"
+                sx={{
+                  color: 'text.disabled',
+                  textDecoration: 'none',
+                  '&:hover': {
+                    color: 'text.secondary',
+                    textDecoration: 'underline',
+                  },
+                  transition: 'color 0.2s',
+                }}
+              >
+                {dir.name}
+              </Typography>
+            ))}
           </Box>
         </Container>
       </Box>

@@ -15,20 +15,11 @@ export const RATING_COLORS: Record<number, string> = {
 };
 
 export const PLAN = {
-  name: 'InsightReviews Pro',
+  name: 'InsightReviews',
   price: 79,
   priceId: process.env.STRIPE_PRICE_ID || '',
   trialDays: 14,
   currency: 'aud',
-} as const;
-
-// Legacy aliases — referenced in webhook
-export const PLANS = {
-  STARTER: { priceId: process.env.STRIPE_PRICE_ID || '' },
-  GROWTH: { priceId: process.env.STRIPE_PRICE_ID_GROWTH || '' },
-  AGENCY: { priceId: process.env.STRIPE_PRICE_ID_AGENCY || '' },
-  TRIAL_DAYS: 14,
-  CURRENCY: 'aud',
 } as const;
 
 export const PLATFORM_CONFIG: Record<string, {

@@ -21,7 +21,6 @@ export interface Organization {
   stripe_customer_id: string | null;
   stripe_subscription_id: string | null;
   billing_plan: 'trial' | 'active' | 'cancelled' | 'past_due';
-  billing_tier?: 'starter' | 'growth' | 'agency' | null;
   trial_ends_at: string | null;
   webhook_url: string | null;
   webhook_enabled: boolean;

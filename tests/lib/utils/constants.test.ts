@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { RATING_LABELS, RATING_COLORS, BILLING_PLANS, SMS_MAX_LENGTH, SLUG_REGEX } from '@/lib/utils/constants';
+import { RATING_LABELS, RATING_COLORS, PLAN, SMS_MAX_LENGTH, SLUG_REGEX } from '@/lib/utils/constants';
 
 describe('RATING_LABELS', () => {
   it('has labels for all 5 ratings', () => {
@@ -18,11 +18,11 @@ describe('RATING_COLORS', () => {
   });
 });
 
-describe('BILLING_PLANS', () => {
+describe('PLAN', () => {
   it('has correct pricing', () => {
-    expect(BILLING_PLANS.MONTHLY_PRICE).toBe(29);
-    expect(BILLING_PLANS.TRIAL_DAYS).toBe(14);
-    expect(BILLING_PLANS.CURRENCY).toBe('usd');
+    expect(PLAN.price).toBe(79);
+    expect(PLAN.trialDays).toBe(14);
+    expect(PLAN.currency).toBe('aud');
   });
 });
 

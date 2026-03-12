@@ -1193,6 +1193,7 @@ export default function LandingPage() {
               { name: 'Stack Directory', url: 'https://stackdirectory.com' },
               { name: 'Startup Fast', url: 'https://startupfa.st' },
               { name: 'LaunchVoid', url: 'https://launchvoid.com' },
+              { name: 'SaaSBison', url: 'https://saasbison.com' },
             ].map((dir) => (
               <Typography
                 key={dir.name}

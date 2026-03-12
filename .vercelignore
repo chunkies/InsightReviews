@@ -1,0 +1,30 @@
+# Documentation and marketing (don't trigger rebuilds)
+marketing/
+*.md
+!README.md
+
+# Test files
+tests/
+__tests__/
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx
+vitest.config.ts
+
+# IDE and config
+.vscode/
+.idea/
+.claude/
+
+# Git
+.git/
+.gitignore
+
+# CI
+.github/
+
+# Snapshots and temp files
+*.snap
+tmp-*
+fazier-snapshot.md

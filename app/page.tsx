@@ -1192,6 +1192,7 @@ export default function LandingPage() {
               { name: 'Startup Fast', url: 'https://startupfa.st' },
               { name: 'LaunchVoid', url: 'https://launchvoid.com' },
               { name: 'SaaSBison', url: 'https://saasbison.com' },
+              { name: 'Startup Vessel', url: 'https://startupvessel.com' },
             ].map((dir) => (
               <Typography
                 key={dir.name}

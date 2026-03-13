@@ -1193,6 +1193,8 @@ export default function LandingPage() {
               { name: 'LaunchVoid', url: 'https://launchvoid.com' },
               { name: 'SaaSBison', url: 'https://saasbison.com' },
               { name: 'Startup Vessel', url: 'https://startupvessel.com' },
+              { name: 'ToolPilot.ai', url: 'https://www.toolpilot.ai' },
+              { name: 'Web Review', url: 'https://web-review.com' },
             ].map((dir) => (
               <Typography
                 key={dir.name}

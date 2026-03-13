@@ -1182,13 +1182,11 @@ export default function LandingPage() {
             </Typography>
             {[
               { name: 'Startup Fame', url: 'https://startupfa.me/s/insightreviews?utm_source=insightreviews.com.au' },
-              { name: 'Fazier', url: 'https://fazier.com' },
+              { name: 'Fazier', url: 'https://fazier.com/launches/insightreviews' },
               { name: 'Findly.tools', url: 'https://findly.tools' },
               { name: 'NewTool.site', url: 'https://newtool.site' },
-              { name: 'Turbo0', url: 'https://turbo0.com' },
+              { name: 'Turbo0', url: 'https://turbo0.com/item/insightreviews' },
               { name: 'Dofollow.Tools', url: 'https://dofollow.tools' },
-              { name: 'Twelve Tools', url: 'https://twelvetools.com' },
-              { name: 'Wired Business', url: 'https://wiredbusiness.com' },
               { name: 'FrogDR', url: 'https://frogdr.com' },
               { name: 'Stack Directory', url: 'https://stackdirectory.com' },
               { name: 'Startup Fast', url: 'https://startupfa.st' },

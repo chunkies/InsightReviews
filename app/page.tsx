@@ -1195,6 +1195,9 @@ export default function LandingPage() {
               { name: 'Startup Vessel', url: 'https://startupvessel.com' },
               { name: 'ToolPilot.ai', url: 'https://www.toolpilot.ai' },
               { name: 'Web Review', url: 'https://web-review.com' },
+              { name: 'Twelve Tools', url: 'https://twelve.tools' },
+              { name: 'Wired Business', url: 'https://wired.business' },
+              { name: 'DeepLaunch', url: 'https://deeplaunch.io' },
             ].map((dir) => (
               <Typography
                 key={dir.name}

@@ -1181,7 +1181,7 @@ export default function LandingPage() {
               Featured on
             </Typography>
             {[
-              { name: 'Startup Fame', url: 'https://startupfame.com' },
+              { name: 'Startup Fame', url: 'https://startupfa.me/s/insightreviews?utm_source=insightreviews.com.au' },
               { name: 'Fazier', url: 'https://fazier.com' },
               { name: 'Findly.tools', url: 'https://findly.tools' },
               { name: 'NewTool.site', url: 'https://newtool.site' },

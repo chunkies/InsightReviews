@@ -3,14 +3,11 @@ import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { PageHeader } from '@/components/shared/page-header';
 import { TestimonialManager } from '@/components/testimonials/testimonial-manager';
-import { WallCustomizer } from '@/components/testimonials/wall-customizer';
-import { ReviewExperienceForm } from '@/components/testimonials/review-experience-form';
 import { mergeWallConfig } from '@/lib/types/wall-config';
 import { TestimonialPageTabs } from '@/components/testimonials/testimonial-page-tabs';
 import type { Platform } from '@/components/testimonials/testimonial-page-tabs';
 import type { Organization, OrganizationIntegration, ReviewPlatform } from '@/lib/types/database';
 import type { ThankYouConfig } from '@/components/review-form/review-form-content';
-import type { WallConfig } from '@/lib/types/wall-config';
 
 export default async function TestimonialsPage() {
   const supabase = await createClient();
@@ -117,6 +114,13 @@ export default async function TestimonialsPage() {
         logoUrl={org.logo_url}
         initialPlatforms={initialPlatforms}
         reviews={wallReviews}
+        orgId={org.id}
+        wallUrl={wallUrl}
+        reviewUrl={reviewUrl}
+        org={org as unknown as Organization}
+        isOwner={member.role === 'owner'}
+        integrations={integrations}
+        manualPlatforms={manualPlatforms}
         managerContent={
           <TestimonialManager
             reviews={reviews}
@@ -126,25 +130,6 @@ export default async function TestimonialsPage() {
             siteUrl={siteUrl}
           />
         }
-        customizerContent={(onConfigChange: (config: WallConfig) => void) => (
-          <WallCustomizer
-            orgId={org.id}
-            initialConfig={wallConfig}
-            wallUrl={wallUrl}
-            reviewUrl={reviewUrl}
-            onConfigChange={onConfigChange}
-          />
-        )}
-        reviewExperienceContent={(onThankYouConfigChange: (config: ThankYouConfig) => void, onPlatformsChange: (platforms: Platform[]) => void) => (
-          <ReviewExperienceForm
-            org={org as unknown as Organization}
-            isOwner={member.role === 'owner'}
-            integrations={integrations}
-            manualPlatforms={manualPlatforms}
-            onThankYouConfigChange={onThankYouConfigChange}
-            onPlatformsChange={onPlatformsChange}
-          />
-        )}
       />
     </Box>
   );

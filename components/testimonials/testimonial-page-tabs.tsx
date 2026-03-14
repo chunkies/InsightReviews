@@ -4,13 +4,24 @@ import { useState, useCallback, type ReactNode } from 'react';
 import { Box, Tabs, Tab } from '@mui/material';
 import { Settings2, LayoutGrid, Star } from 'lucide-react';
 import { LivePreview } from '@/components/testimonials/live-preview';
+import { WallCustomizer } from '@/components/testimonials/wall-customizer';
+import { ReviewExperienceForm } from '@/components/testimonials/review-experience-form';
 import type { ThankYouConfig } from '@/components/review-form/review-form-content';
 import type { WallConfig } from '@/lib/types/wall-config';
+import type { Organization, OrganizationIntegration, ReviewPlatform } from '@/lib/types/database';
+
+export interface Platform {
+  id: string;
+  platform: string;
+  platform_name: string | null;
+  url: string;
+  display_order: number;
+  enabled: boolean;
+  source: 'manual' | 'integration';
+}
 
 interface TestimonialPageTabsProps {
   managerContent: ReactNode;
-  customizerContent: (onConfigChange: (config: WallConfig) => void) => ReactNode;
-  reviewExperienceContent: (onThankYouConfigChange: (config: ThankYouConfig) => void, onPlatformsChange: (platforms: Platform[]) => void) => ReactNode;
   initialConfig: WallConfig;
   initialThankYouConfig: ThankYouConfig;
   orgName: string;
@@ -23,28 +34,32 @@ interface TestimonialPageTabsProps {
     customer_name: string | null;
     created_at: string;
   }>;
-}
-
-export interface Platform {
-  id: string;
-  platform: string;
-  platform_name: string | null;
-  url: string;
-  display_order: number;
-  enabled: boolean;
-  source: 'manual' | 'integration';
+  // WallCustomizer props
+  orgId: string;
+  wallUrl: string;
+  reviewUrl: string;
+  // ReviewExperienceForm props
+  org: Organization;
+  isOwner: boolean;
+  integrations: OrganizationIntegration[];
+  manualPlatforms: ReviewPlatform[];
 }
 
 export function TestimonialPageTabs({
   managerContent,
-  customizerContent,
-  reviewExperienceContent,
   initialConfig,
   initialThankYouConfig,
   orgName,
   logoUrl,
   initialPlatforms,
   reviews,
+  orgId,
+  wallUrl,
+  reviewUrl,
+  org,
+  isOwner,
+  integrations,
+  manualPlatforms,
 }: TestimonialPageTabsProps) {
   const [tab, setTab] = useState(0);
   const [config, setConfig] = useState<WallConfig>(initialConfig);
@@ -131,10 +146,23 @@ export function TestimonialPageTabs({
           {/* Left column: tab content (scrollable) */}
           <Box sx={{ flex: 1, minWidth: 0 }}>
             <Box sx={{ display: tab === 0 ? 'block' : 'none' }}>
-              {customizerContent(handleConfigChange)}
+              <WallCustomizer
+                orgId={orgId}
+                initialConfig={initialConfig}
+                wallUrl={wallUrl}
+                reviewUrl={reviewUrl}
+                onConfigChange={handleConfigChange}
+              />
             </Box>
             <Box sx={{ display: tab === 1 ? 'block' : 'none' }}>
-              {reviewExperienceContent(handleThankYouConfigChange, handlePlatformsChange)}
+              <ReviewExperienceForm
+                org={org}
+                isOwner={isOwner}
+                integrations={integrations}
+                manualPlatforms={manualPlatforms}
+                onThankYouConfigChange={handleThankYouConfigChange}
+                onPlatformsChange={handlePlatformsChange}
+              />
             </Box>
           </Box>
 

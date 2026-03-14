@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
+import { createStripeClient } from '@/lib/stripe/server';
 
 export async function POST(request: NextRequest) {
   const cookieStore = await cookies();
@@ -61,16 +62,23 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'You already have an organization' }, { status: 409 });
   }
 
-  // Create organization with 14-day free trial starting immediately — no card required
-  const trialEndsAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString();
+  // Create Stripe customer first
+  const stripe = createStripeClient();
+  const customer = await stripe.customers.create({
+    email: user.email,
+    metadata: { orgName: businessName },
+  });
+
+  // Create organization with billing_plan='pending' — Stripe Checkout will activate the trial
   const { data: org, error: orgError } = await supabase
     .from('organizations')
     .insert({
       name: businessName,
       slug,
       phone: phone || null,
-      billing_plan: 'trial',
-      trial_ends_at: trialEndsAt,
+      billing_plan: 'pending',
+      trial_ends_at: null,
+      stripe_customer_id: customer.id,
     })
     .select('id')
     .single();
@@ -81,6 +89,11 @@ export async function POST(request: NextRequest) {
     }
     return NextResponse.json({ error: orgError.message }, { status: 500 });
   }
+
+  // Update Stripe customer metadata with org ID now that we have it
+  await stripe.customers.update(customer.id, {
+    metadata: { organizationId: org.id, orgName: businessName },
+  });
 
   // Add user as owner
   const { error: memberError } = await supabase.from('organization_members').insert({

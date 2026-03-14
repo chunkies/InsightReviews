@@ -47,16 +47,16 @@ export default async function SubscribePage({ searchParams }: PageProps) {
   if (!org) redirect('/onboarding');
 
   // If they have a valid trial or active sub, send them to dashboard
-  const hasActiveTrial = org.billing_plan === 'trial' && org.trial_ends_at && new Date(org.trial_ends_at) > new Date();
-  const hasActiveSub = ['active'].includes(org.billing_plan ?? '') && org.stripe_subscription_id;
+  const trialStillActive = org.trial_ends_at && new Date(org.trial_ends_at) > new Date();
+  const hasActiveTrial = (org.billing_plan === 'trial' || org.billing_plan === 'cancelling') && trialStillActive;
+  const hasActiveSub = org.billing_plan === 'active' && org.stripe_subscription_id;
   if (hasActiveTrial || hasActiveSub) {
     redirect('/dashboard');
   }
 
-  const isTrialExpired = org.billing_plan === 'trial' && org.trial_ends_at && new Date(org.trial_ends_at) < new Date();
-  const isCancelled = org.billing_plan === 'cancelled';
   const isPending = org.billing_plan === 'pending';
-  const isReturning = isTrialExpired || isCancelled || isPending;
+  // Anyone who's had a trial or subscription before is a returning user — no new trial
+  const isReturning = !isPending && org.billing_plan !== 'trial';
 
   return (
     <Box
@@ -105,19 +105,18 @@ export default async function SubscribePage({ searchParams }: PageProps) {
 
           <SubscribeButton orgId={org.id} isReturning={isReturning} />
 
-          {isCancelled && (
+          {isReturning && (
             <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-              Your subscription was cancelled. Subscribe again to regain access.
-            </Typography>
-          )}
-          {isTrialExpired && (
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-              Your free trial has expired. Subscribe to continue using InsightReviews.
+              {org.billing_plan === 'cancelled'
+                ? 'Your subscription was cancelled. Subscribe again to regain access.'
+                : org.billing_plan === 'past_due'
+                  ? 'Your last payment failed. Update your payment method to continue.'
+                  : 'Your free trial has ended. Subscribe to continue using InsightReviews.'}
             </Typography>
           )}
           {isPending && (
             <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-              Subscribe to activate your account and start using InsightReviews.
+              Complete your setup by adding a payment method. 14-day free trial — no charge today.
             </Typography>
           )}
         </Paper>

@@ -69,13 +69,15 @@ export function DashboardStats({ stats, recentReviews, chartData, funnelData }: 
     <Box>
       {showChecklist && (
         <Card
-          sx={{
+          sx={(theme) => ({
             mb: 3,
-            background: 'linear-gradient(135deg, #f0f9ff 0%, #f5f3ff 50%, #fdf2f8 100%)',
+            background: theme.palette.mode === 'dark'
+              ? 'linear-gradient(135deg, rgba(37,99,235,0.08) 0%, rgba(124,58,237,0.08) 50%, rgba(219,39,119,0.08) 100%)'
+              : 'linear-gradient(135deg, #f0f9ff 0%, #f5f3ff 50%, #fdf2f8 100%)',
             border: '1px solid',
             borderColor: 'divider',
             overflow: 'hidden',
-          }}
+          })}
         >
           <CardContent sx={{ p: 3 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
@@ -93,24 +95,28 @@ export function DashboardStats({ stats, recentReviews, chartData, funnelData }: 
                   key={item.label}
                   component="a"
                   href={item.href}
-                  sx={{
+                  sx={(theme) => ({
                     display: 'flex',
                     alignItems: 'center',
                     gap: 1.5,
                     px: 2,
                     py: 1.5,
                     borderRadius: 2,
-                    backgroundColor: item.done ? 'rgba(22, 163, 74, 0.06)' : 'rgba(255,255,255,0.7)',
+                    backgroundColor: item.done
+                      ? 'rgba(22, 163, 74, 0.06)'
+                      : theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.7)',
                     border: '1px solid',
                     borderColor: item.done ? 'rgba(22, 163, 74, 0.2)' : 'transparent',
                     textDecoration: 'none',
                     color: 'inherit',
                     transition: 'all 0.15s ease',
                     '&:hover': {
-                      backgroundColor: item.done ? 'rgba(22, 163, 74, 0.1)' : 'rgba(255,255,255,0.95)',
-                      boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+                      backgroundColor: item.done
+                        ? 'rgba(22, 163, 74, 0.1)'
+                        : theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.95)',
+                      boxShadow: theme.palette.mode === 'dark' ? '0 2px 8px rgba(0,0,0,0.3)' : '0 2px 8px rgba(0,0,0,0.06)',
                     },
-                  }}
+                  })}
                 >
                   {item.done ? (
                     <CheckCircle2 size={18} color="#16a34a" />

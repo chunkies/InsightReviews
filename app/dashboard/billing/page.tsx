@@ -45,7 +45,12 @@ export default async function BillingPage() {
 
   if (!org) redirect('/onboarding');
 
-  // Sync billing state with Stripe if customer exists
+  // All billing data comes from Stripe — DB is synced as self-healing mechanism
+  let stripeTrialEnd: Date | null = null;
+  let stripeNextBillingDate: Date | null = null;
+  let cardBrand: string | null = null;
+  let cardLast4: string | null = null;
+
   if (org.stripe_customer_id) {
     try {
       const stripe = createStripeClient();
@@ -57,39 +62,54 @@ export default async function BillingPage() {
       const stripeSub = subscriptions.data[0];
 
       if (stripeSub) {
-        // Map Stripe status to our billing_plan
+        // Extract Stripe data for display
+        if (stripeSub.trial_end) {
+          stripeTrialEnd = new Date(stripeSub.trial_end * 1000);
+        }
+
+        // Next billing date: trial_end for trialing, or from subscription items for active
+        if (stripeSub.status === 'trialing' && stripeSub.trial_end) {
+          stripeNextBillingDate = new Date(stripeSub.trial_end * 1000);
+        } else if (stripeSub.status === 'active' && !stripeSub.cancel_at_period_end) {
+          const firstItem = stripeSub.items?.data?.[0];
+          if (firstItem?.current_period_end) {
+            stripeNextBillingDate = new Date(firstItem.current_period_end * 1000);
+          }
+        }
+
+        // Sync DB state from Stripe
         let correctPlan = org.billing_plan;
         let correctSubEnd: string | null = org.subscription_ends_at;
+        let correctTrialEnd: string | null = org.trial_ends_at;
 
         if (stripeSub.status === 'active' && !stripeSub.cancel_at_period_end) {
           correctPlan = 'active';
           correctSubEnd = null;
+          correctTrialEnd = null;
         } else if (stripeSub.status === 'active' && stripeSub.cancel_at_period_end) {
           correctPlan = 'cancelling';
           correctSubEnd = stripeSub.cancel_at
             ? new Date(stripeSub.cancel_at * 1000).toISOString()
             : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
         } else if (stripeSub.status === 'trialing') {
-          correctPlan = 'trial';
+          correctPlan = stripeSub.cancel_at_period_end ? 'cancelling' : 'trial';
+          correctTrialEnd = stripeSub.trial_end
+            ? new Date(stripeSub.trial_end * 1000).toISOString()
+            : org.trial_ends_at;
         } else if (stripeSub.status === 'past_due') {
           correctPlan = 'past_due';
         } else if (stripeSub.status === 'canceled') {
-          // Don't override 'cancelling' if trial is still active
-          const trialStillActive = org.trial_ends_at && new Date(org.trial_ends_at) > new Date();
-          if (org.billing_plan === 'cancelling' && trialStillActive) {
-            correctPlan = 'cancelling';
-          } else {
-            correctPlan = 'cancelled';
-          }
+          correctPlan = 'cancelled';
         }
 
         // Update DB if out of sync
-        if (correctPlan !== org.billing_plan || correctSubEnd !== org.subscription_ends_at) {
+        if (correctPlan !== org.billing_plan || correctSubEnd !== org.subscription_ends_at || correctTrialEnd !== org.trial_ends_at) {
           await supabase
             .from('organizations')
             .update({
               billing_plan: correctPlan,
               subscription_ends_at: correctSubEnd,
+              trial_ends_at: correctTrialEnd,
               stripe_subscription_id: stripeSub.id,
             })
             .eq('id', org.id);
@@ -97,10 +117,10 @@ export default async function BillingPage() {
           org.billing_plan = correctPlan;
           org.subscription_ends_at = correctSubEnd;
           org.stripe_subscription_id = stripeSub.id;
+          org.trial_ends_at = correctTrialEnd;
         }
       } else {
         // No Stripe subscription found
-        // If plan is 'active' with no sub, it's stale — reset to cancelled
         if (org.billing_plan === 'active') {
           await supabase
             .from('organizations')
@@ -108,10 +128,20 @@ export default async function BillingPage() {
             .eq('id', org.id);
           org.billing_plan = 'cancelled';
         }
-        // If plan is 'cancelling' or 'trial' with no sub, that's fine — trial-only accounts don't need a Stripe sub
+      }
+
+      // Fetch payment method
+      const paymentMethods = await stripe.paymentMethods.list({
+        customer: org.stripe_customer_id,
+        type: 'card',
+        limit: 1,
+      });
+      const pm = paymentMethods.data[0];
+      if (pm?.card) {
+        cardBrand = pm.card.brand;
+        cardLast4 = pm.card.last4;
       }
     } catch (e) {
-      // Stripe check failed — continue with DB state
       console.error('Stripe sync error on billing page:', e);
     }
   }
@@ -121,14 +151,16 @@ export default async function BillingPage() {
   const isPastDue = org.billing_plan === 'past_due';
   const isCancelled = org.billing_plan === 'cancelled';
   const isCancelling = org.billing_plan === 'cancelling';
+  const isPending = org.billing_plan === 'pending';
   const isCancellingTrial = isCancelling && !org.subscription_ends_at && !!org.trial_ends_at;
   const isCancellingPaid = isCancelling && !!org.subscription_ends_at;
 
-  const trialDaysLeft = org.trial_ends_at
-    ? Math.max(0, Math.floor((new Date(org.trial_ends_at).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
+  const trialEndDate = stripeTrialEnd || (org.trial_ends_at ? new Date(org.trial_ends_at) : null);
+  const trialDaysLeft = trialEndDate
+    ? Math.max(0, Math.floor((trialEndDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
     : 0;
   const trialTotalDays = 14;
-  const trialProgress = isTrialing ? ((trialTotalDays - trialDaysLeft) / trialTotalDays) * 100 : 0;
+  const trialProgress = (isTrialing || isCancellingTrial) ? ((trialTotalDays - trialDaysLeft) / trialTotalDays) * 100 : 0;
 
   const subDaysLeft = org.subscription_ends_at
     ? Math.max(0, Math.ceil((new Date(org.subscription_ends_at).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
@@ -144,9 +176,24 @@ export default async function BillingPage() {
           ? { label: '14-Day Free Trial', gradient: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)' }
           : isPastDue
             ? { label: 'Past Due', gradient: 'linear-gradient(135deg, #dc2626 0%, #ef4444 100%)' }
-            : isCancelled
-              ? { label: 'Cancelled', gradient: 'linear-gradient(135deg, #6b7280 0%, #9ca3af 100%)' }
-              : { label: 'Inactive', gradient: 'linear-gradient(135deg, #6b7280 0%, #9ca3af 100%)' };
+            : isPending
+              ? { label: 'Setup Incomplete', gradient: 'linear-gradient(135deg, #f59e0b 0%, #f97316 100%)' }
+              : isCancelled
+                ? { label: 'Cancelled', gradient: 'linear-gradient(135deg, #6b7280 0%, #9ca3af 100%)' }
+                : { label: 'Inactive', gradient: 'linear-gradient(135deg, #6b7280 0%, #9ca3af 100%)' };
+
+  const formatCardBrand = (brand: string) => {
+    const brands: Record<string, string> = {
+      visa: 'Visa',
+      mastercard: 'Mastercard',
+      amex: 'Amex',
+      discover: 'Discover',
+      diners: 'Diners',
+      jcb: 'JCB',
+      unionpay: 'UnionPay',
+    };
+    return brands[brand] || brand.charAt(0).toUpperCase() + brand.slice(1);
+  };
 
   return (
     <Box sx={{ display: 'flex', justifyContent: 'center', pt: 2 }}>
@@ -188,7 +235,7 @@ export default async function BillingPage() {
                 mb: 1.5,
               }}
             >
-              {isTrialing ? <Clock size={24} color="white" /> : <CreditCard size={24} color="white" />}
+              {isTrialing || isCancellingTrial ? <Clock size={24} color="white" /> : <CreditCard size={24} color="white" />}
             </Box>
 
             {(isTrialing || isCancellingTrial) ? (
@@ -202,7 +249,9 @@ export default async function BillingPage() {
                 <Typography variant="body2" sx={{ opacity: 0.85, mt: 0.5 }}>
                   {isCancellingTrial
                     ? `You still have access until your trial ends. Subscribe to keep your data.`
-                    : 'Full access to every feature. No card charged until the trial ends.'}
+                    : stripeNextBillingDate
+                      ? `Your card will be charged $79/mo on ${stripeNextBillingDate.toLocaleDateString('en-AU', { day: 'numeric', month: 'long', year: 'numeric' })}.`
+                      : 'Full access to every feature. No charge until the trial ends.'}
                 </Typography>
               </>
             ) : (
@@ -246,9 +295,9 @@ export default async function BillingPage() {
                     },
                   }}
                 />
-                {org.trial_ends_at && (
+                {trialEndDate && (
                   <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-                    Trial ends {new Date(org.trial_ends_at).toLocaleDateString('en-AU', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+                    Trial ends {trialEndDate.toLocaleDateString('en-AU', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
                   </Typography>
                 )}
 
@@ -327,6 +376,12 @@ export default async function BillingPage() {
               </Alert>
             )}
 
+            {isPending && (
+              <Alert severity="warning" sx={{ mb: 2 }}>
+                Complete your setup by adding a payment method. Your 14-day free trial starts once you add a card.
+              </Alert>
+            )}
+
             <BillingActions
               orgId={org.id}
               hasSubscription={!!org.stripe_customer_id}
@@ -374,30 +429,37 @@ export default async function BillingPage() {
             <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
               <Typography variant="body2" color="text.secondary">Plan</Typography>
               <Typography variant="body2" fontWeight={600}>
-                {isTrialing ? '14-Day Free Trial' : 'InsightReviews — $79/mo'}
+                {isTrialing || isCancellingTrial ? '14-Day Free Trial' : 'InsightReviews — $79/mo'}
               </Typography>
             </Box>
-            {isTrialing && org.trial_ends_at && (
+            {(isTrialing || isCancellingTrial) && trialEndDate && (
               <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                 <Typography variant="body2" color="text.secondary">Trial ends</Typography>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                   <Calendar size={14} />
                   <Typography variant="body2" fontWeight={600}>
-                    {new Date(org.trial_ends_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })}
+                    {trialEndDate.toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })}
                   </Typography>
                 </Box>
               </Box>
             )}
-            {isActive && (
+            {isActive && stripeNextBillingDate && (
               <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                <Typography variant="body2" color="text.secondary">Price</Typography>
-                <Typography variant="body2" fontWeight={600}>$79/month</Typography>
+                <Typography variant="body2" color="text.secondary">Next payment</Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  <Calendar size={14} />
+                  <Typography variant="body2" fontWeight={600}>
+                    $79 on {stripeNextBillingDate.toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })}
+                  </Typography>
+                </Box>
               </Box>
             )}
             <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
               <Typography variant="body2" color="text.secondary">Payment method</Typography>
               <Typography variant="body2" fontWeight={600}>
-                {org.stripe_customer_id ? 'Card on file' : 'None'}
+                {cardBrand && cardLast4
+                  ? `${formatCardBrand(cardBrand)} •••• ${cardLast4}`
+                  : org.stripe_customer_id ? 'None' : 'Not set up'}
               </Typography>
             </Box>
           </Box>

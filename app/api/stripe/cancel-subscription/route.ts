@@ -35,13 +35,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Organization not found' }, { status: 404 });
     }
 
-    // Cancel trial — keep access until trial_ends_at, then block
+    // Cancel trial — use cancel_at_period_end so trial stays active but won't charge
     if (cancelTrial && org.billing_plan === 'trial') {
-      // If there's a Stripe subscription (trial via Stripe), cancel it too
       if (org.stripe_subscription_id) {
         try {
           const stripe = createStripeClient();
-          await stripe.subscriptions.cancel(org.stripe_subscription_id);
+          await stripe.subscriptions.update(org.stripe_subscription_id, {
+            cancel_at_period_end: true,
+          });
         } catch (e) {
           console.error('Failed to cancel Stripe trial subscription:', e);
         }
@@ -51,7 +52,6 @@ export async function POST(request: Request) {
         .from('organizations')
         .update({
           billing_plan: 'cancelling',
-          stripe_subscription_id: null,
         })
         .eq('id', organizationId);
 

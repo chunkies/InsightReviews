@@ -84,12 +84,19 @@ export async function middleware(request: NextRequest) {
     }
 
     // Check billing status (org data is joined in the same query)
+    // Allow ?billing=success through — the client-side sync component will update the DB
+    const isBillingSuccess = request.nextUrl.searchParams.get('billing') === 'success';
     const org = member.organizations as unknown as { billing_plan: string; trial_ends_at: string | null; subscription_ends_at: string | null } | null;
-    if (org && !hasValidBilling(org.billing_plan, org.trial_ends_at, user.email, org.subscription_ends_at)) {
+    if (org && !isBillingSuccess && !hasValidBilling(org.billing_plan, org.trial_ends_at, user.email, org.subscription_ends_at)) {
       const url = request.nextUrl.clone();
       url.pathname = '/subscribe';
       url.search = `?org=${member.organization_id}`;
       return NextResponse.redirect(url);
+    }
+
+    // Pass billing=success flag to server components via header
+    if (isBillingSuccess) {
+      supabaseResponse.headers.set('x-billing-success', '1');
     }
   }
 

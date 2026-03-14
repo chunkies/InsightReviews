@@ -72,6 +72,43 @@ export async function POST(request: NextRequest) {
       break;
     }
 
+    case 'customer.subscription.updated': {
+      const subscription = event.data.object as Stripe.Subscription;
+      const subId = subscription.id;
+
+      const updateData: Record<string, unknown> = {
+        stripe_subscription_id: subId,
+      };
+
+      if (subscription.status === 'trialing') {
+        updateData.billing_plan = 'trial';
+        updateData.trial_ends_at = subscription.trial_end
+          ? new Date(subscription.trial_end * 1000).toISOString()
+          : null;
+      } else if (subscription.status === 'active' && subscription.cancel_at_period_end) {
+        updateData.billing_plan = 'cancelling';
+        updateData.subscription_ends_at = subscription.cancel_at
+          ? new Date(subscription.cancel_at * 1000).toISOString()
+          : null;
+      } else if (subscription.status === 'active' && !subscription.cancel_at_period_end) {
+        updateData.billing_plan = 'active';
+        updateData.subscription_ends_at = null;
+        updateData.trial_ends_at = null;
+      } else if (subscription.status === 'past_due') {
+        updateData.billing_plan = 'past_due';
+      }
+
+      const { error } = await supabase
+        .from('organizations')
+        .update(updateData)
+        .eq('stripe_subscription_id', subId);
+      if (error) {
+        console.error('Webhook: Failed to update org after subscription update:', error);
+        return NextResponse.json({ error: 'Database update failed' }, { status: 500 });
+      }
+      break;
+    }
+
     case 'invoice.payment_succeeded': {
       const invoice = event.data.object as Stripe.Invoice & { subscription?: string | null };
       const subId = typeof invoice.subscription === 'string'
@@ -80,7 +117,7 @@ export async function POST(request: NextRequest) {
       if (subId) {
         const { error } = await supabase
           .from('organizations')
-          .update({ billing_plan: 'active' })
+          .update({ billing_plan: 'active', trial_ends_at: null })
           .eq('stripe_subscription_id', subId);
         if (error) {
           console.error('Webhook: Failed to update org after payment success:', error);

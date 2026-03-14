@@ -1,7 +1,10 @@
+import { Suspense } from 'react';
+import { headers } from 'next/headers';
 import { DashboardShell } from '@/components/layout/dashboard-shell';
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { hasValidBilling, isAdminEmail } from '@/lib/utils/admin';
+import { BillingSuccessSync } from '@/components/dashboard/billing-success-sync';
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
@@ -22,8 +25,12 @@ export default async function DashboardLayout({ children }: { children: React.Re
     id: string; name: string; billing_plan: string; trial_ends_at: string | null; subscription_ends_at: string | null;
   } | null;
 
+  // Allow billing=success through so client-side sync component can update DB
+  const headersList = await headers();
+  const isBillingSuccess = headersList.get('x-billing-success') === '1';
+
   // Gate access: require active subscription or valid trial (admins bypass)
-  if (!hasValidBilling(org?.billing_plan, org?.trial_ends_at, user.email, org?.subscription_ends_at)) {
+  if (!isBillingSuccess && !hasValidBilling(org?.billing_plan, org?.trial_ends_at, user.email, org?.subscription_ends_at)) {
     redirect(`/subscribe?org=${org?.id ?? ''}`);
   }
 
@@ -40,6 +47,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
       trialEndsAt={displayTrialEndsAt}
       subscriptionEndsAt={displaySubEndsAt}
     >
+      <Suspense>
+        <BillingSuccessSync />
+      </Suspense>
       {children}
     </DashboardShell>
   );

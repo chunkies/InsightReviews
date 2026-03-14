@@ -1,7 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { createStripeClient } from '@/lib/stripe/server';
 import { NextRequest, NextResponse } from 'next/server';
-import { requireBilling } from '@/lib/utils/admin';
 
 export async function POST(request: NextRequest) {
   try {
@@ -25,10 +24,6 @@ export async function POST(request: NextRequest) {
     if (!member || member.role !== 'owner') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
-
-    // Verify active subscription
-    const billingError = await requireBilling(supabase, organizationId, user.email);
-    if (billingError) return billingError;
 
     const { data: org } = await supabase
       .from('organizations')

@@ -23,6 +23,7 @@ export function BillingActions({ orgId, hasSubscription, hasActiveSubscription, 
   const isCancelling = billingPlan === 'cancelling';
   const isCancelled = billingPlan === 'cancelled';
   const isPending = billingPlan === 'pending';
+  const isPastDue = billingPlan === 'past_due';
 
   async function handleCheckout() {
     setLoading(true);
@@ -123,30 +124,31 @@ export function BillingActions({ orgId, hasSubscription, hasActiveSubscription, 
   return (
     <>
       <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', justifyContent: 'center' }}>
-        {/* Trial: show Cancel Trial */}
+        {/* Trial: Manage Billing + Cancel Trial */}
         {isTrialing && (
-          <Button
-            variant="outlined"
-            color="error"
-            onClick={() => setCancelDialogOpen(true)}
-            disabled={loading}
-          >
-            Cancel Trial
-          </Button>
+          <>
+            {hasSubscription && (
+              <Button
+                variant="outlined"
+                startIcon={<ExternalLink size={16} />}
+                onClick={handlePortal}
+                disabled={loading}
+              >
+                Manage Billing
+              </Button>
+            )}
+            <Button
+              variant="outlined"
+              color="error"
+              onClick={() => setCancelDialogOpen(true)}
+              disabled={loading}
+            >
+              Cancel Trial
+            </Button>
+          </>
         )}
 
-        {/* Cancelling trial (still within trial period): show Subscribe */}
-        {isCancelling && !hasActiveSubscription && (
-          <Button
-            variant="contained"
-            onClick={handleCheckout}
-            disabled={loading}
-          >
-            {loading ? 'Loading...' : 'Subscribe Now — $79/mo'}
-          </Button>
-        )}
-
-        {/* Active paid: show Manage + Cancel */}
+        {/* Active paid: Manage Billing + Cancel Subscription */}
         {isActive && hasActiveSubscription && (
           <>
             <Button
@@ -168,15 +170,39 @@ export function BillingActions({ orgId, hasSubscription, hasActiveSubscription, 
           </>
         )}
 
-        {/* Cancelling paid: show Resubscribe + Manage */}
-        {isCancelling && hasActiveSubscription && (
+        {/* Cancelling: Resubscribe + Manage Billing */}
+        {isCancelling && (
           <>
             <Button
               variant="contained"
               onClick={handleCheckout}
               disabled={loading}
             >
-              {loading ? 'Loading...' : 'Resubscribe'}
+              {loading ? 'Loading...' : 'Subscribe Now'}
+            </Button>
+            {hasSubscription && (
+              <Button
+                variant="outlined"
+                startIcon={<ExternalLink size={16} />}
+                onClick={handlePortal}
+                disabled={loading}
+              >
+                Manage Billing
+              </Button>
+            )}
+          </>
+        )}
+
+        {/* Past due: Update Payment Method prominently + Manage Billing */}
+        {isPastDue && (
+          <>
+            <Button
+              variant="contained"
+              color="error"
+              onClick={handlePortal}
+              disabled={loading}
+            >
+              {loading ? 'Loading...' : 'Update Payment Method'}
             </Button>
             <Button
               variant="outlined"
@@ -189,7 +215,7 @@ export function BillingActions({ orgId, hasSubscription, hasActiveSubscription, 
           </>
         )}
 
-        {/* Cancelled or Pending: show Subscribe */}
+        {/* Cancelled or Pending: Subscribe Now */}
         {(isCancelled || isPending) && (
           <Button
             variant="contained"
@@ -207,7 +233,7 @@ export function BillingActions({ orgId, hasSubscription, hasActiveSubscription, 
         title={isTrialing ? 'Cancel Free Trial' : 'Cancel Subscription'}
         message={
           isTrialing
-            ? 'Are you sure you want to cancel your free trial? You\'ll lose access to all features immediately.'
+            ? 'Are you sure you want to cancel your free trial? You\'ll keep access until the trial ends, but your card won\'t be charged.'
             : 'Are you sure you want to cancel? You\'ll keep access until the end of your current billing period, then your account will be deactivated.'
         }
         confirmLabel={isTrialing ? 'Yes, Cancel Trial' : 'Yes, Cancel'}

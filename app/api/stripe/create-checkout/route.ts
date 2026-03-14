@@ -65,6 +65,7 @@ export async function POST(request: NextRequest) {
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       mode: 'subscription',
+      payment_method_collection: 'always',
       line_items: [{ price: PLAN.priceId, quantity: 1 }],
       ...(isNewSubscriber ? { subscription_data: { trial_period_days: PLAN.trialDays } } : {}),
       success_url: `${siteUrl}/dashboard?billing=success`,

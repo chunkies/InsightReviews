@@ -109,6 +109,7 @@ function getDesignTokens(mode: ThemeMode) {
         styleOverrides: {
           paper: {
             backgroundImage: 'none',
+            borderRadius: 0,
           },
         },
       },

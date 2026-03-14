@@ -1,5 +1,6 @@
 import { Box, Paper, Typography, Chip, Divider, LinearProgress, Alert } from '@mui/material';
 import { createClient } from '@/lib/supabase/server';
+import { createStripeClient } from '@/lib/stripe/server';
 import { redirect } from 'next/navigation';
 import { CreditCard, Check, Calendar, Receipt, Shield, Clock, AlertTriangle } from 'lucide-react';
 import { BillingActions } from '@/components/settings/billing-actions';
@@ -43,6 +44,72 @@ export default async function BillingPage() {
     .single();
 
   if (!org) redirect('/onboarding');
+
+  // Sync billing state with Stripe if customer exists
+  if (org.stripe_customer_id) {
+    try {
+      const stripe = createStripeClient();
+      const subscriptions = await stripe.subscriptions.list({
+        customer: org.stripe_customer_id,
+        limit: 1,
+      });
+
+      const stripeSub = subscriptions.data[0];
+
+      if (stripeSub) {
+        // Map Stripe status to our billing_plan
+        let correctPlan = org.billing_plan;
+        let correctSubEnd: string | null = org.subscription_ends_at;
+
+        if (stripeSub.status === 'active' && !stripeSub.cancel_at_period_end) {
+          correctPlan = 'active';
+          correctSubEnd = null;
+        } else if (stripeSub.status === 'active' && stripeSub.cancel_at_period_end) {
+          correctPlan = 'cancelling';
+          correctSubEnd = stripeSub.cancel_at
+            ? new Date(stripeSub.cancel_at * 1000).toISOString()
+            : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+        } else if (stripeSub.status === 'trialing') {
+          correctPlan = 'trial';
+        } else if (stripeSub.status === 'past_due') {
+          correctPlan = 'past_due';
+        } else if (stripeSub.status === 'canceled') {
+          correctPlan = 'cancelled';
+        }
+
+        // Update DB if out of sync
+        if (correctPlan !== org.billing_plan || correctSubEnd !== org.subscription_ends_at) {
+          await supabase
+            .from('organizations')
+            .update({
+              billing_plan: correctPlan,
+              subscription_ends_at: correctSubEnd,
+              stripe_subscription_id: stripeSub.id,
+            })
+            .eq('id', org.id);
+
+          org.billing_plan = correctPlan;
+          org.subscription_ends_at = correctSubEnd;
+          org.stripe_subscription_id = stripeSub.id;
+        }
+      } else {
+        // No Stripe subscription — if plan says active/cancelling but no sub, it's stale
+        if (['active', 'cancelling'].includes(org.billing_plan ?? '') && org.billing_plan !== 'cancelling') {
+          // Only reset if it's not a cancelled trial (which has no Stripe sub)
+          if (org.billing_plan === 'active') {
+            await supabase
+              .from('organizations')
+              .update({ billing_plan: 'cancelled', stripe_subscription_id: null })
+              .eq('id', org.id);
+            org.billing_plan = 'cancelled';
+          }
+        }
+      }
+    } catch (e) {
+      // Stripe check failed — continue with DB state
+      console.error('Stripe sync error on billing page:', e);
+    }
+  }
 
   const isTrialing = org.billing_plan === 'trial';
   const isActive = org.billing_plan === 'active';

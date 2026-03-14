@@ -11,7 +11,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { organizationId } = await request.json();
+    const { organizationId, cancelTrial } = await request.json();
 
     // Verify user is owner
     const { data: member } = await supabase
@@ -27,11 +27,29 @@ export async function POST(request: Request) {
 
     const { data: org } = await supabase
       .from('organizations')
-      .select('stripe_subscription_id')
+      .select('stripe_subscription_id, billing_plan')
       .eq('id', organizationId)
       .single();
 
-    if (!org?.stripe_subscription_id) {
+    if (!org) {
+      return NextResponse.json({ error: 'Organization not found' }, { status: 404 });
+    }
+
+    // Cancel trial (no Stripe subscription to cancel)
+    if (cancelTrial && org.billing_plan === 'trial') {
+      await supabase
+        .from('organizations')
+        .update({
+          billing_plan: 'cancelled',
+          trial_ends_at: new Date().toISOString(),
+        })
+        .eq('id', organizationId);
+
+      return NextResponse.json({ success: true });
+    }
+
+    // Cancel paid Stripe subscription
+    if (!org.stripe_subscription_id) {
       return NextResponse.json({ error: 'No active subscription found' }, { status: 400 });
     }
 
@@ -42,13 +60,13 @@ export async function POST(request: Request) {
       cancel_at_period_end: true,
     });
 
-    // Retrieve updated subscription to get cancel_at (set automatically by Stripe)
+    // Retrieve updated subscription to get cancel_at
     const subscription = await stripe.subscriptions.retrieve(org.stripe_subscription_id);
 
-    // cancel_at is set when cancel_at_period_end is true
     const periodEnd = subscription.cancel_at
       ? new Date(subscription.cancel_at * 1000).toISOString()
-      : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(); // fallback 30 days
+      : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+
     await supabase
       .from('organizations')
       .update({

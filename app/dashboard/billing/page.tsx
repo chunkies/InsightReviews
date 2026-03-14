@@ -51,7 +51,7 @@ export default async function BillingPage() {
   const isCancelling = org.billing_plan === 'cancelling';
 
   const trialDaysLeft = org.trial_ends_at
-    ? Math.max(0, Math.ceil((new Date(org.trial_ends_at).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
+    ? Math.max(0, Math.floor((new Date(org.trial_ends_at).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
     : 0;
   const trialTotalDays = 14;
   const trialProgress = isTrialing ? ((trialTotalDays - trialDaysLeft) / trialTotalDays) * 100 : 0;

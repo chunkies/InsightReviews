@@ -26,7 +26,7 @@ function getCredentials() {
   return {
     clientId: process.env.GOOGLE_CLIENT_ID!,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-    redirectUri: `${process.env.NEXT_PUBLIC_SITE_URL}/api/integrations/google/callback`,
+    redirectUri: `${process.env.NEXT_PUBLIC_SITE_URL!.trim()}/api/integrations/google/callback`,
   };
 }
 

@@ -121,7 +121,7 @@ function getShareText(review: Review): string {
 function getWallUrl(orgSlug: string): string {
   const siteUrl = typeof window !== 'undefined'
     ? window.location.origin
-    : (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://localhost:3000');
+    : (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://localhost:3000').trim();
   return `${siteUrl}/wall/${orgSlug}`;
 }
 

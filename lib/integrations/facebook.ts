@@ -27,7 +27,7 @@ function getCredentials() {
   return {
     appId: process.env.FACEBOOK_APP_ID!,
     appSecret: process.env.FACEBOOK_APP_SECRET!,
-    redirectUri: `${process.env.NEXT_PUBLIC_SITE_URL}/api/integrations/facebook/callback`,
+    redirectUri: `${process.env.NEXT_PUBLIC_SITE_URL!.trim()}/api/integrations/facebook/callback`,
   };
 }
 

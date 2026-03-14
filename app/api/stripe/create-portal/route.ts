@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
     }
 
     const stripe = createStripeClient();
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL!;
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL!.trim();
 
     const session = await stripe.billingPortal.sessions.create({
       customer: org.stripe_customer_id,

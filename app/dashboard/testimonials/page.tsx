@@ -42,7 +42,7 @@ export default async function TestimonialsPage() {
     .select('*')
     .eq('organization_id', member.organization_id);
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000').trim();
   const wallUrl = `${siteUrl}/wall/${org.slug}`;
   const reviewUrl = `${siteUrl}/r/${org.slug}`;
   const wallConfig = mergeWallConfig(org.wall_config);

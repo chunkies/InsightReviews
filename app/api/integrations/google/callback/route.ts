@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
     const code = searchParams.get('code');
     const state = searchParams.get('state');
     const error = searchParams.get('error');
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+    const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000').trim();
 
     if (error) {
       return NextResponse.redirect(`${siteUrl}/dashboard/integrations?error=google_denied`);
@@ -95,7 +95,7 @@ export async function GET(request: NextRequest) {
     );
   } catch (error) {
     console.error('Google callback error:', error);
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+    const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000').trim();
     return NextResponse.redirect(`${siteUrl}/dashboard/integrations?error=google_failed`);
   }
 }

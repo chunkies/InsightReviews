@@ -47,7 +47,7 @@ export default async function CollectPage() {
     time: timeAgo(r.created_at),
   }));
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000').trim();
   const reviewUrl = `${siteUrl}/r/${org.slug}`;
 
   return (

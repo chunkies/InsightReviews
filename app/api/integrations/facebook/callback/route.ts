@@ -4,7 +4,7 @@ import { createServerClient } from '@supabase/ssr';
 import { exchangeFacebookCode, getLongLivedToken, listFacebookPages } from '@/lib/integrations/facebook';
 
 export async function GET(request: NextRequest) {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000').trim();
 
   try {
     const { searchParams } = new URL(request.url);

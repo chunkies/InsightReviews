@@ -97,7 +97,7 @@ const steps = [
 const faqs = [
   {
     q: 'How does the 14-day free trial work?',
-    a: 'Sign up and get full access to every feature for 14 days — QR codes, SMS, smart routing, dashboard, the lot. No card required upfront. After 14 days, your subscription begins at $79/mo.',
+    a: 'Sign up, add your card details, and get full access to every feature for 14 days — QR codes, SMS, smart routing, dashboard, the lot. You won\'t be charged until the trial ends. After 14 days, your subscription begins at $79/mo.',
   },
   {
     q: 'Will this work for my type of business?',
@@ -335,7 +335,7 @@ export default function LandingPage() {
               </Box>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.5, sm: 1 }, opacity: 0.6, flexWrap: 'wrap' }}>
                 <CheckCircle2 size={14} />
-                <Typography variant="body2" fontSize={{ xs: '0.75rem', sm: '0.875rem' }}>No card required</Typography>
+                <Typography variant="body2" fontSize={{ xs: '0.75rem', sm: '0.875rem' }}>14 days free</Typography>
                 <Box sx={{ mx: 0.5 }}>|</Box>
                 <CheckCircle2 size={14} />
                 <Typography variant="body2" fontSize={{ xs: '0.75rem', sm: '0.875rem' }}>Setup in 2 minutes</Typography>
@@ -916,7 +916,7 @@ export default function LandingPage() {
           </Typography>
           <Box sx={{ textAlign: 'center', mb: 5 }}>
             <Chip
-              label="14-day free trial — no card required"
+              label="14-day free trial — no charge until it ends"
               size="small"
               sx={{ backgroundColor: '#fef3c7', color: '#92400e', fontWeight: 600, fontSize: '0.75rem' }}
             />
@@ -1138,7 +1138,7 @@ export default function LandingPage() {
             Get Your First 5-Star Review This Week
           </Button>
           <Typography variant="body2" sx={{ mt: 2, opacity: 0.6 }}>
-            No card required. Setup takes 2 minutes. Cancel anytime.
+            14 days free. Setup takes 2 minutes. Cancel anytime.
           </Typography>
         </Container>
       </Box>

@@ -47,7 +47,7 @@ export default async function LoginPage({ searchParams }: PageProps) {
               Start your 14-day free trial
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-              No card required. Setup takes 2 minutes.
+              14 days free. Setup takes 2 minutes.
             </Typography>
             <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap', justifyContent: 'center', mb: 3 }}>
               {['QR code collection', 'Smart routing', 'Dashboard & analytics'].map((f) => (

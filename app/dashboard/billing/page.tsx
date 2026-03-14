@@ -1,7 +1,7 @@
-import { Box, Paper, Typography, Chip, Divider, LinearProgress } from '@mui/material';
+import { Box, Paper, Typography, Chip, Divider, LinearProgress, Alert } from '@mui/material';
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
-import { CreditCard, Check, Calendar, Receipt, Shield } from 'lucide-react';
+import { CreditCard, Check, Calendar, Receipt, Shield, Clock, AlertTriangle } from 'lucide-react';
 import { BillingActions } from '@/components/settings/billing-actions';
 
 const planFeatures = [
@@ -16,6 +16,12 @@ const planFeatures = [
   'Email & SMS notifications',
   'Custom branding',
 ];
+
+function getTrialBarColor(daysLeft: number): string {
+  if (daysLeft > 7) return 'linear-gradient(90deg, #16a34a, #22c55e)';
+  if (daysLeft > 3) return 'linear-gradient(90deg, #f59e0b, #f97316)';
+  return 'linear-gradient(90deg, #dc2626, #ef4444)';
+}
 
 export default async function BillingPage() {
   const supabase = await createClient();
@@ -55,16 +61,16 @@ export default async function BillingPage() {
     : 0;
 
   const statusConfig = isActive
-    ? { label: 'Active', color: 'success' as const, gradient: 'linear-gradient(135deg, #16a34a 0%, #22c55e 100%)' }
+    ? { label: 'Active', gradient: 'linear-gradient(135deg, #16a34a 0%, #22c55e 100%)' }
     : isCancelling
-      ? { label: `Cancelling · ${subDaysLeft} days left`, color: 'warning' as const, gradient: 'linear-gradient(135deg, #dc2626 0%, #f97316 100%)' }
+      ? { label: `Cancelling`, gradient: 'linear-gradient(135deg, #dc2626 0%, #f97316 100%)' }
       : isTrialing
-        ? { label: `Trial · ${trialDaysLeft} days left`, color: 'warning' as const, gradient: 'linear-gradient(135deg, #f59e0b 0%, #f97316 100%)' }
+        ? { label: '14-Day Free Trial', gradient: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)' }
         : isPastDue
-          ? { label: 'Past Due', color: 'error' as const, gradient: 'linear-gradient(135deg, #dc2626 0%, #ef4444 100%)' }
+          ? { label: 'Past Due', gradient: 'linear-gradient(135deg, #dc2626 0%, #ef4444 100%)' }
           : isCancelled
-            ? { label: 'Cancelled', color: 'error' as const, gradient: 'linear-gradient(135deg, #6b7280 0%, #9ca3af 100%)' }
-            : { label: 'Inactive', color: 'error' as const, gradient: 'linear-gradient(135deg, #6b7280 0%, #9ca3af 100%)' };
+            ? { label: 'Cancelled', gradient: 'linear-gradient(135deg, #6b7280 0%, #9ca3af 100%)' }
+            : { label: 'Inactive', gradient: 'linear-gradient(135deg, #6b7280 0%, #9ca3af 100%)' };
 
   return (
     <Box sx={{ display: 'flex', justifyContent: 'center', pt: 2 }}>
@@ -106,89 +112,141 @@ export default async function BillingPage() {
                 mb: 1.5,
               }}
             >
-              <CreditCard size={24} color="white" />
+              {isTrialing ? <Clock size={24} color="white" /> : <CreditCard size={24} color="white" />}
             </Box>
-            <Typography variant="overline" sx={{ opacity: 0.9, letterSpacing: 1.5, fontSize: '0.7rem' }}>
-              {org.name}
-            </Typography>
-            <Box sx={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: 0.5, mt: 0.5 }}>
-              <Typography variant="h3" fontWeight={800}>$79</Typography>
-              <Typography variant="h6" sx={{ opacity: 0.8 }}>/mo</Typography>
-            </Box>
-            <Typography variant="body2" sx={{ opacity: 0.85, mt: 0.5 }}>
-              per location
-            </Typography>
+
+            {isTrialing ? (
+              <>
+                <Typography variant="overline" sx={{ opacity: 0.9, letterSpacing: 1.5, fontSize: '0.7rem' }}>
+                  {org.name}
+                </Typography>
+                <Typography variant="h5" fontWeight={800} sx={{ mt: 0.5 }}>
+                  You&apos;re on a 14-Day Free Trial
+                </Typography>
+                <Typography variant="body2" sx={{ opacity: 0.85, mt: 0.5 }}>
+                  Full access to every feature. No card charged until the trial ends.
+                </Typography>
+              </>
+            ) : (
+              <>
+                <Typography variant="overline" sx={{ opacity: 0.9, letterSpacing: 1.5, fontSize: '0.7rem' }}>
+                  {org.name}
+                </Typography>
+                <Box sx={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: 0.5, mt: 0.5 }}>
+                  <Typography variant="h3" fontWeight={800}>$79</Typography>
+                  <Typography variant="h6" sx={{ opacity: 0.8 }}>/mo</Typography>
+                </Box>
+              </>
+            )}
           </Box>
 
           <Box sx={{ px: 4, py: 3 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-              <Typography variant="body2" color="text.secondary" fontWeight={600}>
-                Subscription Status
-              </Typography>
-              <Chip label={statusConfig.label} color={statusConfig.color} size="small" />
-            </Box>
-
+            {/* Trial countdown */}
             {isTrialing && (
-              <Box sx={{ mb: 2 }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-                  <Typography variant="caption" color="text.secondary">Trial progress</Typography>
-                  <Typography variant="caption" color="text.secondary">{trialDaysLeft} of {trialTotalDays} days remaining</Typography>
+              <Box sx={{ mb: 3 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                    <Calendar size={14} />
+                    <Typography variant="body2" fontWeight={600}>
+                      {trialDaysLeft} {trialDaysLeft === 1 ? 'day' : 'days'} remaining
+                    </Typography>
+                  </Box>
+                  <Typography variant="caption" color="text.secondary">
+                    {trialDaysLeft} of {trialTotalDays}
+                  </Typography>
                 </Box>
                 <LinearProgress
                   variant="determinate"
                   value={trialProgress}
                   sx={{
-                    height: 6,
-                    borderRadius: 3,
+                    height: 10,
+                    borderRadius: 5,
                     backgroundColor: 'action.hover',
                     '& .MuiLinearProgress-bar': {
-                      borderRadius: 3,
-                      background: 'linear-gradient(90deg, #f59e0b, #f97316)',
+                      borderRadius: 5,
+                      background: getTrialBarColor(trialDaysLeft),
                     },
                   }}
                 />
-                {trialDaysLeft <= 3 && trialDaysLeft > 0 && (
-                  <Typography variant="caption" color="warning.main" sx={{ mt: 0.5, display: 'block' }}>
-                    Your trial ends soon. Subscribe to keep access to all features.
+                {org.trial_ends_at && (
+                  <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+                    Trial ends {new Date(org.trial_ends_at).toLocaleDateString('en-AU', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
                   </Typography>
                 )}
+
+                {trialDaysLeft <= 3 && trialDaysLeft > 0 && (
+                  <Alert severity="warning" icon={<AlertTriangle size={18} />} sx={{ mt: 2 }}>
+                    Your trial ends soon. Subscribe now to keep access to all features and your data.
+                  </Alert>
+                )}
+
+                {trialDaysLeft === 0 && (
+                  <Alert severity="error" icon={<AlertTriangle size={18} />} sx={{ mt: 2 }}>
+                    Your trial has expired. Subscribe to continue using InsightReviews.
+                  </Alert>
+                )}
+
+                <Box sx={{ mt: 2, p: 2, borderRadius: 2, backgroundColor: 'action.hover', textAlign: 'center' }}>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+                    After trial: <strong>$79/mo</strong>
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    Cancel anytime — no lock-in, no questions asked
+                  </Typography>
+                </Box>
               </Box>
             )}
 
+            {/* Subscription status */}
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+              <Typography variant="body2" color="text.secondary" fontWeight={600}>
+                Status
+              </Typography>
+              <Chip
+                label={statusConfig.label}
+                size="small"
+                sx={{
+                  fontWeight: 600,
+                  background: statusConfig.gradient,
+                  color: 'white',
+                }}
+              />
+            </Box>
+
             {isCancelling && org.subscription_ends_at && (
               <Box sx={{ mb: 2 }}>
-                <Typography variant="body2" color="error" sx={{ mb: 1 }}>
+                <Alert severity="warning" sx={{ mb: 1 }}>
                   Your subscription has been cancelled. You have access until {new Date(org.subscription_ends_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })}.
-                </Typography>
+                </Alert>
                 <LinearProgress
                   variant="determinate"
                   value={Math.max(0, 100 - (subDaysLeft / 30) * 100)}
                   sx={{
-                    height: 6,
-                    borderRadius: 3,
+                    height: 8,
+                    borderRadius: 4,
                     backgroundColor: 'action.hover',
                     '& .MuiLinearProgress-bar': {
-                      borderRadius: 3,
+                      borderRadius: 4,
                       background: 'linear-gradient(90deg, #dc2626, #f97316)',
                     },
                   }}
                 />
                 <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
-                  {subDaysLeft} days remaining · Subscribe again to keep your account
+                  {subDaysLeft} days remaining
                 </Typography>
               </Box>
             )}
 
             {isPastDue && (
-              <Typography variant="body2" color="error" sx={{ mb: 2 }}>
-                Your last payment failed. Please update your payment method to avoid service interruption.
-              </Typography>
+              <Alert severity="error" sx={{ mb: 2 }}>
+                Your last payment failed. Please update your payment method to avoid losing access.
+              </Alert>
             )}
 
             {isCancelled && (
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                Your subscription has been cancelled. Subscribe again to regain access.
-              </Typography>
+              <Alert severity="info" sx={{ mb: 2 }}>
+                Your subscription has been cancelled. Subscribe again to regain access to your data.
+              </Alert>
             )}
 
             <BillingActions
@@ -237,11 +295,9 @@ export default async function BillingPage() {
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
               <Typography variant="body2" color="text.secondary">Plan</Typography>
-              <Typography variant="body2" fontWeight={600}>InsightReviews Pro</Typography>
-            </Box>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-              <Typography variant="body2" color="text.secondary">Price</Typography>
-              <Typography variant="body2" fontWeight={600}>$79/month per location</Typography>
+              <Typography variant="body2" fontWeight={600}>
+                {isTrialing ? '14-Day Free Trial' : 'InsightReviews — $79/mo'}
+              </Typography>
             </Box>
             {isTrialing && org.trial_ends_at && (
               <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -252,6 +308,12 @@ export default async function BillingPage() {
                     {new Date(org.trial_ends_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })}
                   </Typography>
                 </Box>
+              </Box>
+            )}
+            {isActive && (
+              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                <Typography variant="body2" color="text.secondary">Price</Typography>
+                <Typography variant="body2" fontWeight={600}>$79/month</Typography>
               </Box>
             )}
             <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>

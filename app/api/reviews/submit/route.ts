@@ -61,12 +61,22 @@ export async function POST(request: NextRequest) {
     // Look up org by slug
     const { data: org } = await supabase
       .from('organizations')
-      .select('id, name, slug, email, positive_threshold, webhook_url, webhook_enabled, notify_on_negative, auto_followup_enabled, auto_followup_delay_hours, auto_followup_message')
+      .select('id, name, slug, email, positive_threshold, webhook_url, webhook_enabled, notify_on_negative, auto_followup_enabled, auto_followup_delay_hours, auto_followup_message, billing_plan, trial_ends_at, subscription_ends_at')
       .eq('slug', slug)
       .single();
 
     if (!org) {
       return NextResponse.json({ error: 'Business not found' }, { status: 404 });
+    }
+
+    // Block submissions if billing is expired
+    const plan = org.billing_plan ?? 'none';
+    const isExpiredTrial = plan === 'trial' && org.trial_ends_at && new Date(org.trial_ends_at) < new Date();
+    const isExpiredCancelling = plan === 'cancelling' && org.subscription_ends_at && new Date(org.subscription_ends_at) < new Date();
+    const isInactive = ['cancelled', 'past_due', 'none'].includes(plan);
+
+    if (isExpiredTrial || isExpiredCancelling || isInactive) {
+      return NextResponse.json({ error: 'This review page is currently unavailable' }, { status: 403 });
     }
 
     const isPositive = rating >= org.positive_threshold;

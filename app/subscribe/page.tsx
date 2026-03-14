@@ -85,8 +85,8 @@ export default async function SubscribePage({ searchParams }: PageProps) {
             </Box>
             <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
               {isReturning
-                ? 'per location'
-                : 'per location \u00B7 after your 14-day free trial'
+                ? 'Cancel anytime — no lock-in'
+                : 'after your 14-day free trial · cancel anytime'
               }
             </Typography>
           </Box>

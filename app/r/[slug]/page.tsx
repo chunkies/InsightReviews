@@ -1,4 +1,4 @@
-import { Box, Container } from '@mui/material';
+import { Box, Container, Typography } from '@mui/material';
 import { createServerClient } from '@supabase/ssr';
 import { notFound } from 'next/navigation';
 import { ReviewFormContent } from '@/components/review-form/review-form-content';
@@ -50,11 +50,32 @@ export default async function ReviewPage({ params, searchParams }: PageProps) {
 
   const { data: org } = await supabase
     .from('organizations')
-    .select('id, name, slug, logo_url, positive_threshold, wall_config, review_form_heading, review_form_subheading, thankyou_positive_title, thankyou_positive_message, thankyou_negative_title, thankyou_negative_message, thankyou_coupon_code, thankyou_coupon_text, thankyou_social_links')
+    .select('id, name, slug, logo_url, positive_threshold, wall_config, review_form_heading, review_form_subheading, thankyou_positive_title, thankyou_positive_message, thankyou_negative_title, thankyou_negative_message, thankyou_coupon_code, thankyou_coupon_text, thankyou_social_links, billing_plan, trial_ends_at, subscription_ends_at')
     .eq('slug', slug)
     .single();
 
   if (!org) notFound();
+
+  // Block review form if billing expired
+  const plan = org.billing_plan ?? 'none';
+  const isExpiredTrial = plan === 'trial' && org.trial_ends_at && new Date(org.trial_ends_at) < new Date();
+  const isExpiredCancelling = plan === 'cancelling' && org.subscription_ends_at && new Date(org.subscription_ends_at) < new Date();
+  const isInactive = ['cancelled', 'past_due', 'none'].includes(plan);
+
+  if (isExpiredTrial || isExpiredCancelling || isInactive) {
+    return (
+      <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', p: 3 }}>
+        <Container maxWidth="sm" sx={{ textAlign: 'center' }}>
+          <Typography variant="h5" fontWeight={700} gutterBottom>
+            This review page is currently unavailable
+          </Typography>
+          <Typography color="text.secondary">
+            Please contact the business directly if you&apos;d like to share your feedback.
+          </Typography>
+        </Container>
+      </Box>
+    );
+  }
 
   // Fetch both manual platforms AND connected integrations
   const [platformsRes, integrationsRes] = await Promise.all([

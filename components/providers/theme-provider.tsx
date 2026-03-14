@@ -121,10 +121,15 @@ export function AppThemeProvider({ children }: { children: ReactNode }) {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    // Only use dark mode if the user explicitly toggled it
+    // Only use dark mode if the user explicitly toggled it in the dashboard
+    // Never auto-detect system preference — landing page must always be light
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored === 'dark') {
-      setMode('dark');
+      // Only allow dark mode on dashboard routes, not on public pages
+      const isDashboard = window.location.pathname.startsWith('/dashboard');
+      if (isDashboard) {
+        setMode('dark');
+      }
     }
     setMounted(true);
   }, []);

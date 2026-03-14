@@ -36,6 +36,13 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning style={{ scrollBehavior: 'smooth', colorScheme: 'light' }}>
+      <head>
+        <meta name="color-scheme" content="light only" />
+        <style>{`
+          html, body { background-color: #ffffff !important; color: #0f172a !important; color-scheme: light only !important; }
+          @media (prefers-color-scheme: dark) { html, body { background-color: #ffffff !important; color: #0f172a !important; } }
+        `}</style>
+      </head>
       <body style={{ backgroundColor: '#ffffff' }}>
         <AppRouterCacheProvider>
           <AppThemeProvider>

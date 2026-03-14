@@ -48,9 +48,8 @@ export function Header({ onMenuToggle }: HeaderProps) {
         <Tooltip title={mode === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}>
           <IconButton
             onClick={toggleTheme}
-            color="inherit"
             size="small"
-            sx={{ mr: 1 }}
+            sx={{ mr: 1, color: 'text.secondary' }}
           >
             {mode === 'light' ? <Moon size={18} /> : <Sun size={18} />}
           </IconButton>
@@ -58,8 +57,8 @@ export function Header({ onMenuToggle }: HeaderProps) {
         <Button
           onClick={handleSignOut}
           startIcon={<LogOut size={18} />}
-          color="inherit"
           size="small"
+          sx={{ color: 'text.secondary' }}
         >
           Sign Out
         </Button>

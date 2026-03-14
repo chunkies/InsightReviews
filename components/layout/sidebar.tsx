@@ -213,7 +213,8 @@ export function Sidebar({ orgName, billingPlan, trialEndsAt, subscriptionEndsAt,
     borderColor: 'divider',
     background: isDark
       ? 'linear-gradient(180deg, #0f172a 0%, #131c2e 100%)'
-      : 'linear-gradient(180deg, #fafbff 0%, #f8f9fc 100%)',
+      : 'background.paper',
+    backgroundColor: isDark ? '#0f172a' : '#ffffff',
     display: 'flex',
     flexDirection: 'column',
   } as const;

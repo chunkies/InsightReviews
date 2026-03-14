@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { useSnackbar } from '@/components/providers/snackbar-provider';
 import { ConfirmDialog } from '@/components/shared/confirm-dialog';
+import { useTheme } from '@mui/material/styles';
 import type { OrganizationIntegration } from '@/lib/types/database';
 
 const PLATFORM_INFO = {
@@ -21,6 +22,7 @@ const PLATFORM_INFO = {
     color: '#4285F4',
     bgGradient: 'linear-gradient(135deg, #4285F4 0%, #34A853 100%)',
     lightBg: 'linear-gradient(135deg, #E8F0FE 0%, #E6F4EA 100%)',
+    darkBg: 'linear-gradient(135deg, #1a2744 0%, #1a3329 100%)',
     description: 'Sync reviews from Google Maps and Search',
     icon: '🔍',
   },
@@ -30,6 +32,7 @@ const PLATFORM_INFO = {
     color: '#D32323',
     bgGradient: 'linear-gradient(135deg, #D32323 0%, #FF5722 100%)',
     lightBg: 'linear-gradient(135deg, #FDE8E8 0%, #FFEBEE 100%)',
+    darkBg: 'linear-gradient(135deg, #2d1a1a 0%, #2d1c1a 100%)',
     description: 'Connect your Yelp business listing',
     icon: '⭐',
   },
@@ -51,6 +54,8 @@ export function IntegrationsPanel({
   orgAddress,
 }: IntegrationsPanelProps) {
   const { showSnackbar } = useSnackbar();
+  const muiTheme = useTheme();
+  const isDark = muiTheme.palette.mode === 'dark';
   const [disconnecting, setDisconnecting] = useState<string | null>(null);
   const [confirmDisconnect, setConfirmDisconnect] = useState<string | null>(null);
   const [yelpDialog, setYelpDialog] = useState(false);
@@ -218,7 +223,7 @@ export function IntegrationsPanel({
                   {/* Header band */}
                   <Box
                     sx={{
-                      background: isConnected ? info.bgGradient : info.lightBg,
+                      background: isConnected ? info.bgGradient : (isDark ? info.darkBg : info.lightBg),
                       px: 2.5,
                       py: 2,
                       display: 'flex',

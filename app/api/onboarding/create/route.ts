@@ -61,14 +61,16 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'You already have an organization' }, { status: 409 });
   }
 
-  // Create organization with pending billing — trial starts after Stripe checkout
+  // Create organization with 14-day free trial starting immediately — no card required
+  const trialEndsAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString();
   const { data: org, error: orgError } = await supabase
     .from('organizations')
     .insert({
       name: businessName,
       slug,
       phone: phone || null,
-      billing_plan: 'pending',
+      billing_plan: 'trial',
+      trial_ends_at: trialEndsAt,
     })
     .select('id')
     .single();

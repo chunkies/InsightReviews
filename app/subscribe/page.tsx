@@ -46,14 +46,17 @@ export default async function SubscribePage({ searchParams }: PageProps) {
 
   if (!org) redirect('/onboarding');
 
-  // Only redirect if they have an active Stripe subscription (already paying or in active trial via Stripe)
-  if (org.stripe_subscription_id && ['trial', 'active'].includes(org.billing_plan ?? '')) {
+  // If they have a valid trial or active sub, send them to dashboard
+  const hasActiveTrial = org.billing_plan === 'trial' && org.trial_ends_at && new Date(org.trial_ends_at) > new Date();
+  const hasActiveSub = ['active'].includes(org.billing_plan ?? '') && org.stripe_subscription_id;
+  if (hasActiveTrial || hasActiveSub) {
     redirect('/dashboard');
   }
 
   const isTrialExpired = org.billing_plan === 'trial' && org.trial_ends_at && new Date(org.trial_ends_at) < new Date();
   const isCancelled = org.billing_plan === 'cancelled';
-  const isReturning = isTrialExpired || isCancelled;
+  const isPending = org.billing_plan === 'pending';
+  const isReturning = isTrialExpired || isCancelled || isPending;
 
   return (
     <Box
@@ -110,6 +113,11 @@ export default async function SubscribePage({ searchParams }: PageProps) {
           {isTrialExpired && (
             <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
               Your free trial has expired. Subscribe to continue using InsightReviews.
+            </Typography>
+          )}
+          {isPending && (
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+              Subscribe to activate your account and start using InsightReviews.
             </Typography>
           )}
         </Paper>

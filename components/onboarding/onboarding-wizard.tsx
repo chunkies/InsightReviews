@@ -381,7 +381,7 @@ export function OnboardingWizard({ userId: _userId }: OnboardingWizardProps) {
             variant="contained"
             size="large"
             endIcon={<ArrowRight size={18} />}
-            onClick={() => router.push(`/subscribe?org=${orgId}`)}
+            onClick={() => router.push('/dashboard')}
             sx={{
               textTransform: 'none',
               fontWeight: 700,
@@ -390,7 +390,7 @@ export function OnboardingWizard({ userId: _userId }: OnboardingWizardProps) {
               px: 5,
             }}
           >
-            Start Free Trial
+            Go to Dashboard
           </Button>
         </Box>
       )}

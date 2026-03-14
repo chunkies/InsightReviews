@@ -74,7 +74,13 @@ export default async function BillingPage() {
         } else if (stripeSub.status === 'past_due') {
           correctPlan = 'past_due';
         } else if (stripeSub.status === 'canceled') {
-          correctPlan = 'cancelled';
+          // Don't override 'cancelling' if trial is still active
+          const trialStillActive = org.trial_ends_at && new Date(org.trial_ends_at) > new Date();
+          if (org.billing_plan === 'cancelling' && trialStillActive) {
+            correctPlan = 'cancelling';
+          } else {
+            correctPlan = 'cancelled';
+          }
         }
 
         // Update DB if out of sync
@@ -93,17 +99,16 @@ export default async function BillingPage() {
           org.stripe_subscription_id = stripeSub.id;
         }
       } else {
-        // No Stripe subscription — if plan says active/cancelling but no sub, it's stale
-        if (['active', 'cancelling'].includes(org.billing_plan ?? '') && org.billing_plan !== 'cancelling') {
-          // Only reset if it's not a cancelled trial (which has no Stripe sub)
-          if (org.billing_plan === 'active') {
-            await supabase
-              .from('organizations')
-              .update({ billing_plan: 'cancelled', stripe_subscription_id: null })
-              .eq('id', org.id);
-            org.billing_plan = 'cancelled';
-          }
+        // No Stripe subscription found
+        // If plan is 'active' with no sub, it's stale — reset to cancelled
+        if (org.billing_plan === 'active') {
+          await supabase
+            .from('organizations')
+            .update({ billing_plan: 'cancelled', stripe_subscription_id: null })
+            .eq('id', org.id);
+          org.billing_plan = 'cancelled';
         }
+        // If plan is 'cancelling' or 'trial' with no sub, that's fine — trial-only accounts don't need a Stripe sub
       }
     } catch (e) {
       // Stripe check failed — continue with DB state

@@ -37,10 +37,21 @@ export async function POST(request: Request) {
 
     // Cancel trial — keep access until trial_ends_at, then block
     if (cancelTrial && org.billing_plan === 'trial') {
+      // If there's a Stripe subscription (trial via Stripe), cancel it too
+      if (org.stripe_subscription_id) {
+        try {
+          const stripe = createStripeClient();
+          await stripe.subscriptions.cancel(org.stripe_subscription_id);
+        } catch (e) {
+          console.error('Failed to cancel Stripe trial subscription:', e);
+        }
+      }
+
       await supabase
         .from('organizations')
         .update({
           billing_plan: 'cancelling',
+          stripe_subscription_id: null,
         })
         .eq('id', organizationId);
 

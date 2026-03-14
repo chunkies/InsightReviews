@@ -35,8 +35,8 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning style={{ scrollBehavior: 'smooth' }}>
-      <body>
+    <html lang="en" suppressHydrationWarning style={{ scrollBehavior: 'smooth', colorScheme: 'light' }}>
+      <body style={{ backgroundColor: '#ffffff' }}>
         <AppRouterCacheProvider>
           <AppThemeProvider>
             <SnackbarProvider>

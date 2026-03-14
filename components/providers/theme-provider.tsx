@@ -90,6 +90,13 @@ function getDesignTokens(mode: ThemeMode) {
           },
         },
       },
+      MuiCssBaseline: {
+        styleOverrides: {
+          ':root': {
+            colorScheme: 'light',
+          },
+        },
+      },
       MuiAppBar: {
         styleOverrides: {
           root: {

@@ -108,7 +108,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to create request' }, { status: 500 });
     }
 
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL!;
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL!.trim();
     const baseLink = buildReviewLink(siteUrl, org.slug);
     const link = `${baseLink}?rid=${reviewRequest.id}`;
     const messageBody = buildSmsBody(org.sms_template, org.name, link);

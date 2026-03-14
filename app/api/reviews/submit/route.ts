@@ -48,8 +48,8 @@ export async function POST(request: NextRequest) {
 
     // Service role client — this is a public endpoint
     const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      process.env.NEXT_PUBLIC_SUPABASE_URL!.trim(),
+      process.env.SUPABASE_SERVICE_ROLE_KEY!.trim(),
       {
         cookies: {
           getAll() { return []; },
@@ -162,7 +162,7 @@ export async function POST(request: NextRequest) {
 
     // Send negative review notification email
     if (!isPositive && org.notify_on_negative && org.email) {
-      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+      const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000').trim();
       sendNegativeReviewNotification({
         to: org.email,
         businessName: org.name,

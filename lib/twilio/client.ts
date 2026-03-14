@@ -28,7 +28,7 @@ export async function sendSms(to: string, body: string): Promise<string | null> 
 }
 
 export function buildReviewLink(siteUrl: string, slug: string): string {
-  return `${siteUrl}/r/${slug}`;
+  return `${siteUrl.trim()}/r/${slug}`;
 }
 
 export function buildSmsBody(template: string, businessName: string, link: string): string {

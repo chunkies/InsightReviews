@@ -362,7 +362,7 @@ export function WallCustomizer({ orgId, orgName, logoUrl, initialConfig, wallUrl
                     key={theme.name}
                     onClick={() => {
                       setConfig(theme.config);
-                      showSnackbar(`Applied "${theme.name}" theme`, 'info');
+                      showSnackbar('Click save changes to apply the theme', 'info');
                     }}
                     sx={{
                       flexShrink: 0,

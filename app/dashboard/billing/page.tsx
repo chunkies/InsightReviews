@@ -49,6 +49,8 @@ export default async function BillingPage() {
   const isPastDue = org.billing_plan === 'past_due';
   const isCancelled = org.billing_plan === 'cancelled';
   const isCancelling = org.billing_plan === 'cancelling';
+  const isCancellingTrial = isCancelling && !org.subscription_ends_at && !!org.trial_ends_at;
+  const isCancellingPaid = isCancelling && !!org.subscription_ends_at;
 
   const trialDaysLeft = org.trial_ends_at
     ? Math.max(0, Math.floor((new Date(org.trial_ends_at).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
@@ -62,15 +64,17 @@ export default async function BillingPage() {
 
   const statusConfig = isActive
     ? { label: 'Active', gradient: 'linear-gradient(135deg, #16a34a 0%, #22c55e 100%)' }
-    : isCancelling
-      ? { label: `Cancelling`, gradient: 'linear-gradient(135deg, #dc2626 0%, #f97316 100%)' }
-      : isTrialing
-        ? { label: '14-Day Free Trial', gradient: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)' }
-        : isPastDue
-          ? { label: 'Past Due', gradient: 'linear-gradient(135deg, #dc2626 0%, #ef4444 100%)' }
-          : isCancelled
-            ? { label: 'Cancelled', gradient: 'linear-gradient(135deg, #6b7280 0%, #9ca3af 100%)' }
-            : { label: 'Inactive', gradient: 'linear-gradient(135deg, #6b7280 0%, #9ca3af 100%)' };
+    : isCancellingTrial
+      ? { label: 'Trial Cancelled', gradient: 'linear-gradient(135deg, #f59e0b 0%, #dc2626 100%)' }
+      : isCancellingPaid
+        ? { label: 'Cancelling', gradient: 'linear-gradient(135deg, #dc2626 0%, #f97316 100%)' }
+        : isTrialing
+          ? { label: '14-Day Free Trial', gradient: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)' }
+          : isPastDue
+            ? { label: 'Past Due', gradient: 'linear-gradient(135deg, #dc2626 0%, #ef4444 100%)' }
+            : isCancelled
+              ? { label: 'Cancelled', gradient: 'linear-gradient(135deg, #6b7280 0%, #9ca3af 100%)' }
+              : { label: 'Inactive', gradient: 'linear-gradient(135deg, #6b7280 0%, #9ca3af 100%)' };
 
   return (
     <Box sx={{ display: 'flex', justifyContent: 'center', pt: 2 }}>
@@ -115,16 +119,18 @@ export default async function BillingPage() {
               {isTrialing ? <Clock size={24} color="white" /> : <CreditCard size={24} color="white" />}
             </Box>
 
-            {isTrialing ? (
+            {(isTrialing || isCancellingTrial) ? (
               <>
                 <Typography variant="overline" sx={{ opacity: 0.9, letterSpacing: 1.5, fontSize: '0.7rem' }}>
                   {org.name}
                 </Typography>
                 <Typography variant="h5" fontWeight={800} sx={{ mt: 0.5 }}>
-                  You&apos;re on a 14-Day Free Trial
+                  {isCancellingTrial ? 'Trial Cancelled' : 'You\'re on a 14-Day Free Trial'}
                 </Typography>
                 <Typography variant="body2" sx={{ opacity: 0.85, mt: 0.5 }}>
-                  Full access to every feature. No card charged until the trial ends.
+                  {isCancellingTrial
+                    ? `You still have access until your trial ends. Subscribe to keep your data.`
+                    : 'Full access to every feature. No card charged until the trial ends.'}
                 </Typography>
               </>
             ) : (
@@ -142,7 +148,7 @@ export default async function BillingPage() {
 
           <Box sx={{ px: 4, py: 3 }}>
             {/* Trial countdown */}
-            {isTrialing && (
+            {(isTrialing || isCancellingTrial) && (
               <Box sx={{ mb: 3 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>

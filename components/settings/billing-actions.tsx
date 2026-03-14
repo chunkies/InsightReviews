@@ -123,7 +123,7 @@ export function BillingActions({ orgId, hasSubscription, hasActiveSubscription, 
   return (
     <>
       <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', justifyContent: 'center' }}>
-        {/* Trial: only show Cancel Trial */}
+        {/* Trial: show Cancel Trial */}
         {isTrialing && (
           <Button
             variant="outlined"
@@ -132,6 +132,17 @@ export function BillingActions({ orgId, hasSubscription, hasActiveSubscription, 
             disabled={loading}
           >
             Cancel Trial
+          </Button>
+        )}
+
+        {/* Cancelling trial (still within trial period): show Subscribe */}
+        {isCancelling && !hasActiveSubscription && (
+          <Button
+            variant="contained"
+            onClick={handleCheckout}
+            disabled={loading}
+          >
+            {loading ? 'Loading...' : 'Subscribe Now — $79/mo'}
           </Button>
         )}
 
@@ -157,8 +168,8 @@ export function BillingActions({ orgId, hasSubscription, hasActiveSubscription, 
           </>
         )}
 
-        {/* Cancelling: show Resubscribe + Manage */}
-        {isCancelling && (
+        {/* Cancelling paid: show Resubscribe + Manage */}
+        {isCancelling && hasActiveSubscription && (
           <>
             <Button
               variant="contained"
@@ -167,16 +178,14 @@ export function BillingActions({ orgId, hasSubscription, hasActiveSubscription, 
             >
               {loading ? 'Loading...' : 'Resubscribe'}
             </Button>
-            {hasSubscription && (
-              <Button
-                variant="outlined"
-                startIcon={<ExternalLink size={16} />}
-                onClick={handlePortal}
-                disabled={loading}
-              >
-                Manage Billing
-              </Button>
-            )}
+            <Button
+              variant="outlined"
+              startIcon={<ExternalLink size={16} />}
+              onClick={handlePortal}
+              disabled={loading}
+            >
+              Manage Billing
+            </Button>
           </>
         )}
 

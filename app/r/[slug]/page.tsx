@@ -67,10 +67,10 @@ export default async function ReviewPage({ params, searchParams }: PageProps) {
       <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', p: 3 }}>
         <Container maxWidth="sm" sx={{ textAlign: 'center' }}>
           <Typography variant="h5" fontWeight={700} gutterBottom>
-            This review page is currently unavailable
+            Review page disabled
           </Typography>
           <Typography color="text.secondary">
-            Please contact the business directly if you&apos;d like to share your feedback.
+            This review page is currently inactive. Please contact the business directly if you&apos;d like to share your feedback.
           </Typography>
         </Container>
       </Box>

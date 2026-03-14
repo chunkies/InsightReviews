@@ -29,8 +29,12 @@ export function hasValidBilling(
     return false;
   }
 
-  if (plan === 'cancelling' && subscriptionEndsAt && new Date(subscriptionEndsAt) < new Date()) {
-    return false;
+  if (plan === 'cancelling') {
+    // Check subscription end date (paid cancellation) or trial end date (trial cancellation)
+    const endsAt = subscriptionEndsAt || trialEndsAt;
+    if (endsAt && new Date(endsAt) < new Date()) {
+      return false;
+    }
   }
 
   return true;

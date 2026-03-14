@@ -35,13 +35,12 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Organization not found' }, { status: 404 });
     }
 
-    // Cancel trial (no Stripe subscription to cancel)
+    // Cancel trial — keep access until trial_ends_at, then block
     if (cancelTrial && org.billing_plan === 'trial') {
       await supabase
         .from('organizations')
         .update({
-          billing_plan: 'cancelled',
-          trial_ends_at: new Date().toISOString(),
+          billing_plan: 'cancelling',
         })
         .eq('id', organizationId);
 

@@ -100,11 +100,28 @@ export default async function TestimonialWallPage({ params }: PageProps) {
 
   const { data: org } = await supabase
     .from('organizations')
-    .select('id, name, logo_url, wall_config')
+    .select('id, name, logo_url, wall_config, billing_plan, trial_ends_at, subscription_ends_at')
     .eq('slug', slug)
     .single();
 
   if (!org) notFound();
+
+  // Block wall if billing expired
+  const plan = org.billing_plan ?? 'none';
+  const isExpiredTrial = plan === 'trial' && org.trial_ends_at && new Date(org.trial_ends_at) < new Date();
+  const isExpiredCancelling = plan === 'cancelling' && (org.subscription_ends_at || org.trial_ends_at) && new Date((org.subscription_ends_at || org.trial_ends_at)!).getTime() < Date.now();
+  const isInactive = ['cancelled', 'past_due', 'none'].includes(plan);
+
+  if (isExpiredTrial || isExpiredCancelling || isInactive) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, textAlign: 'center' }}>
+        <div>
+          <h2 style={{ marginBottom: 8 }}>Testimonial wall disabled</h2>
+          <p style={{ color: '#64748b' }}>This page is currently inactive. Please contact the business for more information.</p>
+        </div>
+      </div>
+    );
+  }
 
   const { data: reviews } = await supabase
     .from('reviews')

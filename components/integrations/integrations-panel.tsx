@@ -24,15 +24,6 @@ const PLATFORM_INFO = {
     description: 'Sync reviews from Google Maps and Search',
     icon: '🔍',
   },
-  facebook: {
-    name: 'Facebook',
-    fullName: 'Facebook Page',
-    color: '#1877F2',
-    bgGradient: 'linear-gradient(135deg, #1877F2 0%, #42A5F5 100%)',
-    lightBg: 'linear-gradient(135deg, #E7F3FF 0%, #E3F2FD 100%)',
-    description: 'Import ratings and recommendations',
-    icon: '📘',
-  },
   yelp: {
     name: 'Yelp',
     fullName: 'Yelp Business',
@@ -209,7 +200,7 @@ export function IntegrationsPanel({
             const count = reviewCounts[platform] || 0;
 
             return (
-              <Grid size={{ xs: 12, md: 4 }} key={platform}>
+              <Grid size={{ xs: 12, md: 6 }} key={platform}>
                 <Paper
                   elevation={0}
                   sx={{

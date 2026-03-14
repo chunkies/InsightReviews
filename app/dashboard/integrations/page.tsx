@@ -1,45 +1,66 @@
-import { Box, Typography } from '@mui/material';
+import { Box } from '@mui/material';
+import { createClient } from '@/lib/supabase/server';
+import { redirect } from 'next/navigation';
 import { PageHeader } from '@/components/shared/page-header';
-import { Link2 } from 'lucide-react';
+import { IntegrationsPanel } from '@/components/integrations/integrations-panel';
+import type { OrganizationIntegration } from '@/lib/types/database';
 
-export default function IntegrationsPage() {
+export default async function IntegrationsPage() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect('/auth/login');
+
+  const { data: member } = await supabase
+    .from('organization_members')
+    .select('organization_id, role')
+    .eq('user_id', user.id)
+    .single();
+
+  if (!member) redirect('/onboarding');
+
+  const { data: org } = await supabase
+    .from('organizations')
+    .select('id, name, address')
+    .eq('id', member.organization_id)
+    .single();
+
+  if (!org) redirect('/onboarding');
+
+  const { data: integrations } = await supabase
+    .from('organization_integrations')
+    .select('*')
+    .eq('organization_id', member.organization_id);
+
+  // Get review counts per integration
+  const integrationList = (integrations ?? []) as unknown as OrganizationIntegration[];
+  const reviewCounts: Record<string, number> = {};
+
+  if (integrationList.length > 0) {
+    const { data: counts } = await supabase
+      .from('external_reviews')
+      .select('integration_id')
+      .eq('organization_id', member.organization_id);
+
+    if (counts) {
+      for (const row of counts) {
+        reviewCounts[row.integration_id] = (reviewCounts[row.integration_id] ?? 0) + 1;
+      }
+    }
+  }
+
   return (
     <Box>
       <PageHeader
         title="Integrations"
         subtitle="Connect your review platforms to see all reviews in one place"
       />
-      <Box
-        sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          py: 10,
-          textAlign: 'center',
-        }}
-      >
-        <Box
-          sx={{
-            width: 64,
-            height: 64,
-            borderRadius: 3,
-            background: 'linear-gradient(135deg, #2563eb20, #7c3aed20)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            mb: 2,
-          }}
-        >
-          <Link2 size={28} color="#7c3aed" />
-        </Box>
-        <Typography variant="h6" fontWeight={700} sx={{ mb: 1 }}>
-          Coming Soon
-        </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 400 }}>
-          Platform integrations with Google, Yelp, Facebook, and more are on the way. Stay tuned!
-        </Typography>
-      </Box>
+      <IntegrationsPanel
+        integrations={integrationList}
+        reviewCounts={reviewCounts}
+        isOwner={member.role === 'owner'}
+        orgName={org.name}
+        orgAddress={org.address ?? ''}
+      />
     </Box>
   );
 }

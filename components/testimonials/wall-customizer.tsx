@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import {
   Box, Typography, Button, TextField, Slider, Switch,
   FormControlLabel, ToggleButtonGroup, ToggleButton,
@@ -189,13 +189,33 @@ const SHADOW_OPTIONS = [
 ];
 
 function ColorInput({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
+  // Local state makes the color picker drag instant — parent only updates on debounce
+  const [localValue, setLocalValue] = useState(value);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const latestRef = useRef(localValue);
+
+  // Sync from parent when value changes externally (e.g. theme preset click)
+  useEffect(() => { setLocalValue(value); }, [value]);
+
+  useEffect(() => {
+    return () => { if (timerRef.current) clearTimeout(timerRef.current); };
+  }, []);
+
+  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const v = e.target.value;
+    setLocalValue(v);
+    latestRef.current = v;
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => onChange(latestRef.current), 150);
+  }, [onChange]);
+
   return (
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.5 }}>
       <Box
         component="input"
         type="color"
-        value={value}
-        onChange={(e: React.ChangeEvent<HTMLInputElement>) => onChange(e.target.value)}
+        value={localValue}
+        onChange={handleChange}
         sx={{
           width: 36,
           height: 36,
@@ -213,7 +233,7 @@ function ColorInput({ label, value, onChange }: { label: string; value: string; 
           {label}
         </Typography>
         <Typography variant="body2" sx={{ fontFamily: 'monospace', fontSize: '0.75rem' }}>
-          {value}
+          {localValue}
         </Typography>
       </Box>
     </Box>
@@ -226,10 +246,24 @@ export function WallCustomizer({ orgId, initialConfig, wallUrl, reviewUrl, onCon
   const [saving, setSaving] = useState(false);
   const { showSnackbar } = useSnackbar();
 
+  // Debounce onConfigChange to avoid re-render storms from color pickers
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const latestConfigRef = useRef<WallConfig>(config);
+
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, []);
+
   const update = useCallback(<K extends keyof WallConfig>(key: K, value: WallConfig[K]) => {
     setConfig(prev => {
       const next = { ...prev, [key]: value };
-      onConfigChange?.(next);
+      latestConfigRef.current = next;
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      debounceRef.current = setTimeout(() => {
+        onConfigChange?.(latestConfigRef.current);
+      }, 100);
       return next;
     });
   }, [onConfigChange]);

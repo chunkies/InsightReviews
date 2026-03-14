@@ -1,8 +1,8 @@
 # Directory Submission Status
 
-*Last synced from SUBMISSION-PROGRESS.md: 2026-03-12*
+*Last synced: 2026-03-13*
 
-## Live / Submitted (34 directories)
+## Live / Submitted (51 directories)
 
 | # | Directory | Status | Action Needed |
 |---|-----------|--------|---------------|
@@ -42,15 +42,33 @@
 | 34 | SoftwareSuggest | Pending setup email | Check email |
 | 35 | ConfettiSaaS | Pending review (#200 in queue) | None |
 | 36 | Startup Buffer | Pending review (1-2 months) | None |
+| 37 | Tiny Startups | Submitted | None — pending review |
+| 38 | LaunchPedia | Submitted | None — pending review |
+| 39 | TheSaaSDirectory | Submitted (awaiting moderation) | None — pending review |
+| 40 | Apps and Websites | Submitted | None — 3-5 day review |
+| 41 | Capterra (Gartner) | Email verification sent | **Verify email** at tristan@insightreviews.com.au |
+| 42 | G2 | Account created, needs verification | **Enter 8-char code** from tristan@insightreviews.com.au |
+| 43 | Peerlist | Account created, needs verification | **Enter verification code** from tristan@insightreviews.com.au |
+| 44 | SourceForge | Submitted (pending review) | None — create SourceForge account to manage listing |
+| 45 | TrustRadius | Account created, needs verification | **Verify email** at tristan@insightreviews.com.au → then claim vendor profile |
+| 46 | SoftwareWorld | Account created, needs verification | **Verify email** at tristan@insightreviews.com.au → then create listing |
+| 47 | CompareCamp | Review request submitted | None — pending their review |
+| 48 | SelectHub | Product claim submitted | None — pending verification |
+| 49 | FinancesOnline | Submitted (free listing) | None — pending review |
+| 50 | AITopTools | Submitted (free listing) | None — pending review (paid verification available) |
+| 51 | SaaSpo | Submitted | None — pending feature review |
 
 ## Need Email Verification
 
 | Directory | Action |
 |-----------|--------|
-| AlternativeTo | Verify email → then submit via "Suggest new application" |
+| AlternativeTo | Verify email at sly.tristan1@gmail.com (resent 2026-03-12) → then submit |
 | Alternative.me | Verify email at tristan@insightreviews.com.au |
 | SoftwareSuggest | Check for setup email |
 | SaaSWorthy | Check for vendor portal link |
+| SaaSTool.site | Verify email → then submit tool (account created) |
+| SaaS Wall | Enter secret code from email → complete submission (form pre-filled) |
+| BetaList | Verify email at sly.tristan1@gmail.com → draft ready, needs paid plan ($39+) |
 
 ## Badge Verification Needed (~12 directories)
 
@@ -62,8 +80,7 @@ Startup Fame, Twelve Tools, Wired Business, NewTool.site, Startup Fast, Turbo0, 
 
 | Directory | Reason |
 |-----------|--------|
-| Capterra / G2 | Cloudflare 403 — **manual signup needed** |
-| BetaList | reCAPTCHA blocks automated signup |
+| BetaList | Paid only ($39-$299) — draft submission ready |
 | Indie Hackers | Signup JS broken + Firebase error |
 | StartupBase | Signups closed |
 | StartupRanking.com | Requires social login |
@@ -71,17 +88,23 @@ Startup Fame, Twelve Tools, Wired Business, NewTool.site, Startup Fast, Turbo0, 
 | GetWorm.com | Invalid SSL — site unreachable |
 | Hacker News | Account created but Show HN restricted for new accounts |
 
+## Need Google OAuth / Manual Login
+
+| Directory | Action |
+|-----------|--------|
+| ProductDirs | Requires Google OAuth to submit |
+| AppaList | Requires Google OAuth to submit |
+| Peerlist | Account created — verify email, complete profile, launch on Mondays via Launchpad |
+| F6S | Requires Google OAuth |
+| GoodFirms | Requires Google/LinkedIn OAuth |
+
 ## Not Yet Attempted (High Priority)
 
 | Directory | Priority | Notes |
 |-----------|----------|-------|
-| **Product Hunt** | HIGH | Need 50+ followers first, schedule Tue-Thu |
-| **F6S** | Medium | Requires Google OAuth |
-| **GoodFirms** | Medium | Requires Google/LinkedIn OAuth |
-| **Clutch.co** | Medium | B2B reviews |
-| **Webrazzi** | Medium | DR 76, ERR_ABORTED when attempted |
-| **PeerPush** | Low | ERR_ABORTED when attempted |
+| **Product Hunt** | HIGH | Needs social login (LinkedIn/GitHub/X) + 50 followers before launch |
+| **AlternativeTo** | SUBMITTED 2026-03-13 | Listing submitted (pending review). Email verified. Need to add competitors as alternatives once listing is live. Listing ID: 8be7d801-7526-4128-9628-0724fce47559 |
 
 ## Dead / Not Applicable
 
-Open Launch (now golf company), StartupRanker (parked domain), SaaSFrame (design library), KillerStartups (paid only), ToolsPedia ($49-149), CoolStartups (dead), AllTopStartups (paid only), Startups.fyi ($29 required), ProductReview.com.au (consumer only), TrueLocal (no self-service)
+PeerPush (domain dead — ERR_NAME_NOT_RESOLVED), SaaSDB (domain dead — ERR_NAME_NOT_RESOLVED), Open Launch (now golf company), StartupRanker (parked domain), SaaSFrame (design library), KillerStartups (paid only), ToolsPedia ($49-149), CoolStartups (dead), AllTopStartups (paid only), Startups.fyi ($29 required), ProductReview.com.au (consumer only), TrueLocal (no self-service), ToolFolio (paid submissions only), SaaSDatabase.net (B2B prospecting tool, not a directory), Clutch.co (B2B services marketplace, not software directory), Webrazzi (Turkish tech news site, not a directory), TopSaaSDirectories (Vercel deployment paused — site offline), TopAI.tools (paid only $47+), TAAFT ($49-347), Futurepedia ($247-497), Toolify.ai ($99), Postmake ($79+), Geekflare (no submit page), JoinSecret (404), Trustpilot (email validation broken for .com.au TLD)

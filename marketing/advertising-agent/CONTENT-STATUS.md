@@ -1,6 +1,6 @@
 # Content Posting Status
 
-*Last synced: 2026-03-12*
+*Last synced: 2026-03-13*
 
 ## Reddit
 
@@ -10,8 +10,11 @@
 | Post 2 | r/entrepreneur | BLOCKED | Needs 10 comment karma in sub + AI detection rule |
 | Post 3 | r/SaaS | **POSTED** | Comment reply about getting more Google reviews |
 | Post 4 | r/smallbusiness | **POSTED** | Pure value post — dentist 3.6→4.4 stars story, no product mention |
+| Post 5 | r/sweatystartup | **POSTED** | Plumber mate's review story — pure value, no product mention |
+| Post 6 | r/restaurateur | **AUTO-REMOVED** | Cafe 3.9→4.6 stars story with InsightReviews mention — automod removed (Rule 7: no advertising) |
+| Post 7 | r/AutoDetailing | **POSTED** | $500 corrections + zero reviews — with InsightReviews mention, "Business Question" flair |
 
-**Next steps:** Build karma in r/entrepreneur before attempting Post 2. Consider new value posts in r/sweatystartup, r/dentistry, r/AutoDetailing.
+**Next steps:** Build karma in r/entrepreneur before attempting Post 2. Monitor r/AutoDetailing post for mod action. Consider reposting r/restaurateur without product mention.
 
 ## Quora
 
@@ -38,6 +41,19 @@ Topics covered: getting more Google reviews, dealing with negative reviews, revi
 
 **Needs manual posting** — content is in `marketing/READY-TO-POST.md`.
 
+## Cold Email
+
+| Batch | Targets | Status | Email 2 Due | Email 3 Due |
+|-------|---------|--------|-------------|-------------|
+| Batch 1 | 10 businesses (Abbey Road Cafe, Baby Pizza, Vineyard + 7) | **SENT Mar 13** | **Mar 16** | Mar 21 |
+| Batch 2 | 7 businesses (Sea Salt, iLOVEiSTANBUL, Queensberry Hotel + 4) | **SENT Mar 13** | **Mar 16** | Mar 21 |
+| Batch 3 | 8 businesses (Tiamo, Soda Rock, Penny Black + 5) | **SENT Mar 13** | **Mar 16** | Mar 21 |
+| Batch 4 | 20 businesses PERSONALISED (Art De Dente, Ace Mechanics, Doherty's + 17) | **SENT Mar 14** | **Mar 17** | Mar 22 |
+
+45 total Email 1s sent from tristan@insightreviews.com.au via SendGrid.
+Master list: `marketing/cold-email-master-list.json` — tracks all targets with sent status.
+Automated via `/send-emails` skill and `marketing/send-next-batch.js`.
+
 ## Cold DMs
 
 | Template | Status |
@@ -45,7 +61,7 @@ Topics covered: getting more Google reviews, dealing with negative reviews, revi
 | Instagram/Facebook DM (3-4 star businesses) | DRAFTED |
 | Follow-up DM (3-4 days later) | DRAFTED |
 
-**Not started** — templates in `marketing/READY-TO-POST.md`.
+**Not started** — templates in `marketing/READY-TO-POST.md`. Needs Instagram + Facebook business pages first (Tristan's action).
 
 ## Content Pipeline — What's Next
 

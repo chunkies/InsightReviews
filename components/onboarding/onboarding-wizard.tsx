@@ -208,7 +208,7 @@ export function OnboardingWizard({ userId: _userId }: OnboardingWizardProps) {
             label="URL Slug"
             value={slug}
             onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
-            helperText={slug ? `Your review link: insightreviews.com/r/${slug}` : 'Auto-generated from business name'}
+            helperText={slug ? `Your review link: insightreviews.com.au/r/${slug}` : 'Auto-generated from business name'}
             sx={{ mb: 2 }}
           />
           <TextField

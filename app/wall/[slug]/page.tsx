@@ -2,11 +2,46 @@ import { createServerClient } from '@supabase/ssr';
 import { notFound } from 'next/navigation';
 import { TestimonialWall } from '@/components/testimonials/testimonial-wall';
 import { mergeWallConfig } from '@/lib/types/wall-config';
+import type { Metadata } from 'next';
 
 export const revalidate = 300; // Cache for 5 minutes
 
 interface PageProps {
   params: Promise<{ slug: string }>;
+}
+
+function getSupabaseClient() {
+  return createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    {
+      cookies: {
+        getAll() { return []; },
+        setAll() {},
+      },
+    }
+  );
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const supabase = getSupabaseClient();
+  const { data: org } = await supabase
+    .from('organizations')
+    .select('name')
+    .eq('slug', slug)
+    .single();
+
+  const name = org?.name || 'Business';
+  return {
+    title: `${name} — Customer Reviews`,
+    description: `See what customers are saying about ${name}. Read real reviews from verified customers.`,
+    openGraph: {
+      title: `${name} — Customer Reviews`,
+      description: `See what customers are saying about ${name}.`,
+      type: 'website',
+    },
+  };
 }
 
 interface ReviewRow {
@@ -61,16 +96,7 @@ function buildJsonLd(orgName: string, reviews: ReviewRow[]) {
 export default async function TestimonialWallPage({ params }: PageProps) {
   const { slug } = await params;
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    {
-      cookies: {
-        getAll() { return []; },
-        setAll() {},
-      },
-    }
-  );
+  const supabase = getSupabaseClient();
 
   const { data: org } = await supabase
     .from('organizations')

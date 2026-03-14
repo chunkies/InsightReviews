@@ -130,7 +130,7 @@ export function TestimonialPageTabs({
       </Tabs>
 
       {showPreview ? (
-        <Box sx={{ display: 'flex', gap: 3, flexDirection: { xs: 'column', lg: 'row' } }}>
+        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', lg: 'row' }, mx: { lg: -3 } }}>
           {/* Mobile: preview on top */}
           <Box sx={{ display: { xs: 'block', lg: 'none' }, mb: 2 }}>
             <LivePreview
@@ -144,7 +144,7 @@ export function TestimonialPageTabs({
           </Box>
 
           {/* Left column: tab content (scrollable) */}
-          <Box sx={{ flex: 1, minWidth: 0 }}>
+          <Box sx={{ flex: '0 0 auto', width: { xs: '100%', lg: 480 }, px: { lg: 3 } }}>
             <Box sx={{ display: tab === 0 ? 'block' : 'none' }}>
               <WallCustomizer
                 orgId={orgId}
@@ -166,29 +166,40 @@ export function TestimonialPageTabs({
             </Box>
           </Box>
 
-          {/* Right column: sticky preview (desktop only) */}
+          {/* Right panel: full-height preview area with centered phone */}
           <Box
             sx={{
-              display: { xs: 'none', lg: 'block' },
-              width: 420,
-              flexShrink: 0,
+              display: { xs: 'none', lg: 'flex' },
+              flex: 1,
+              minWidth: 0,
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'flex-start',
               position: 'sticky',
               top: 80,
               alignSelf: 'flex-start',
               maxHeight: 'calc(100vh - 100px)',
               overflowY: 'auto',
+              py: 2,
+              px: 3,
+              borderRadius: 4,
+              bgcolor: 'action.hover',
+              border: '1px solid',
+              borderColor: 'divider',
               '&::-webkit-scrollbar': { width: 4 },
               '&::-webkit-scrollbar-thumb': { bgcolor: 'divider', borderRadius: 2 },
             }}
           >
-            <LivePreview
-              config={config}
-              orgName={orgName}
-              logoUrl={logoUrl}
-              platforms={enabledPlatforms}
-              thankYouConfig={thankYouConfig}
-              reviews={reviews}
-            />
+            <Box sx={{ width: '100%', maxWidth: 440 }}>
+              <LivePreview
+                config={config}
+                orgName={orgName}
+                logoUrl={logoUrl}
+                platforms={enabledPlatforms}
+                thankYouConfig={thankYouConfig}
+                reviews={reviews}
+              />
+            </Box>
           </Box>
         </Box>
       ) : (

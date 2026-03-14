@@ -38,6 +38,8 @@ interface ReviewFormContentProps {
     slug: string;
     logoUrl: string | null;
     positiveThreshold: number;
+    reviewFormHeading?: string;
+    reviewFormSubheading?: string;
   };
   platforms: Array<{
     id: string;
@@ -379,7 +381,7 @@ export function ReviewFormContent({ org, platforms, reviewRequestId, config: cfg
   const cardSx = {
     position: 'relative' as const,
     overflow: 'hidden',
-    p: { xs: 3.5, sm: 4 },
+    p: { xs: 2.5, sm: 4 },
     textAlign: 'center' as const,
     borderRadius: { xs: `${Math.min(config.cardBorderRadius, 20)}px`, sm: `${config.cardBorderRadius}px` },
     boxShadow: '0 20px 60px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.06)',
@@ -871,7 +873,7 @@ export function ReviewFormContent({ org, platforms, reviewRequestId, config: cfg
             fontFamily: config.headerFont,
           }}
         >
-          How was your experience?
+          {org.reviewFormHeading || 'How was your experience?'}
         </Typography>
         <Typography
           sx={{
@@ -881,14 +883,14 @@ export function ReviewFormContent({ org, platforms, reviewRequestId, config: cfg
             fontFamily: config.bodyFont,
           }}
         >
-          at <strong>{org.name}</strong>
+          {(org.reviewFormSubheading || 'at {business_name}').replace(/\{business_name\}/g, org.name)}
         </Typography>
 
         {/* Star Rating */}
         <Box sx={{
           display: 'flex',
           justifyContent: 'center',
-          gap: { xs: 0.75, sm: 1 },
+          gap: { xs: 0.25, sm: 1 },
           mb: 2,
         }}>
           {([1, 2, 3, 4, 5] as const).map((star) => {
@@ -902,7 +904,7 @@ export function ReviewFormContent({ org, platforms, reviewRequestId, config: cfg
                 onMouseLeave={() => setHoveredRating(0)}
                 disableRipple
                 sx={{
-                  p: { xs: 0.75, sm: 0.75 },
+                  p: { xs: 0.5, sm: 0.75 },
                   transition: 'transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1)',
                   animation: isPopping ? 'rf-star-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)' : 'none',
                   '&:hover': {
@@ -920,7 +922,7 @@ export function ReviewFormContent({ org, platforms, reviewRequestId, config: cfg
                 }}
               >
                 <Star
-                  size={52}
+                  size={42}
                   fill={isActive ? config.starColor : 'none'}
                   color={isActive ? config.starColor : '#CBD5E1'}
                   strokeWidth={isActive ? 1.2 : 1.8}

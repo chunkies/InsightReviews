@@ -53,6 +53,32 @@ export async function GET(request: NextRequest) {
     }
 
     if (allLocations.length === 0) {
+      // No locations found — still save the integration with account info
+      // This happens with service-area businesses or newly created profiles
+      if (accounts.length > 0) {
+        const account = accounts[0];
+        const expiresAt = new Date(Date.now() + tokens.expires_in * 1000).toISOString();
+
+        const { createServerClient } = await import('@supabase/ssr');
+        const serviceSupabase = createServerClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.SUPABASE_SERVICE_ROLE_KEY!,
+          { cookies: { getAll() { return []; }, setAll() {} } }
+        );
+
+        await serviceSupabase.from('organization_integrations').upsert({
+          organization_id: stateData.organizationId,
+          platform: 'google',
+          access_token: tokens.access_token,
+          refresh_token: tokens.refresh_token,
+          token_expires_at: expiresAt,
+          platform_account_id: account.name,
+          platform_account_name: account.accountName || 'Google Business Profile',
+          show_on_review_form: true,
+        }, { onConflict: 'organization_id,platform' });
+
+        return NextResponse.redirect(`${siteUrl}/dashboard/integrations?success=google`);
+      }
       return NextResponse.redirect(`${siteUrl}/dashboard/integrations?error=no_locations`);
     }
 

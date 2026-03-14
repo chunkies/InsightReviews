@@ -23,13 +23,17 @@ Local brick-and-mortar businesses: cafes, salons, dentists, gyms, auto shops. Au
 
 ## Key Features
 
-- **SMS review requests** — Staff enters phone number, customer gets a text in seconds
-- **Smart routing** — Happy customers → Google/Yelp. Unhappy customers → private feedback
-- **Negative review interception** — Catch bad experiences before they become 1-star public reviews
-- **Multi-platform** — Route to Google, Yelp, Facebook, TripAdvisor, or any custom URL
-- **Testimonial wall** — Curate best reviews into an embeddable "wall of love"
-- **Dead simple UX** — Staff can use it in 5 seconds, no training needed
-- **Dashboard** — Review stats, trends, response tracking
+- **QR code at the counter** — Print a branded QR code. Customer scans, taps a star rating, done in under 30 seconds. No app, no login.
+- **SMS & email review requests** — Staff enters phone number, customer gets a text in seconds. Auto-reminders if they forget.
+- **Smart routing** — Happy customers (4-5 stars) → Google/Yelp/Facebook. Unhappy customers (1-3 stars) → private feedback.
+- **Negative review interception** — Instant email alert when someone rates 1-3 stars. Follow up before it goes public.
+- **Google, Facebook & Yelp auto-sync** — All reviews from every platform pulled into one dashboard. Updated automatically.
+- **Weekly email digest** — New reviews, average rating, best and worst feedback — delivered to your inbox every week.
+- **Auto follow-up reminders** — Customer didn't leave a review? System sends a gentle reminder automatically.
+- **Staff leaderboard** — See which staff members send the most review requests. Gamifies the process.
+- **Testimonial wall** — Curate best reviews into a public page. Embed on your website or share anywhere.
+- **Fully branded** — Your logo, your colours on the review form. Customers see your business, not ours.
+- **Dashboard** — Total reviews, average rating, weekly trends, review funnel, response rates.
 
 ## Tech Stack
 

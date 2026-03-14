@@ -27,6 +27,8 @@ export interface Organization {
   notify_on_negative: boolean;
   digest_enabled: boolean;
   digest_frequency: 'daily' | 'weekly' | 'monthly';
+  review_form_heading: string;
+  review_form_subheading: string;
   auto_followup_enabled: boolean;
   auto_followup_delay_hours: number;
   auto_followup_message: string;

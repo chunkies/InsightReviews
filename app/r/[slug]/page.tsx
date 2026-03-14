@@ -3,6 +3,7 @@ import { createServerClient } from '@supabase/ssr';
 import { notFound } from 'next/navigation';
 import { ReviewFormContent } from '@/components/review-form/review-form-content';
 import { mergeWallConfig } from '@/lib/types/wall-config';
+import type { Metadata } from 'next';
 
 export const revalidate = 300; // Cache for 5 minutes
 
@@ -11,11 +12,8 @@ interface PageProps {
   searchParams: Promise<{ rid?: string }>;
 }
 
-export default async function ReviewPage({ params, searchParams }: PageProps) {
-  const { slug } = await params;
-  const { rid: reviewRequestId } = await searchParams;
-
-  const supabase = createServerClient(
+function getSupabaseClient() {
+  return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!.trim(),
     process.env.SUPABASE_SERVICE_ROLE_KEY!.trim(),
     {
@@ -25,10 +23,34 @@ export default async function ReviewPage({ params, searchParams }: PageProps) {
       },
     }
   );
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const supabase = getSupabaseClient();
+  const { data: org } = await supabase
+    .from('organizations')
+    .select('name')
+    .eq('slug', slug)
+    .single();
+
+  const name = org?.name || 'Business';
+  return {
+    title: `Leave a Review for ${name}`,
+    description: `Share your experience at ${name}. Your feedback helps us improve.`,
+    robots: { index: false, follow: false },
+  };
+}
+
+export default async function ReviewPage({ params, searchParams }: PageProps) {
+  const { slug } = await params;
+  const { rid: reviewRequestId } = await searchParams;
+
+  const supabase = getSupabaseClient();
 
   const { data: org } = await supabase
     .from('organizations')
-    .select('id, name, slug, logo_url, positive_threshold, wall_config, thankyou_positive_title, thankyou_positive_message, thankyou_negative_title, thankyou_negative_message, thankyou_coupon_code, thankyou_coupon_text, thankyou_social_links')
+    .select('id, name, slug, logo_url, positive_threshold, wall_config, review_form_heading, review_form_subheading, thankyou_positive_title, thankyou_positive_message, thankyou_negative_title, thankyou_negative_message, thankyou_coupon_code, thankyou_coupon_text, thankyou_social_links')
     .eq('slug', slug)
     .single();
 
@@ -93,6 +115,8 @@ export default async function ReviewPage({ params, searchParams }: PageProps) {
             slug: org.slug,
             logoUrl: org.logo_url,
             positiveThreshold: org.positive_threshold,
+            reviewFormHeading: org.review_form_heading,
+            reviewFormSubheading: org.review_form_subheading,
           }}
           thankYouConfig={{
             positiveTitle: org.thankyou_positive_title ?? 'Thank You!',

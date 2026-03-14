@@ -1,64 +1,95 @@
 import {
   Box, Container, Typography, Button, Grid, Card, CardContent,
-  AppBar, Toolbar, Chip, Avatar, Divider, Accordion, AccordionSummary,
-  AccordionDetails, Rating,
+  AppBar, Toolbar, Chip, Accordion, AccordionSummary,
+  AccordionDetails,
 } from '@mui/material';
 
 import {
-  Star, Send, BarChart3, Shield, ArrowRight, Zap, ChevronDown,
-  CheckCircle2, MessageSquare, TrendingUp, Smartphone, Quote,
+  Star, Send, Shield, ArrowRight, ChevronDown,
+  CheckCircle2, TrendingUp, Smartphone, QrCode,
+  Palette, Globe,
+  XCircle, AlertTriangle, ThumbsUp,
 } from 'lucide-react';
+import { ProductDemo } from '@/components/landing/product-demo';
 
-const features = [
+const painPoints = [
   {
-    icon: Send,
-    title: 'QR Code + SMS',
-    description: 'Customers scan a QR code at the counter, or you can text them a review link directly.',
+    icon: XCircle,
+    problem: 'Happy customers leave silently',
+    detail: 'They loved the experience but never think to leave a review. Meanwhile, the one unhappy customer posts a 1-star rant.',
   },
   {
-    icon: Star,
-    title: 'Smart Routing',
-    description: 'Positive reviews go to Google, Yelp & more. Negative feedback stays private.',
+    icon: AlertTriangle,
+    problem: 'One bad review tanks your rating',
+    detail: 'It takes roughly 20 five-star reviews to offset a single 1-star. Most businesses never recover their rating.',
   },
   {
-    icon: BarChart3,
-    title: 'Real-Time Dashboard',
-    description: 'See your review stats, trends, and response rates at a glance.',
+    icon: ThumbsUp,
+    problem: 'You\'re doing great work — Google doesn\'t show it',
+    detail: 'Your 4.8-star service is stuck at 3.6 online because only frustrated people post. That\'s costing you customers every day.',
+  },
+];
+
+const coreFeatures = [
+  {
+    icon: QrCode,
+    title: 'QR Code at the Counter',
+    description: 'Print a branded QR code. Customer scans, taps a star rating, done in under 30 seconds. No app, no login.',
+  },
+  {
+    icon: TrendingUp,
+    title: 'Smart Review Routing',
+    description: 'Happy customers (4-5 stars) get directed to Google, Yelp & Facebook. Unhappy ones (1-3 stars) stay private so you can follow up.',
   },
   {
     icon: Shield,
-    title: 'Reputation Protection',
-    description: 'Catch unhappy customers before they leave a public negative review.',
+    title: 'Catch Negatives Before They Go Public',
+    description: 'Get an instant email alert when someone rates you 1-3 stars. Reach out and make it right — before it hits Google.',
   },
   {
-    icon: Zap,
-    title: 'Fully Customisable',
-    description: 'Match your review page to your brand — colours, fonts, layout. Your customers see your business, not ours.',
+    icon: Globe,
+    title: 'All Reviews in One Dashboard',
+    description: 'Google, Facebook & Yelp reviews auto-synced into one place. Weekly email digest, rating trends, and response tracking.',
   },
   {
-    icon: MessageSquare,
-    title: 'Testimonial Wall',
-    description: 'Showcase your best reviews on a beautiful public page you can share anywhere.',
+    icon: Send,
+    title: 'SMS & Email Requests',
+    description: 'Staff enters a phone number, customer gets a text with your review link. Takes 5 seconds. Auto-reminders if they forget.',
   },
+  {
+    icon: Palette,
+    title: 'Your Brand, Not Ours',
+    description: 'Your logo, your colours on the review form. Plus a public testimonial wall to showcase your best reviews anywhere.',
+  },
+];
+
+const extraFeatures = [
+  'Staff leaderboard — see who sends the most requests',
+  'Unlimited staff accounts — no per-seat charges',
+  'Auto follow-up reminders for missed reviews',
+  'Weekly email digest with your best and worst reviews',
+  'Public testimonial wall with embed code',
+  'Custom SMS templates',
+  'Works with Google, Yelp, Facebook, TripAdvisor & any custom URL',
 ];
 
 const steps = [
   {
     step: '1',
     title: 'Customer scans your QR code',
-    desc: 'Place your branded QR code at the counter. Customers scan it with their phone in seconds.',
+    desc: 'Place your branded QR code at the counter, on tables, or on receipts. Customers scan it with their phone camera.',
     icon: Smartphone,
   },
   {
     step: '2',
     title: 'They tap a star rating',
-    desc: 'A branded review form loads instantly. One tap to rate their experience.',
+    desc: 'A branded review form loads instantly — your logo, your colours. One tap to rate, optional comment. Done in 10 seconds.',
     icon: Star,
   },
   {
     step: '3',
     title: 'Reviews go where they help most',
-    desc: '4-5 stars get directed to Google & Yelp. 1-3 stars stay private so you can follow up.',
+    desc: '4-5 stars? Directed straight to your Google or Yelp page. 1-3 stars? Stays private so you can follow up first.',
     icon: TrendingUp,
   },
 ];
@@ -66,27 +97,39 @@ const steps = [
 const faqs = [
   {
     q: 'How does the 14-day free trial work?',
-    a: 'Sign up and get full access to every feature for 14 days. Set up your review platforms, send your first requests, and see the results. After 14 days, your subscription begins automatically.',
+    a: 'Sign up and get full access to every feature for 14 days — QR codes, SMS, smart routing, dashboard, the lot. No card required upfront. After 14 days, your subscription begins at $79/mo.',
   },
   {
     q: 'Will this work for my type of business?',
-    a: 'InsightReviews works for any business that serves customers in person — cafes, restaurants, salons, dental clinics, auto shops, gyms, retail stores, and more. If you have customers walking through your door, we can help you get more reviews.',
+    a: 'If customers walk through your door, InsightReviews works for you. Cafes, restaurants, salons, dental clinics, physios, auto shops, gyms, retail stores, vets — any local business that serves customers in person.',
   },
   {
     q: 'What happens with negative reviews?',
-    a: 'That\'s the magic. When a customer rates you 1-3 stars, their feedback stays completely private. You get notified immediately so you can reach out and make it right - before they ever post publicly.',
+    a: 'That\'s the core of what we do. When a customer rates you 1-3 stars, their feedback stays completely private. You get an instant email alert so you can reach out and make it right — before they ever post publicly on Google.',
   },
   {
     q: 'How does the QR code work?',
-    a: 'We generate a unique QR code for your business. Print it and place it at your counter, on tables, or in receipts. Customers scan it with their phone camera and your branded review form pops up instantly. You can also send review links via SMS or email.',
+    a: 'We generate a unique QR code for your business. Print it and place it at your counter, on tables, on receipts, or wherever makes sense. Customers scan it with their phone camera — no app needed — and your branded review form pops up instantly.',
   },
   {
     q: 'Can my staff use it too?',
-    a: 'Absolutely. You can invite unlimited staff members to your account. They get access to the simple review collection screen - enter a phone number, hit send. That\'s it.',
+    a: 'Absolutely. Invite unlimited staff members. They get a simple screen: enter a phone number or show the QR code. There\'s even a staff leaderboard so you can see who\'s sending the most review requests.',
   },
   {
     q: 'Which review platforms do you support?',
-    a: 'Google, Yelp, Facebook, TripAdvisor, and any custom review URL. You choose which platforms to show your happy customers, and in what order.',
+    a: 'Google, Yelp, Facebook, TripAdvisor, and any custom review URL. We also auto-sync your existing reviews from Google, Facebook, and Yelp so everything\'s in one dashboard.',
+  },
+  {
+    q: 'Do you pull in my existing reviews?',
+    a: 'Yes. Connect your Google Business Profile, Facebook page, or Yelp listing and we\'ll sync all your existing reviews into the dashboard automatically. Updated regularly so you always have the full picture.',
+  },
+  {
+    q: 'Is this review gating? Is it allowed by Google?',
+    a: 'No. Every customer can leave a review on any platform they choose — we never block or filter reviews. We simply make it easier for happy customers to find your Google page, and give unhappy customers a private channel to share feedback with you directly. This is fully compliant with Google\'s review policies.',
+  },
+  {
+    q: 'What if I already have a low rating?',
+    a: 'That\'s exactly who we built this for. Most businesses with a low rating aren\'t doing bad work — they just have more negative reviews than positive ones because happy customers don\'t think to post. Start collecting consistently and you\'ll see the rating shift within weeks.',
   },
   {
     q: 'Can I cancel anytime?',
@@ -94,33 +137,22 @@ const faqs = [
   },
 ];
 
-const testimonials = [
+const proofStats = [
   {
-    quote: 'We were getting maybe one Google review a month before this. Now we get 10-15 a week without even thinking about it. Honestly wish we\'d started sooner.',
-    name: 'Marco Rossi',
-    business: 'Rossi\'s Trattoria, Lygon St',
-    rating: 5,
-    avatar: 'M',
+    stat: '<30 sec',
+    label: 'Scan to review',
+    detail: 'Customer scans your QR code, taps a star rating, leaves a comment if they want. No app download, no login, no friction.',
   },
   {
-    quote: 'Had a client leave unhappy on a Friday — got the private alert straight away, called her back, sorted it out. She rebooked and left us a 5-star review the next week.',
-    name: 'Priya Sharma',
-    business: 'Luxe Hair Studio, South Yarra',
-    rating: 5,
-    avatar: 'P',
+    stat: '5-9%',
+    label: 'More revenue per 0.5-star boost',
+    detail: 'Harvard Business School found that a half-star increase on review platforms drives measurably more revenue for local businesses.',
   },
   {
-    quote: 'The girls at the front desk just pop the number in after each appointment. Dead simple. We\'ve gone from 40 Google reviews to over 200 in three months.',
-    name: 'Dr. Tom Nguyen',
-    business: 'Bayside Dental, Brighton',
-    rating: 5,
-    avatar: 'T',
+    stat: '95%',
+    label: 'SMS open rate',
+    detail: 'Compared to 20% for email. When you send a review request via SMS, it actually gets seen and acted on.',
   },
-];
-
-const socialProofLogos = [
-  'Rossi\'s Trattoria', 'Luxe Hair Studio', 'Bayside Dental',
-  'FitZone Gym', 'Chapel St Auto', 'The Brunswick Eatery',
 ];
 
 export default function LandingPage() {
@@ -186,7 +218,6 @@ export default function LandingPage() {
           overflow: 'hidden',
         }}
       >
-        {/* Background decorative elements */}
         <Box
           sx={{
             position: 'absolute',
@@ -214,7 +245,7 @@ export default function LandingPage() {
           <Grid container spacing={6} alignItems="center">
             <Grid size={{ xs: 12, md: 7 }}>
               <Chip
-                label="Trusted by Melbourne businesses"
+                label="Built for Australian local businesses"
                 sx={{
                   mb: 3,
                   backgroundColor: 'rgba(251,191,36,0.15)',
@@ -235,7 +266,7 @@ export default function LandingPage() {
                   letterSpacing: '-0.02em',
                 }}
               >
-                Turn Every Happy Customer Into a{' '}
+                Your Happy Customers Don&apos;t Leave Reviews.{' '}
                 <Box
                   component="span"
                   sx={{
@@ -244,22 +275,23 @@ export default function LandingPage() {
                     WebkitTextFillColor: 'transparent',
                   }}
                 >
-                  5-Star Review
+                  Let&apos;s Fix That.
                 </Box>
               </Typography>
               <Typography
                 variant="h6"
                 sx={{
                   mb: 4,
-                  opacity: 0.8,
+                  opacity: 0.85,
                   fontWeight: 400,
                   lineHeight: 1.6,
-                  maxWidth: 540,
+                  maxWidth: 560,
                   fontSize: { xs: '1rem', md: '1.15rem' },
                 }}
               >
-                Collect reviews at the counter with a simple QR code. Route happy customers to Google and Yelp.
-                Catch unhappy ones privately before they post. Simple, automatic, and effective.
+                QR code on the counter. Customer scans, rates, done. Happy customers get
+                directed to Google. Unhappy ones stay private so you can follow up.
+                More 5-star reviews, fewer public complaints.
               </Typography>
               <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', mb: 3 }}>
                 <Button
@@ -303,17 +335,17 @@ export default function LandingPage() {
               </Box>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.5, sm: 1 }, opacity: 0.6, flexWrap: 'wrap' }}>
                 <CheckCircle2 size={14} />
-                <Typography variant="body2" fontSize={{ xs: '0.75rem', sm: '0.875rem' }}>14-day free trial</Typography>
+                <Typography variant="body2" fontSize={{ xs: '0.75rem', sm: '0.875rem' }}>No card required</Typography>
                 <Box sx={{ mx: 0.5 }}>|</Box>
                 <CheckCircle2 size={14} />
-                <Typography variant="body2" fontSize={{ xs: '0.75rem', sm: '0.875rem' }}>Setup in 2 min</Typography>
+                <Typography variant="body2" fontSize={{ xs: '0.75rem', sm: '0.875rem' }}>Setup in 2 minutes</Typography>
                 <Box sx={{ mx: 0.5 }}>|</Box>
                 <CheckCircle2 size={14} />
-                <Typography variant="body2" fontSize={{ xs: '0.75rem', sm: '0.875rem' }}>Works with Google, Yelp & more</Typography>
+                <Typography variant="body2" fontSize={{ xs: '0.75rem', sm: '0.875rem' }}>Google, Yelp, Facebook & more</Typography>
               </Box>
             </Grid>
 
-            {/* Phone Mockup Area */}
+            {/* Phone Mockup */}
             <Grid size={{ xs: 12, md: 5 }} sx={{ display: { xs: 'none', md: 'flex' }, justifyContent: 'center' }}>
               <Box
                 sx={{
@@ -330,7 +362,6 @@ export default function LandingPage() {
                   boxShadow: '0 25px 60px rgba(0,0,0,0.3)',
                 }}
               >
-                {/* Phone notch */}
                 <Box
                   sx={{
                     width: 120,
@@ -341,7 +372,6 @@ export default function LandingPage() {
                     mb: 3,
                   }}
                 />
-                {/* Phone content */}
                 <Box
                   sx={{
                     flex: 1,
@@ -370,14 +400,13 @@ export default function LandingPage() {
                   <Typography
                     sx={{ color: '#0f172a', fontWeight: 700, fontSize: '0.95rem', mb: 0.5 }}
                   >
-                    Rossi&apos;s Trattoria
+                    Sage &amp; Vine Cafe
                   </Typography>
                   <Typography
                     sx={{ color: '#64748b', fontSize: '0.75rem', mb: 2, textAlign: 'center' }}
                   >
-                    How was your meal today?
+                    How was your visit today?
                   </Typography>
-                  {/* Star rating display */}
                   <Box sx={{ display: 'flex', gap: 0.5, mb: 2 }}>
                     {[1, 2, 3, 4, 5].map((s) => (
                       <Box
@@ -410,7 +439,7 @@ export default function LandingPage() {
                     }}
                   >
                     <Typography sx={{ color: '#94a3b8', fontSize: '0.7rem' }}>
-                      Amazing pasta, will definitely be back!
+                      Great coffee, lovely staff!
                     </Typography>
                   </Box>
                   <Box
@@ -426,10 +455,9 @@ export default function LandingPage() {
                       Submit Review
                     </Typography>
                   </Box>
-                  {/* Success state hint */}
                   <Box sx={{ mt: 'auto', textAlign: 'center' }}>
                     <Typography sx={{ color: '#16a34a', fontSize: '0.65rem', fontWeight: 600 }}>
-                      Then redirected to Google Reviews
+                      ✓ 4 stars → Redirected to Google Reviews
                     </Typography>
                   </Box>
                 </Box>
@@ -439,63 +467,80 @@ export default function LandingPage() {
         </Container>
       </Box>
 
-      {/* Social Proof Bar */}
-      <Box
-        sx={{
-          py: 4,
-          backgroundColor: 'white',
-          borderBottom: '1px solid',
-          borderColor: 'divider',
-        }}
-      >
+      {/* The Problem */}
+      <Box sx={{ py: { xs: 8, md: 10 }, backgroundColor: 'white' }}>
         <Container maxWidth="lg">
           <Typography
-            variant="body2"
+            variant="overline"
             textAlign="center"
-            color="text.secondary"
-            sx={{ mb: 3, fontWeight: 500, textTransform: 'uppercase', letterSpacing: 1, fontSize: '0.75rem' }}
+            display="block"
+            sx={{ color: '#dc2626', fontWeight: 700, letterSpacing: 2, mb: 1 }}
           >
-            Trusted by local businesses across Melbourne
+            The Problem
           </Typography>
-          <Box
-            sx={{
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              gap: { xs: 2, md: 5 },
-              flexWrap: 'wrap',
-            }}
+          <Typography
+            variant="h3"
+            fontWeight={800}
+            textAlign="center"
+            sx={{ mb: 2, fontSize: { xs: '1.8rem', md: '2.4rem' } }}
           >
-            {socialProofLogos.map((name) => (
-              <Box
-                key={name}
-                sx={{
-                  px: 3,
-                  py: 1,
-                  borderRadius: '8px',
-                  backgroundColor: '#f8fafc',
-                  border: '1px solid #e2e8f0',
-                }}
-              >
-                <Typography
-                  sx={{
-                    fontWeight: 700,
-                    color: '#94a3b8',
-                    fontSize: '0.85rem',
-                    letterSpacing: '0.02em',
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  {name}
-                </Typography>
-              </Box>
-            ))}
-          </Box>
+            Your Rating Is Costing You Customers
+          </Typography>
+          <Typography
+            variant="body1"
+            color="text.secondary"
+            textAlign="center"
+            sx={{ mb: 6, maxWidth: 550, mx: 'auto' }}
+          >
+            88% of consumers check online reviews before choosing a local business.
+            If your rating is below 4 stars, they&apos;re going to your competitor.
+          </Typography>
+          <Grid container spacing={3}>
+            {painPoints.map((p) => {
+              const Icon = p.icon;
+              return (
+                <Grid key={p.problem} size={{ xs: 12, md: 4 }}>
+                  <Card
+                    sx={{
+                      height: '100%',
+                      border: '1px solid',
+                      borderColor: '#fecaca',
+                      boxShadow: 'none',
+                      backgroundColor: '#fef2f2',
+                    }}
+                  >
+                    <CardContent sx={{ p: 3 }}>
+                      <Box
+                        sx={{
+                          width: 48,
+                          height: 48,
+                          borderRadius: '12px',
+                          backgroundColor: '#fee2e2',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          mb: 2,
+                        }}
+                      >
+                        <Icon size={24} color="#dc2626" />
+                      </Box>
+                      <Typography variant="h6" fontWeight={700} gutterBottom>
+                        {p.problem}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary" lineHeight={1.7}>
+                        {p.detail}
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              );
+            })}
+          </Grid>
         </Container>
       </Box>
 
       {/* How it Works */}
-      <Box id="how-it-works" sx={{ py: { xs: 8, md: 10 }, backgroundColor: 'white' }}>
+      <Box id="how-it-works" sx={{ py: { xs: 8, md: 10 }, background: 'linear-gradient(180deg, #f8fafc 0%, white 100%)' }}>
         <Container maxWidth="md">
           <Typography
             variant="overline"
@@ -511,7 +556,7 @@ export default function LandingPage() {
             textAlign="center"
             sx={{ mb: 2, fontSize: { xs: '1.8rem', md: '2.4rem' } }}
           >
-            Three Steps to More 5-Star Reviews
+            Three Steps. More 5-Star Reviews.
           </Typography>
           <Typography
             variant="body1"
@@ -523,7 +568,6 @@ export default function LandingPage() {
           </Typography>
 
           <Box sx={{ position: 'relative' }}>
-            {/* Connecting line */}
             <Box
               sx={{
                 display: { xs: 'none', md: 'block' },
@@ -536,7 +580,6 @@ export default function LandingPage() {
                 zIndex: 0,
               }}
             />
-
             <Grid container spacing={4}>
               {steps.map((item) => {
                 const StepIcon = item.icon;
@@ -594,15 +637,9 @@ export default function LandingPage() {
         </Container>
       </Box>
 
-      {/* See it in action - Phone Mockup (mobile) */}
-      <Box
-        sx={{
-          display: { xs: 'block', md: 'none' },
-          py: 8,
-          background: 'linear-gradient(180deg, #f8fafc 0%, #eff6ff 100%)',
-        }}
-      >
-        <Container maxWidth="sm">
+      {/* Interactive Demo */}
+      <Box sx={{ py: { xs: 8, md: 10 }, background: 'linear-gradient(180deg, white 0%, #f8fafc 100%)' }}>
+        <Container maxWidth="md">
           <Typography
             variant="overline"
             textAlign="center"
@@ -612,83 +649,93 @@ export default function LandingPage() {
             See It In Action
           </Typography>
           <Typography
-            variant="h4"
+            variant="h3"
             fontWeight={800}
             textAlign="center"
-            sx={{ mb: 2 }}
+            sx={{ mb: 2, fontSize: { xs: '1.8rem', md: '2.4rem' } }}
           >
-            What Your Customers See
+            Watch the Customer Experience
           </Typography>
           <Typography
             variant="body1"
             color="text.secondary"
             textAlign="center"
-            sx={{ mb: 4 }}
+            sx={{ mb: 5, maxWidth: 460, mx: 'auto' }}
           >
-            A clean, branded review form that takes 10 seconds to complete.
+            From QR scan to Google review in under 30 seconds. Here&apos;s exactly what your customers see.
           </Typography>
-          {/* Simplified phone mockup for mobile */}
-          <Box
-            sx={{
-              maxWidth: 260,
-              mx: 'auto',
-              borderRadius: '28px',
-              border: '3px solid #e2e8f0',
-              backgroundColor: 'white',
-              p: 2,
-              boxShadow: '0 20px 50px rgba(0,0,0,0.1)',
-            }}
-          >
-            <Box sx={{ borderRadius: '16px', backgroundColor: '#f8fafc', p: 2.5, textAlign: 'center' }}>
-              <Box
-                sx={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: '10px',
-                  background: 'linear-gradient(135deg, #2563eb, #1d4ed8)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  mx: 'auto',
-                  mb: 1,
-                }}
-              >
-                <Star size={20} color="#fbbf24" fill="#fbbf24" />
-              </Box>
-              <Typography sx={{ fontWeight: 700, fontSize: '0.85rem', mb: 0.5 }}>
-                Rossi&apos;s Trattoria
-              </Typography>
-              <Typography sx={{ color: '#64748b', fontSize: '0.7rem', mb: 1.5 }}>
-                How was your meal?
-              </Typography>
-              <Box sx={{ display: 'flex', gap: 0.5, justifyContent: 'center', mb: 1.5 }}>
-                {[1, 2, 3, 4, 5].map((s) => (
-                  <Star
-                    key={s}
-                    size={24}
-                    color="#fbbf24"
-                    fill={s <= 5 ? '#fbbf24' : 'none'}
-                  />
-                ))}
-              </Box>
-              <Box
-                sx={{
-                  py: 1,
-                  borderRadius: '8px',
-                  backgroundColor: '#2563eb',
-                  textAlign: 'center',
-                }}
-              >
-                <Typography sx={{ color: 'white', fontWeight: 600, fontSize: '0.75rem' }}>
-                  Submit Review
-                </Typography>
-              </Box>
-            </Box>
-          </Box>
+          <ProductDemo />
         </Container>
       </Box>
 
-      {/* Product Screenshot */}
+      {/* Stats */}
+      <Box sx={{ py: { xs: 8, md: 10 }, backgroundColor: 'white' }}>
+        <Container maxWidth="lg">
+          <Typography
+            variant="overline"
+            textAlign="center"
+            display="block"
+            sx={{ color: '#f59e0b', fontWeight: 700, letterSpacing: 2, mb: 1 }}
+          >
+            The Numbers
+          </Typography>
+          <Typography
+            variant="h3"
+            fontWeight={800}
+            textAlign="center"
+            sx={{ mb: 2, fontSize: { xs: '1.8rem', md: '2.4rem' } }}
+          >
+            Why It Works
+          </Typography>
+          <Typography
+            variant="body1"
+            color="text.secondary"
+            textAlign="center"
+            sx={{ mb: 6, maxWidth: 550, mx: 'auto' }}
+          >
+            QR code on the counter or SMS after the visit. Two simple ways to collect reviews that actually get results.
+          </Typography>
+          <Grid container spacing={3}>
+            {proofStats.map((s) => (
+              <Grid key={s.label} size={{ xs: 12, md: 4 }}>
+                <Card
+                  sx={{
+                    height: '100%',
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    boxShadow: 'none',
+                    textAlign: 'center',
+                  }}
+                >
+                  <CardContent sx={{ p: 3.5 }}>
+                    <Typography
+                      variant="h2"
+                      fontWeight={900}
+                      sx={{
+                        mb: 1,
+                        fontSize: { xs: '2.5rem', md: '3rem' },
+                        background: 'linear-gradient(135deg, #2563eb, #7c3aed)',
+                        WebkitBackgroundClip: 'text',
+                        WebkitTextFillColor: 'transparent',
+                      }}
+                    >
+                      {s.stat}
+                    </Typography>
+                    <Typography variant="h6" fontWeight={700} sx={{ mb: 1.5 }}>
+                      {s.label}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.7 }}>
+                      {s.detail}
+                    </Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
+        </Container>
+      </Box>
+
+      {/* Dashboard Screenshot */}
       <Box
         sx={{
           py: { xs: 6, md: 10 },
@@ -710,15 +757,16 @@ export default function LandingPage() {
             textAlign="center"
             sx={{ mb: 2, fontSize: { xs: '1.8rem', md: '2.4rem' } }}
           >
-            Everything at a Glance
+            Every Review. Every Platform. One Dashboard.
           </Typography>
           <Typography
             variant="body1"
             color="text.secondary"
             textAlign="center"
-            sx={{ mb: 5, maxWidth: 520, mx: 'auto' }}
+            sx={{ mb: 5, maxWidth: 560, mx: 'auto' }}
           >
-            Track reviews, monitor your reputation score, and see exactly where your customers are coming from.
+            Google, Facebook, and Yelp reviews auto-synced into one place. See your rating trend, review funnel,
+            staff leaderboard, and weekly performance — without logging into three different platforms.
           </Typography>
           <Box
             sx={{
@@ -730,17 +778,19 @@ export default function LandingPage() {
               mx: { xs: 0, md: 4 },
             }}
           >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/screenshots/dashboard-hero.png"
-              alt="InsightReviews dashboard showing review stats, NPS score, and review funnel"
+              alt="InsightReviews dashboard showing review stats, rating trends, and review funnel analytics"
               style={{ width: '100%', display: 'block' }}
+              loading="lazy"
             />
           </Box>
         </Container>
       </Box>
 
-      {/* Features */}
-      <Box sx={{ backgroundColor: '#f8fafc', py: { xs: 8, md: 10 } }}>
+      {/* Features Grid */}
+      <Box sx={{ backgroundColor: 'white', py: { xs: 8, md: 10 } }}>
         <Container maxWidth="lg">
           <Typography
             variant="overline"
@@ -748,7 +798,7 @@ export default function LandingPage() {
             display="block"
             sx={{ color: '#2563eb', fontWeight: 700, letterSpacing: 2, mb: 1 }}
           >
-            Features
+            Everything Included
           </Typography>
           <Typography
             variant="h3"
@@ -756,18 +806,18 @@ export default function LandingPage() {
             textAlign="center"
             sx={{ mb: 2, fontSize: { xs: '1.8rem', md: '2.4rem' } }}
           >
-            Everything You Need to Grow Your Reputation
+            Built for Local Businesses. Not Enterprise Complexity.
           </Typography>
           <Typography
             variant="body1"
             color="text.secondary"
             textAlign="center"
-            sx={{ mb: 6, maxWidth: 500, mx: 'auto' }}
+            sx={{ mb: 6, maxWidth: 540, mx: 'auto' }}
           >
-            Built specifically for local businesses. No enterprise complexity.
+            Collect reviews, protect your reputation, grow your rating. Here&apos;s what you get.
           </Typography>
           <Grid container spacing={3}>
-            {features.map((feature) => {
+            {coreFeatures.map((feature) => {
               const Icon = feature.icon;
               return (
                 <Grid key={feature.title} size={{ xs: 12, sm: 6, md: 4 }}>
@@ -788,9 +838,9 @@ export default function LandingPage() {
                     <CardContent sx={{ p: 3 }}>
                       <Box
                         sx={{
-                          width: 52,
-                          height: 52,
-                          borderRadius: '14px',
+                          width: 48,
+                          height: 48,
+                          borderRadius: '12px',
                           background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)',
                           display: 'flex',
                           alignItems: 'center',
@@ -798,9 +848,9 @@ export default function LandingPage() {
                           mb: 2,
                         }}
                       >
-                        <Icon size={24} color="#2563eb" />
+                        <Icon size={22} color="#2563eb" />
                       </Box>
-                      <Typography variant="h6" fontWeight={700} gutterBottom>
+                      <Typography variant="h6" fontWeight={700} gutterBottom sx={{ fontSize: '1rem' }}>
                         {feature.title}
                       </Typography>
                       <Typography variant="body2" color="text.secondary" lineHeight={1.7}>
@@ -812,101 +862,33 @@ export default function LandingPage() {
               );
             })}
           </Grid>
-        </Container>
-      </Box>
 
-      {/* Testimonials */}
-      <Box sx={{ py: { xs: 8, md: 10 }, backgroundColor: 'white' }}>
-        <Container maxWidth="lg">
-          <Typography
-            variant="overline"
-            textAlign="center"
-            display="block"
-            sx={{ color: '#f59e0b', fontWeight: 700, letterSpacing: 2, mb: 1 }}
-          >
-            Testimonials
-          </Typography>
-          <Typography
-            variant="h3"
-            fontWeight={800}
-            textAlign="center"
-            sx={{ mb: 2, fontSize: { xs: '1.8rem', md: '2.4rem' } }}
-          >
-            Loved by Business Owners
-          </Typography>
-          <Typography
-            variant="body1"
-            color="text.secondary"
-            textAlign="center"
-            sx={{ mb: 6, maxWidth: 500, mx: 'auto' }}
-          >
-            See what our customers have to say about InsightReviews.
-          </Typography>
-          <Grid container spacing={3}>
-            {testimonials.map((t) => (
-              <Grid key={t.name} size={{ xs: 12, md: 4 }}>
-                <Card
+          {/* Plus everything else */}
+          <Box sx={{ mt: 5, textAlign: 'center' }}>
+            <Typography variant="h6" fontWeight={700} sx={{ mb: 2 }}>
+              Plus everything else you&apos;d expect
+            </Typography>
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 1.5, maxWidth: 700, mx: 'auto' }}>
+              {extraFeatures.map((item) => (
+                <Chip
+                  key={item}
+                  label={item}
+                  size="small"
                   sx={{
-                    height: '100%',
-                    border: '1px solid',
-                    borderColor: 'divider',
-                    boxShadow: 'none',
-                    position: 'relative',
-                    overflow: 'visible',
+                    backgroundColor: '#f1f5f9',
+                    fontWeight: 500,
+                    fontSize: '0.8rem',
                   }}
-                >
-                  <CardContent sx={{ p: 3.5 }}>
-                    <Quote
-                      size={28}
-                      color="#e2e8f0"
-                      fill="#e2e8f0"
-                      style={{ marginBottom: 8 }}
-                    />
-                    <Rating value={t.rating} readOnly size="small" sx={{ mb: 2 }} />
-                    <Typography
-                      variant="body1"
-                      sx={{ mb: 3, lineHeight: 1.7, color: '#334155', fontStyle: 'italic' }}
-                    >
-                      &ldquo;{t.quote}&rdquo;
-                    </Typography>
-                    <Divider sx={{ mb: 2 }} />
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                      <Avatar
-                        sx={{
-                          width: 40,
-                          height: 40,
-                          backgroundColor: '#2563eb',
-                          fontWeight: 700,
-                          fontSize: '0.9rem',
-                        }}
-                      >
-                        {t.avatar}
-                      </Avatar>
-                      <Box>
-                        <Typography variant="body2" fontWeight={700}>
-                          {t.name}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          {t.business}
-                        </Typography>
-                      </Box>
-                    </Box>
-                  </CardContent>
-                </Card>
-              </Grid>
-            ))}
-          </Grid>
+                />
+              ))}
+            </Box>
+          </Box>
         </Container>
       </Box>
 
       {/* Pricing */}
-      <Box
-        sx={{
-          py: { xs: 8, md: 10 },
-          background: 'linear-gradient(180deg, #f8fafc 0%, #eff6ff 100%)',
-        }}
-      >
-        <Container maxWidth="lg" sx={{ textAlign: 'center' }}>
+      <Box id="pricing" sx={{ py: { xs: 8, md: 10 }, background: 'linear-gradient(180deg, #f8fafc 0%, #eff6ff 100%)' }}>
+        <Container maxWidth="md">
           <Typography
             variant="overline"
             textAlign="center"
@@ -918,98 +900,82 @@ export default function LandingPage() {
           <Typography
             variant="h3"
             fontWeight={800}
+            textAlign="center"
             sx={{ mb: 2, fontSize: { xs: '1.8rem', md: '2.4rem' } }}
           >
-            Plans That Grow With You
+            One Plan. Everything Included.
           </Typography>
-          <Typography variant="body1" color="text.secondary" sx={{ mb: 1 }}>
-            Simple pricing for local businesses. Start with a 14-day free trial.
+          <Typography
+            variant="body1"
+            color="text.secondary"
+            textAlign="center"
+            sx={{ mb: 1, maxWidth: 520, mx: 'auto' }}
+          >
+            A 0.5-star rating boost drives 5-9% more revenue. For a business doing $30K/month,
+            that&apos;s $1,500-2,700/month — from a $79 investment.
           </Typography>
-          <Chip
-            label="14-day free trial included"
-            size="small"
-            sx={{
-              mb: 5,
-              backgroundColor: '#fef3c7',
-              color: '#92400e',
-              fontWeight: 600,
-              fontSize: '0.75rem',
-            }}
-          />
+          <Box sx={{ textAlign: 'center', mb: 5 }}>
+            <Chip
+              label="14-day free trial — no card required"
+              size="small"
+              sx={{ backgroundColor: '#fef3c7', color: '#92400e', fontWeight: 600, fontSize: '0.75rem' }}
+            />
+          </Box>
 
           <Box sx={{ maxWidth: 420, mx: 'auto' }}>
-            <Card
-              sx={{
-                p: { xs: 3, md: 4 },
-                display: 'flex',
-                flexDirection: 'column',
-                border: '2px solid',
-                borderColor: 'primary.main',
-                borderRadius: 3,
-                boxShadow: '0 12px 40px rgba(37,99,235,0.15)',
-                position: 'relative',
-                overflow: 'visible',
-              }}
-            >
-              <Box sx={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', mb: 0.5 }}>
-                <Typography variant="h2" fontWeight={900} color="primary" sx={{ fontSize: { xs: '2.5rem', md: '3rem' } }}>
-                  $79
-                </Typography>
-                <Typography variant="h6" color="text.secondary" sx={{ ml: 1 }}>
-                  /mo
-                </Typography>
-              </Box>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-                per location
-              </Typography>
+            <Card sx={{ border: '2px solid', borderColor: 'primary.main', borderRadius: 3, boxShadow: '0 12px 40px rgba(37,99,235,0.15)' }}>
+              <CardContent sx={{ p: { xs: 3, md: 4 } }}>
+                <Box sx={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', mb: 0.5 }}>
+                  <Typography variant="h2" fontWeight={900} color="primary" sx={{ fontSize: { xs: '2.5rem', md: '3rem' } }}>$79</Typography>
+                  <Typography variant="h6" color="text.secondary" sx={{ ml: 1 }}>/mo</Typography>
+                </Box>
+                <Typography variant="body2" color="text.secondary" textAlign="center" sx={{ mb: 3 }}>per location</Typography>
 
-              <Box sx={{ textAlign: 'left', mb: 3 }}>
-                {[
-                  'Smart review routing to Google, Yelp & more',
-                  'QR code + SMS review collection',
-                  'Real-time dashboard & analytics',
-                  'Auto-sync with review platforms',
-                  'Public testimonial wall',
-                  'Private negative feedback capture',
-                  'Staff accounts & team management',
-                  'Email & SMS notifications',
-                  'Custom branding',
-                ].map((item) => (
-                  <Box key={item} sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 0.6 }}>
-                    <CheckCircle2 size={16} color="#16a34a" />
-                    <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                      {item}
-                    </Typography>
-                  </Box>
-                ))}
-              </Box>
+                <Box sx={{ mb: 3 }}>
+                  {[
+                    'QR code + SMS review collection',
+                    'Smart routing to Google, Yelp, Facebook & more',
+                    'Auto-sync reviews from all platforms',
+                    'Instant email alerts on negative reviews',
+                    'Weekly performance digest',
+                    'Auto follow-up reminders',
+                    'Unlimited staff accounts + leaderboard',
+                    'Public testimonial wall',
+                    'Fully branded — your logo, your colours',
+                    'Setup in 2 minutes, no contract',
+                  ].map((item) => (
+                    <Box key={item} sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 0.5 }}>
+                      <CheckCircle2 size={14} color="#16a34a" />
+                      <Typography variant="body2" sx={{ fontWeight: 500 }}>{item}</Typography>
+                    </Box>
+                  ))}
+                </Box>
 
-              <Button
-                href="/auth/login?mode=signup"
-                variant="contained"
-                size="large"
-                fullWidth
-                endIcon={<ArrowRight size={18} />}
-                sx={{
-                  py: 1.5,
-                  fontSize: '1rem',
-                  fontWeight: 700,
-                  background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
-                  boxShadow: '0 4px 14px rgba(37,99,235,0.3)',
-                  '&:hover': {
-                    boxShadow: '0 6px 20px rgba(37,99,235,0.4)',
-                  },
-                }}
-              >
-                Start Free Trial
-              </Button>
+                <Button
+                  href="/auth/login?mode=signup"
+                  variant="contained"
+                  size="large"
+                  fullWidth
+                  endIcon={<ArrowRight size={18} />}
+                  sx={{
+                    py: 1.5,
+                    fontSize: '1rem',
+                    fontWeight: 700,
+                    background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
+                    boxShadow: '0 4px 14px rgba(37,99,235,0.3)',
+                    '&:hover': { boxShadow: '0 6px 20px rgba(37,99,235,0.4)' },
+                  }}
+                >
+                  Try It Free for 14 Days
+                </Button>
+              </CardContent>
             </Card>
           </Box>
         </Container>
       </Box>
 
       {/* FAQ */}
-      <Box sx={{ py: { xs: 8, md: 10 }, backgroundColor: 'white' }}>
+      <Box sx={{ py: { xs: 8, md: 10 }, background: 'linear-gradient(180deg, #f8fafc 0%, white 100%)' }}>
         <Container maxWidth="md">
           <Typography
             variant="overline"
@@ -1071,6 +1037,59 @@ export default function LandingPage() {
         </Container>
       </Box>
 
+      {/* Works With + Founder Trust */}
+      <Box sx={{ py: { xs: 6, md: 8 }, backgroundColor: 'white' }}>
+        <Container maxWidth="md" sx={{ textAlign: 'center' }}>
+          <Typography
+            variant="body2"
+            sx={{ mb: 3, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 1.5, fontSize: '0.7rem', color: '#94a3b8' }}
+          >
+            Works with the platforms your customers use
+          </Typography>
+          <Box sx={{ display: 'flex', justifyContent: 'center', gap: { xs: 3, md: 5 }, flexWrap: 'wrap', mb: 6 }}>
+            {['Google', 'Yelp', 'Facebook', 'TripAdvisor'].map((platform) => (
+              <Typography key={platform} sx={{ fontWeight: 700, color: '#94a3b8', fontSize: '1.1rem', letterSpacing: '0.01em' }}>
+                {platform}
+              </Typography>
+            ))}
+          </Box>
+
+          <Box sx={{
+            maxWidth: 520,
+            mx: 'auto',
+            p: { xs: 3, md: 4 },
+            borderRadius: 3,
+            backgroundColor: '#f8fafc',
+            border: '1px solid',
+            borderColor: 'divider',
+          }}>
+            <Typography variant="h6" fontWeight={700} sx={{ mb: 1.5 }}>
+              Built in Melbourne by Tristan
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.8, mb: 2 }}>
+              I kept seeing great local businesses — cafes, dentists, salons — stuck with 3-star ratings
+              because their happy customers never thought to leave a review. The unhappy ones always did.
+              I built InsightReviews to fix that imbalance. It&apos;s simple, it works, and it&apos;s priced
+              for businesses that don&apos;t have enterprise budgets.
+            </Typography>
+            <Box sx={{ display: 'flex', justifyContent: 'center', gap: 3, flexWrap: 'wrap' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                <Shield size={14} color="#2563eb" />
+                <Typography variant="caption" sx={{ fontWeight: 600, color: '#64748b' }}>No contracts</Typography>
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                <CheckCircle2 size={14} color="#2563eb" />
+                <Typography variant="caption" sx={{ fontWeight: 600, color: '#64748b' }}>Cancel anytime</Typography>
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                <Star size={14} color="#2563eb" />
+                <Typography variant="caption" sx={{ fontWeight: 600, color: '#64748b' }}>Australian owned</Typography>
+              </Box>
+            </Box>
+          </Box>
+        </Container>
+      </Box>
+
       {/* Final CTA */}
       <Box
         sx={{
@@ -1091,10 +1110,11 @@ export default function LandingPage() {
             fontWeight={800}
             sx={{ mb: 2, fontSize: { xs: '1.6rem', md: '2.2rem' } }}
           >
-            Ready to Get More 5-Star Reviews?
+            Stop Losing Customers to a Low Rating
           </Typography>
-          <Typography variant="body1" sx={{ mb: 4, opacity: 0.8, maxWidth: 420, mx: 'auto' }}>
-            Join local businesses across Melbourne already using InsightReviews to build their online reputation.
+          <Typography variant="body1" sx={{ mb: 4, opacity: 0.85, maxWidth: 440, mx: 'auto' }}>
+            Every day without review collection is another day your happy customers leave silently
+            while the unhappy ones post publicly. Fix that in the next 2 minutes.
           </Typography>
           <Button
             href="/auth/login?mode=signup"
@@ -1115,10 +1135,10 @@ export default function LandingPage() {
               },
             }}
           >
-            Start Free 14-Day Trial
+            Get Your First 5-Star Review This Week
           </Button>
           <Typography variant="body2" sx={{ mt: 2, opacity: 0.6 }}>
-            Setup takes 2 minutes. 14-day free trial included.
+            No card required. Setup takes 2 minutes. Cancel anytime.
           </Typography>
         </Container>
       </Box>
@@ -1160,106 +1180,17 @@ export default function LandingPage() {
                 InsightReviews
               </Typography>
             </Box>
-            <Typography variant="body2" color="text.secondary">
-              &copy; {new Date().getFullYear()} InsightReviews. All rights reserved.
-            </Typography>
-          </Box>
-          <Box
-            sx={{
-              display: 'flex',
-              flexWrap: 'wrap',
-              justifyContent: 'center',
-              alignItems: 'center',
-              gap: { xs: 1, md: 1.5 },
-              mt: 3,
-              pt: 3,
-              borderTop: '1px solid',
-              borderColor: 'divider',
-            }}
-          >
-            <Typography variant="caption" color="text.disabled" sx={{ mr: 0.5 }}>
-              Featured on
-            </Typography>
-            {[
-              { name: 'Startup Fame', url: 'https://startupfa.me/s/insightreviews?utm_source=insightreviews.com.au' },
-              { name: 'Fazier', url: 'https://fazier.com/launches/insightreviews' },
-              { name: 'Findly.tools', url: 'https://findly.tools' },
-              { name: 'NewTool.site', url: 'https://newtool.site' },
-              { name: 'Turbo0', url: 'https://turbo0.com/item/insightreviews' },
-              { name: 'Dofollow.Tools', url: 'https://dofollow.tools' },
-              { name: 'FrogDR', url: 'https://frogdr.com' },
-              { name: 'Stack Directory', url: 'https://stackdirectory.com' },
-              { name: 'Startup Fast', url: 'https://startupfa.st' },
-              { name: 'LaunchVoid', url: 'https://launchvoid.com' },
-              { name: 'SaaSBison', url: 'https://saasbison.com' },
-              { name: 'Startup Vessel', url: 'https://startupvessel.com' },
-              { name: 'ToolPilot.ai', url: 'https://www.toolpilot.ai' },
-              { name: 'Web Review', url: 'https://web-review.com' },
-              { name: 'Twelve Tools', url: 'https://twelve.tools' },
-              { name: 'Wired Business', url: 'https://wired.business' },
-              { name: 'DeepLaunch', url: 'https://deeplaunch.io' },
-            ].map((dir) => (
-              <Typography
-                key={dir.name}
-                component="a"
-                href={dir.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                variant="caption"
-                sx={{
-                  color: 'text.disabled',
-                  textDecoration: 'none',
-                  '&:hover': {
-                    color: 'text.secondary',
-                    textDecoration: 'underline',
-                  },
-                  transition: 'color 0.2s',
-                }}
-              >
-                {dir.name}
+            <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+              <Typography variant="body2" color="text.secondary" component="a" href="mailto:tristan@insightreviews.com.au" sx={{ textDecoration: 'none', '&:hover': { color: '#2563eb' } }}>
+                Contact
               </Typography>
-            ))}
+              <Typography variant="body2" color="text.secondary">
+                &copy; {new Date().getFullYear()} InsightReviews. Melbourne, Australia.
+              </Typography>
+            </Box>
           </Box>
         </Container>
       </Box>
-
-      {/* Sticky Mobile CTA */}
-      <Box
-        sx={{
-          display: { xs: 'block', md: 'none' },
-          position: 'fixed',
-          bottom: 0,
-          left: 0,
-          right: 0,
-          p: 2,
-          backgroundColor: 'rgba(255,255,255,0.95)',
-          backdropFilter: 'blur(12px)',
-          borderTop: '1px solid',
-          borderColor: 'divider',
-          zIndex: 1100,
-          boxShadow: '0 -4px 20px rgba(0,0,0,0.08)',
-        }}
-      >
-        <Button
-          href="/auth/login?mode=signup"
-          variant="contained"
-          fullWidth
-          size="large"
-          endIcon={<ArrowRight size={18} />}
-          sx={{
-            py: 1.3,
-            fontWeight: 700,
-            fontSize: '0.95rem',
-            background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
-            boxShadow: '0 2px 10px rgba(37,99,235,0.3)',
-          }}
-        >
-          Start Free Trial
-        </Button>
-      </Box>
-
-      {/* Spacer for sticky CTA on mobile */}
-      <Box sx={{ display: { xs: 'block', md: 'none' }, height: 80 }} />
     </Box>
   );
 }

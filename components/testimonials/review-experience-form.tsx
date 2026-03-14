@@ -9,17 +9,25 @@ import { Save, Gift, Instagram, Facebook, Clock, Globe, Star, ExternalLink } fro
 import NextLink from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { useSnackbar } from '@/components/providers/snackbar-provider';
-import type { Organization, OrganizationIntegration } from '@/lib/types/database';
+import type { Organization, OrganizationIntegration, ReviewPlatform } from '@/lib/types/database';
+import type { ThankYouConfig } from '@/components/review-form/review-form-content';
+import type { Platform } from '@/components/testimonials/testimonial-page-tabs';
 
 interface ReviewExperienceFormProps {
   org: Organization;
   isOwner: boolean;
   integrations: OrganizationIntegration[];
+  manualPlatforms: ReviewPlatform[];
+  onThankYouConfigChange?: (config: ThankYouConfig) => void;
+  onPlatformsChange?: (platforms: Platform[]) => void;
 }
 
-export function ReviewExperienceForm({ org, isOwner, integrations }: ReviewExperienceFormProps) {
+export function ReviewExperienceForm({ org, isOwner, integrations, manualPlatforms, onThankYouConfigChange, onPlatformsChange }: ReviewExperienceFormProps) {
   const [integrationStates, setIntegrationStates] = useState<Record<string, boolean>>(
     () => Object.fromEntries(integrations.map(i => [i.id, i.show_on_review_form]))
+  );
+  const [manualPlatformStates, setManualPlatformStates] = useState<Record<string, boolean>>(
+    () => Object.fromEntries(manualPlatforms.map(p => [p.id, p.enabled]))
   );
   const [togglingId, setTogglingId] = useState<string | null>(null);
   const [tyPositiveTitle, setTyPositiveTitle] = useState(org.thankyou_positive_title ?? 'Thank You!');
@@ -35,6 +43,58 @@ export function ReviewExperienceForm({ org, isOwner, integrations }: ReviewExper
   const [autoFollowupMessage, setAutoFollowupMessage] = useState(org.auto_followup_message);
   const [saving, setSaving] = useState(false);
   const { showSnackbar } = useSnackbar();
+
+  // Notify parent of thank-you config changes for live preview
+  function notifyThankYouChange(overrides: Partial<{
+    positiveTitle: string; positiveMessage: string;
+    negativeTitle: string; negativeMessage: string;
+    couponCode: string; couponText: string;
+    socialInstagram: string; socialFacebook: string;
+  }> = {}) {
+    const socialLinks: Record<string, string> = {};
+    const ig = overrides.socialInstagram ?? tySocialInstagram;
+    const fb = overrides.socialFacebook ?? tySocialFacebook;
+    if (ig) socialLinks.instagram = ig;
+    if (fb) socialLinks.facebook = fb;
+    onThankYouConfigChange?.({
+      positiveTitle: overrides.positiveTitle ?? tyPositiveTitle,
+      positiveMessage: overrides.positiveMessage ?? tyPositiveMessage,
+      negativeTitle: overrides.negativeTitle ?? tyNegativeTitle,
+      negativeMessage: overrides.negativeMessage ?? tyNegativeMessage,
+      couponCode: (overrides.couponCode ?? tyCouponCode) || null,
+      couponText: overrides.couponText ?? tyCouponText,
+      socialLinks,
+    });
+  }
+
+  // Build combined platform list for preview
+  function notifyPlatformsChange(
+    manualStates: Record<string, boolean>,
+    integrationStatesMap: Record<string, boolean>,
+  ) {
+    const manualList: Platform[] = manualPlatforms.map(p => ({
+      id: p.id,
+      platform: p.platform,
+      platform_name: p.platform_name,
+      url: p.url,
+      display_order: p.display_order,
+      enabled: manualStates[p.id] ?? p.enabled,
+      source: 'manual' as const,
+    }));
+    const manualTypes = new Set(manualPlatforms.map(p => p.platform));
+    const integrationList: Platform[] = integrations
+      .filter(i => i.platform_url && !manualTypes.has(i.platform))
+      .map((i, idx) => ({
+        id: i.id,
+        platform: i.platform,
+        platform_name: i.platform_account_name,
+        url: i.platform_url!,
+        display_order: 100 + idx,
+        enabled: integrationStatesMap[i.id] ?? i.show_on_review_form,
+        source: 'integration' as const,
+      }));
+    onPlatformsChange?.([...manualList, ...integrationList]);
+  }
 
   async function handleSave() {
     setSaving(true);
@@ -79,11 +139,35 @@ export function ReviewExperienceForm({ org, isOwner, integrations }: ReviewExper
       if (!res.ok) {
         showSnackbar('Failed to update platform visibility', 'error');
       } else {
-        setIntegrationStates(prev => ({ ...prev, [integrationId]: showOnReviewForm }));
+        const newStates = { ...integrationStates, [integrationId]: showOnReviewForm };
+        setIntegrationStates(newStates);
+        notifyPlatformsChange(manualPlatformStates, newStates);
         showSnackbar(showOnReviewForm ? 'Platform will show on review form' : 'Platform hidden from review form');
       }
     } catch {
       showSnackbar('Failed to update platform visibility', 'error');
+    }
+    setTogglingId(null);
+  }
+
+  async function handleToggleManualPlatform(platformId: string, enabled: boolean) {
+    setTogglingId(platformId);
+    try {
+      const supabase = createClient();
+      const { error } = await supabase
+        .from('review_platforms')
+        .update({ enabled })
+        .eq('id', platformId);
+      if (error) {
+        showSnackbar('Failed to update platform', 'error');
+      } else {
+        const newStates = { ...manualPlatformStates, [platformId]: enabled };
+        setManualPlatformStates(newStates);
+        notifyPlatformsChange(newStates, integrationStates);
+        showSnackbar(enabled ? 'Platform enabled' : 'Platform disabled');
+      }
+    } catch {
+      showSnackbar('Failed to update platform', 'error');
     }
     setTogglingId(null);
   }
@@ -132,18 +216,72 @@ export function ReviewExperienceForm({ org, isOwner, integrations }: ReviewExper
           </Typography>
         </Box>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          Choose which connected platforms appear as redirect options after a positive review.
+          Choose which platforms appear as redirect options after a positive review.
         </Typography>
 
-        {integrations.length === 0 ? (
-          <Alert severity="info" sx={{ mt: 1 }}>
-            Connect platforms in the{' '}
-            <MuiLink component={NextLink} href="/dashboard/integrations" sx={{ fontWeight: 600 }}>
-              Integrations page
-            </MuiLink>{' '}
-            to show them as review redirect options.
-          </Alert>
-        ) : (
+        {/* Manual platforms from Settings */}
+        {manualPlatforms.length > 0 && (
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, mb: integrations.length > 0 ? 2 : 0 }}>
+            {[...manualPlatforms].sort((a, b) => a.display_order - b.display_order).map((platform) => (
+              <Paper
+                key={platform.id}
+                variant="outlined"
+                sx={{
+                  p: 2,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  bgcolor: manualPlatformStates[platform.id] ? 'action.selected' : 'transparent',
+                  transition: 'background-color 0.2s',
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, minWidth: 0 }}>
+                  {getPlatformIcon(platform.platform)}
+                  <Box sx={{ minWidth: 0 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Typography variant="subtitle2">
+                        {getPlatformLabel(platform.platform)}
+                      </Typography>
+                      <Chip label="Manual" size="small" variant="outlined" />
+                    </Box>
+                    <Typography
+                      variant="caption"
+                      color="text.secondary"
+                      sx={{
+                        display: 'block',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                        maxWidth: 350,
+                      }}
+                    >
+                      {platform.url}
+                    </Typography>
+                  </Box>
+                </Box>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={manualPlatformStates[platform.id] ?? false}
+                      onChange={(e) => handleToggleManualPlatform(platform.id, e.target.checked)}
+                      disabled={!isOwner || togglingId === platform.id}
+                    />
+                  }
+                  label={
+                    <Typography variant="body2" color="text.secondary">
+                      {manualPlatformStates[platform.id] ? 'Enabled' : 'Disabled'}
+                    </Typography>
+                  }
+                  labelPlacement="start"
+                  sx={{ ml: 1, mr: 0 }}
+                />
+              </Paper>
+            ))}
+          </Box>
+        )}
+
+        {/* Connected integrations */}
+        {integrations.length > 0 && (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
             {integrations.map((integration) => (
               <Paper
@@ -203,6 +341,19 @@ export function ReviewExperienceForm({ org, isOwner, integrations }: ReviewExper
               </Paper>
             ))}
           </Box>
+        )}
+
+        {manualPlatforms.length === 0 && integrations.length === 0 && (
+          <Alert severity="info" sx={{ mt: 1 }}>
+            Add platforms in{' '}
+            <MuiLink component={NextLink} href="/dashboard/settings" sx={{ fontWeight: 600 }}>
+              Settings
+            </MuiLink>{' '}
+            or connect them in the{' '}
+            <MuiLink component={NextLink} href="/dashboard/integrations" sx={{ fontWeight: 600 }}>
+              Integrations page
+            </MuiLink>.
+          </Alert>
         )}
       </Paper>
 
@@ -293,7 +444,7 @@ export function ReviewExperienceForm({ org, isOwner, integrations }: ReviewExper
               fullWidth
               label="Title"
               value={tyPositiveTitle}
-              onChange={(e) => setTyPositiveTitle(e.target.value)}
+              onChange={(e) => { setTyPositiveTitle(e.target.value); notifyThankYouChange({ positiveTitle: e.target.value }); }}
               disabled={!isOwner}
               placeholder="Thank You!"
             />
@@ -305,7 +456,7 @@ export function ReviewExperienceForm({ org, isOwner, integrations }: ReviewExper
               rows={2}
               label="Message"
               value={tyPositiveMessage}
-              onChange={(e) => setTyPositiveMessage(e.target.value)}
+              onChange={(e) => { setTyPositiveMessage(e.target.value); notifyThankYouChange({ positiveMessage: e.target.value }); }}
               disabled={!isOwner}
               placeholder="We really appreciate your feedback..."
             />
@@ -322,7 +473,7 @@ export function ReviewExperienceForm({ org, isOwner, integrations }: ReviewExper
               fullWidth
               label="Title"
               value={tyNegativeTitle}
-              onChange={(e) => setTyNegativeTitle(e.target.value)}
+              onChange={(e) => { setTyNegativeTitle(e.target.value); notifyThankYouChange({ negativeTitle: e.target.value }); }}
               disabled={!isOwner}
               placeholder="Thank You for Your Feedback"
             />
@@ -334,7 +485,7 @@ export function ReviewExperienceForm({ org, isOwner, integrations }: ReviewExper
               rows={2}
               label="Message"
               value={tyNegativeMessage}
-              onChange={(e) => setTyNegativeMessage(e.target.value)}
+              onChange={(e) => { setTyNegativeMessage(e.target.value); notifyThankYouChange({ negativeMessage: e.target.value }); }}
               disabled={!isOwner}
               placeholder="We appreciate you letting us know..."
             />
@@ -351,7 +502,7 @@ export function ReviewExperienceForm({ org, isOwner, integrations }: ReviewExper
               fullWidth
               label="Coupon Code"
               value={tyCouponCode}
-              onChange={(e) => setTyCouponCode(e.target.value)}
+              onChange={(e) => { setTyCouponCode(e.target.value); notifyThankYouChange({ couponCode: e.target.value }); }}
               disabled={!isOwner}
               placeholder="e.g. THANKYOU10"
               helperText="Leave empty to hide the coupon section"
@@ -362,7 +513,7 @@ export function ReviewExperienceForm({ org, isOwner, integrations }: ReviewExper
               fullWidth
               label="Coupon Text"
               value={tyCouponText}
-              onChange={(e) => setTyCouponText(e.target.value)}
+              onChange={(e) => { setTyCouponText(e.target.value); notifyThankYouChange({ couponText: e.target.value }); }}
               disabled={!isOwner}
               placeholder="Here's a little thank you from us:"
             />
@@ -382,7 +533,7 @@ export function ReviewExperienceForm({ org, isOwner, integrations }: ReviewExper
               fullWidth
               label="Instagram URL"
               value={tySocialInstagram}
-              onChange={(e) => setTySocialInstagram(e.target.value)}
+              onChange={(e) => { setTySocialInstagram(e.target.value); notifyThankYouChange({ socialInstagram: e.target.value }); }}
               disabled={!isOwner}
               placeholder="https://instagram.com/yourbusiness"
               slotProps={{
@@ -397,7 +548,7 @@ export function ReviewExperienceForm({ org, isOwner, integrations }: ReviewExper
               fullWidth
               label="Facebook URL"
               value={tySocialFacebook}
-              onChange={(e) => setTySocialFacebook(e.target.value)}
+              onChange={(e) => { setTySocialFacebook(e.target.value); notifyThankYouChange({ socialFacebook: e.target.value }); }}
               disabled={!isOwner}
               placeholder="https://facebook.com/yourbusiness"
               slotProps={{

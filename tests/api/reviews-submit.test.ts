@@ -36,11 +36,16 @@ vi.mock('@supabase/ssr', () => ({
 import { POST } from '@/app/api/reviews/submit/route';
 import { NextRequest } from 'next/server';
 
+let requestCounter = 0;
 function makeRequest(body: Record<string, unknown>): NextRequest {
+  requestCounter++;
   return new NextRequest('http://localhost:3000/api/reviews/submit', {
     method: 'POST',
     body: JSON.stringify(body),
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      'x-forwarded-for': `10.0.0.${requestCounter}`,
+    },
   });
 }
 
@@ -78,7 +83,7 @@ describe('POST /api/reviews/submit', () => {
 
   it('returns success with isPositive=true and reviewId for high rating', async () => {
     mockSingle.mockResolvedValue({
-      data: { id: 'org-1', positive_threshold: 4 },
+      data: { id: 'org-1', positive_threshold: 4, billing_plan: 'active', trial_ends_at: null, subscription_ends_at: null },
     });
 
     const res = await POST(makeRequest({
@@ -97,7 +102,7 @@ describe('POST /api/reviews/submit', () => {
 
   it('returns isPositive=false for low rating', async () => {
     mockSingle.mockResolvedValue({
-      data: { id: 'org-1', positive_threshold: 4 },
+      data: { id: 'org-1', positive_threshold: 4, billing_plan: 'active', trial_ends_at: null, subscription_ends_at: null },
     });
 
     const res = await POST(makeRequest({
@@ -111,7 +116,7 @@ describe('POST /api/reviews/submit', () => {
 
   it('inserts review with correct fields', async () => {
     mockSingle.mockResolvedValue({
-      data: { id: 'org-1', positive_threshold: 4 },
+      data: { id: 'org-1', positive_threshold: 4, billing_plan: 'active', trial_ends_at: null, subscription_ends_at: null },
     });
 
     await POST(makeRequest({
@@ -129,6 +134,8 @@ describe('POST /api/reviews/submit', () => {
       rating: 5,
       comment: 'Awesome',
       customer_name: 'Jane',
+      customer_phone: null,
+      customer_email: null,
       is_positive: true,
       is_public: true,
       redirected_to: [],
@@ -138,7 +145,7 @@ describe('POST /api/reviews/submit', () => {
 
   it('links review to review_request when valid rid is provided', async () => {
     mockSingle.mockResolvedValue({
-      data: { id: 'org-1', positive_threshold: 4 },
+      data: { id: 'org-1', positive_threshold: 4, billing_plan: 'active', trial_ends_at: null, subscription_ends_at: null },
     });
     mockReviewRequestSingle.mockResolvedValue({
       data: { id: 'req-123', organization_id: 'org-1' },
@@ -161,7 +168,7 @@ describe('POST /api/reviews/submit', () => {
 
   it('ignores reviewRequestId belonging to a different org', async () => {
     mockSingle.mockResolvedValue({
-      data: { id: 'org-1', positive_threshold: 4 },
+      data: { id: 'org-1', positive_threshold: 4, billing_plan: 'active', trial_ends_at: null, subscription_ends_at: null },
     });
     mockReviewRequestSingle.mockResolvedValue({
       data: { id: 'req-456', organization_id: 'org-other' },
@@ -179,13 +186,14 @@ describe('POST /api/reviews/submit', () => {
 
   it('logs activity after review insert', async () => {
     mockSingle.mockResolvedValue({
-      data: { id: 'org-1', positive_threshold: 4 },
+      data: { id: 'org-1', name: 'Test', slug: 'test', positive_threshold: 4, billing_plan: 'active', trial_ends_at: null, subscription_ends_at: null },
     });
 
-    await POST(makeRequest({ slug: 'test', rating: 5 }));
+    const res = await POST(makeRequest({ slug: 'test', rating: 5 }));
+    expect(res.status).toBe(200);
 
     // activity_log insert should have been called
-    const activityCalls = mockFrom.mock.calls.filter(c => c[0] === 'activity_log');
+    const activityCalls = mockFrom.mock.calls.filter((c: [string]) => c[0] === 'activity_log');
     expect(activityCalls.length).toBeGreaterThan(0);
   });
 });

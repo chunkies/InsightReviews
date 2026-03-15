@@ -1,17 +1,26 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+
+const mockSend = vi.hoisted(() => {
+  process.env.SENDGRID_API_KEY = 'test-sg-key';
+  return vi.fn();
+});
+
+vi.mock('@sendgrid/mail', () => ({
+  default: {
+    setApiKey: vi.fn(),
+    send: mockSend,
+  },
+}));
+
 import { sendFollowupEmail, sendNegativeReviewNotification } from '@/lib/email/client';
 
 describe('sendFollowupEmail', () => {
   beforeEach(() => {
-    vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', 'http://127.0.0.1:54421');
-    vi.stubEnv('SUPABASE_SERVICE_ROLE_KEY', 'test-key');
-    vi.stubGlobal('fetch', vi.fn());
+    vi.clearAllMocks();
+    mockSend.mockResolvedValue([{ statusCode: 202 }]);
   });
 
-  it('calls edge function with correct follow-up params', async () => {
-    const mockFetch = vi.fn().mockResolvedValue({ ok: true });
-    vi.stubGlobal('fetch', mockFetch);
-
+  it('calls SendGrid with correct follow-up params', async () => {
     await sendFollowupEmail({
       to: 'customer@example.com',
       businessName: 'Test Cafe',
@@ -19,21 +28,20 @@ describe('sendFollowupEmail', () => {
       customerName: 'Mike',
     });
 
-    expect(mockFetch).toHaveBeenCalledWith(
-      'http://127.0.0.1:54421/functions/v1/send-email',
-      expect.objectContaining({ method: 'POST' }),
+    expect(mockSend).toHaveBeenCalledWith(
+      expect.objectContaining({
+        to: 'customer@example.com',
+        subject: expect.stringContaining('Test Cafe'),
+      }),
     );
 
-    const body = JSON.parse(mockFetch.mock.calls[0][1].body);
-    expect(body.to).toBe('customer@example.com');
-    expect(body.subject).toContain('Test Cafe');
-    expect(body.html).toContain('Hi Mike,');
-    expect(body.html).toContain('Sorry about your experience');
-    expect(body.text).toContain('Mike');
+    const callArg = mockSend.mock.calls[0][0];
+    expect(callArg.html).toContain('Hi Mike,');
+    expect(callArg.html).toContain('Sorry about your experience');
+    expect(callArg.text).toContain('Mike');
   });
 
   it('returns true on success', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true }));
     const result = await sendFollowupEmail({
       to: 'a@b.com',
       businessName: 'Biz',
@@ -43,9 +51,8 @@ describe('sendFollowupEmail', () => {
     expect(result).toBe(true);
   });
 
-  it('returns false in production on failure', async () => {
-    vi.stubEnv('NODE_ENV', 'production');
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false }));
+  it('returns false on failure', async () => {
+    mockSend.mockRejectedValue({ response: { body: 'error' } });
     const result = await sendFollowupEmail({
       to: 'a@b.com',
       businessName: 'Biz',
@@ -54,31 +61,15 @@ describe('sendFollowupEmail', () => {
     });
     expect(result).toBe(false);
   });
-
-  it('returns true in development even on failure', async () => {
-    vi.stubEnv('NODE_ENV', 'development');
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false }));
-    const result = await sendFollowupEmail({
-      to: 'a@b.com',
-      businessName: 'Biz',
-      message: 'Test',
-      customerName: 'Test',
-    });
-    expect(result).toBe(true);
-  });
 });
 
 describe('sendNegativeReviewNotification', () => {
   beforeEach(() => {
-    vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', 'http://127.0.0.1:54421');
-    vi.stubEnv('SUPABASE_SERVICE_ROLE_KEY', 'test-key');
-    vi.stubGlobal('fetch', vi.fn());
+    vi.clearAllMocks();
+    mockSend.mockResolvedValue([{ statusCode: 202 }]);
   });
 
   it('sends notification with correct subject and content', async () => {
-    const mockFetch = vi.fn().mockResolvedValue({ ok: true });
-    vi.stubGlobal('fetch', mockFetch);
-
     await sendNegativeReviewNotification({
       to: 'owner@cafe.com',
       businessName: 'Test Cafe',
@@ -88,19 +79,16 @@ describe('sendNegativeReviewNotification', () => {
       dashboardUrl: 'https://app.com/dashboard/reviews',
     });
 
-    const body = JSON.parse(mockFetch.mock.calls[0][1].body);
-    expect(body.to).toBe('owner@cafe.com');
-    expect(body.subject).toContain('2 star');
-    expect(body.subject).toContain('Test Cafe');
-    expect(body.html).toContain('Angry Customer');
-    expect(body.html).toContain('Bad service');
-    expect(body.html).toContain('https://app.com/dashboard/reviews');
+    const callArg = mockSend.mock.calls[0][0];
+    expect(callArg.to).toBe('owner@cafe.com');
+    expect(callArg.subject).toContain('2 star');
+    expect(callArg.subject).toContain('Test Cafe');
+    expect(callArg.html).toContain('Angry Customer');
+    expect(callArg.html).toContain('Bad service');
+    expect(callArg.html).toContain('https://app.com/dashboard/reviews');
   });
 
   it('handles singular star correctly', async () => {
-    const mockFetch = vi.fn().mockResolvedValue({ ok: true });
-    vi.stubGlobal('fetch', mockFetch);
-
     await sendNegativeReviewNotification({
       to: 'owner@cafe.com',
       businessName: 'Cafe',
@@ -110,13 +98,12 @@ describe('sendNegativeReviewNotification', () => {
       dashboardUrl: 'https://app.com/dashboard',
     });
 
-    const body = JSON.parse(mockFetch.mock.calls[0][1].body);
-    expect(body.subject).toContain('1 star)');
-    expect(body.html).toContain('A customer');
+    const callArg = mockSend.mock.calls[0][0];
+    expect(callArg.subject).toContain('1 star)');
+    expect(callArg.html).toContain('A customer');
   });
 
   it('returns true on success', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true }));
     const result = await sendNegativeReviewNotification({
       to: 'a@b.com',
       businessName: 'B',
@@ -128,9 +115,8 @@ describe('sendNegativeReviewNotification', () => {
     expect(result).toBe(true);
   });
 
-  it('returns false in production on failure', async () => {
-    vi.stubEnv('NODE_ENV', 'production');
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false }));
+  it('returns false on failure', async () => {
+    mockSend.mockRejectedValue({ response: { body: 'error' } });
     const result = await sendNegativeReviewNotification({
       to: 'a@b.com',
       businessName: 'B',

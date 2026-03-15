@@ -62,6 +62,7 @@ const mocks = vi.hoisted(() => {
     buildSmsBody: vi.fn().mockReturnValue('Review link: https://app.com/r/test'),
     sendReviewEmail: vi.fn().mockResolvedValue(true),
     logActivity: vi.fn(),
+    requireBilling: vi.fn().mockResolvedValue(null),
   };
 });
 
@@ -88,6 +89,10 @@ vi.mock('@/lib/email/client', () => ({
 
 vi.mock('@/lib/utils/activity-logger', () => ({
   logActivity: mocks.logActivity,
+}));
+
+vi.mock('@/lib/utils/admin', () => ({
+  requireBilling: mocks.requireBilling,
 }));
 
 import { POST } from '@/app/api/sms/send/route';

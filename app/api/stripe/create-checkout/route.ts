@@ -78,6 +78,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Checkout error:', error);
     const message = error instanceof Error ? error.message : 'Internal server error';
-    return NextResponse.json({ error: message }, { status: 500 });
+    const keyPrefix = process.env.STRIPE_SECRET_KEY ? process.env.STRIPE_SECRET_KEY.substring(0, 8) + '...' : 'NOT_SET';
+    return NextResponse.json({ error: message, debug: { keyPrefix } }, { status: 500 });
   }
 }

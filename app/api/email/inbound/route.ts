@@ -36,14 +36,17 @@ export async function POST(request: Request) {
 
     const replyToEmail = from ? extractEmail(from) : null;
 
+    const forwardTo = process.env.SUPPORT_EMAIL || 'support@insightreviews.com.au';
+    const fromEmail = process.env.SENDGRID_FROM_EMAIL || 'noreply@insightreviews.com.au';
+
     const sendgridPayload = {
       personalizations: [
         {
-          to: [{ email: 'sly.tristan1@gmail.com' }],
+          to: [{ email: forwardTo }],
         },
       ],
       from: {
-        email: 'tristan@insightreviews.com.au',
+        email: fromEmail,
         name: 'InsightReviews Inbound',
       },
       ...(replyToEmail ? { reply_to: { email: replyToEmail } } : {}),

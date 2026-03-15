@@ -93,7 +93,7 @@ function getDesignTokens(mode: ThemeMode) {
       MuiCssBaseline: {
         styleOverrides: {
           ':root': {
-            colorScheme: 'light',
+            colorScheme: mode,
           },
         },
       },
@@ -122,15 +122,10 @@ export function AppThemeProvider({ children }: { children: ReactNode }) {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    // Only use dark mode if the user explicitly toggled it in the dashboard
-    // Never auto-detect system preference — landing page must always be light
+    // Respect the user's explicitly chosen theme preference
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored === 'dark') {
-      // Only allow dark mode on dashboard routes, not on public pages
-      const isDashboard = window.location.pathname.startsWith('/dashboard');
-      if (isDashboard) {
-        setMode('dark');
-      }
+      setMode('dark');
     }
     setMounted(true);
   }, []);

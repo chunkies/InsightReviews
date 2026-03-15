@@ -60,7 +60,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const { data: orgs } = await supabase
       .from('organizations')
       .select('slug, updated_at')
-      .not('slug', 'is', null);
+      .not('slug', 'is', null)
+      .in('billing_plan', ['active', 'trial']);
 
     const wallRoutes: MetadataRoute.Sitemap = (orgs ?? []).map((org) => ({
       url: `${baseUrl}/wall/${org.slug}`,

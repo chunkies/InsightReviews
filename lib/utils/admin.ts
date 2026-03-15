@@ -51,11 +51,11 @@ export async function requireBilling(
 ): Promise<NextResponse | null> {
   const { data: org } = await supabase
     .from('organizations')
-    .select('billing_plan, trial_ends_at')
+    .select('billing_plan, trial_ends_at, subscription_ends_at')
     .eq('id', organizationId)
     .single();
 
-  if (!org || !hasValidBilling(org.billing_plan, org.trial_ends_at, userEmail)) {
+  if (!org || !hasValidBilling(org.billing_plan, org.trial_ends_at, userEmail, org.subscription_ends_at)) {
     return NextResponse.json(
       { error: 'Active subscription required' },
       { status: 403 },

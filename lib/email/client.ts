@@ -1,5 +1,13 @@
 import sgMail from '@sendgrid/mail';
 
+function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
 const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
 const FROM_EMAIL = process.env.SENDGRID_FROM_EMAIL || 'noreply@insightreviews.com.au';
 const FROM_NAME = process.env.SENDGRID_FROM_NAME || 'InsightReviews';
@@ -53,9 +61,11 @@ interface SendReviewEmailParams {
 export async function sendReviewEmail(params: SendReviewEmailParams): Promise<boolean> {
   const { to, businessName, reviewLink, customerName } = params;
 
-  const greeting = customerName ? `Hi ${customerName},` : 'Hi there,';
+  const safeBusinessName = escapeHtml(businessName);
+  const safeCustomerName = customerName ? escapeHtml(customerName) : undefined;
+  const greeting = safeCustomerName ? `Hi ${safeCustomerName},` : 'Hi there,';
   const subject = `How was your experience at ${businessName}?`;
-  const html = buildEmailHtml({ greeting, businessName, reviewLink });
+  const html = buildEmailHtml({ greeting, businessName: safeBusinessName, reviewLink });
   const text = buildEmailText({ greeting, businessName, reviewLink });
 
   return sendEmail({ to, subject, html, text });
@@ -108,8 +118,11 @@ interface SendFollowupEmailParams {
 export async function sendFollowupEmail(params: SendFollowupEmailParams): Promise<boolean> {
   const { to, businessName, message, customerName } = params;
 
+  const safeBusinessName = escapeHtml(businessName);
+  const safeCustomerName = escapeHtml(customerName);
+  const safeMessage = escapeHtml(message);
   const subject = `A message from ${businessName}`;
-  const greeting = `Hi ${customerName},`;
+  const greeting = `Hi ${safeCustomerName},`;
 
   const html = `
 <!DOCTYPE html>
@@ -124,10 +137,10 @@ export async function sendFollowupEmail(params: SendFollowupEmailParams): Promis
       <td style="background-color: #ffffff; border-radius: 16px; padding: 40px 32px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
         <h2 style="margin: 0 0 8px 0; font-size: 20px; color: #1a1a1a;">${greeting}</h2>
         <p style="margin: 0 0 24px 0; font-size: 16px; color: #555; line-height: 1.5;">
-          ${message}
+          ${safeMessage}
         </p>
         <p style="margin: 24px 0 0 0; font-size: 13px; color: #999; text-align: center;">
-          &mdash; ${businessName}
+          &mdash; ${safeBusinessName}
         </p>
       </td>
     </tr>
@@ -154,6 +167,13 @@ export async function sendSupportTicketNotification(params: SendSupportTicketPar
   const { orgName, userEmail, subject, message, category, priority, ticketId } = params;
   const supportEmail = process.env.SUPPORT_EMAIL || FROM_EMAIL;
 
+  const safeOrgName = escapeHtml(orgName);
+  const safeUserEmail = escapeHtml(userEmail);
+  const safeSubject = escapeHtml(subject);
+  const safeMessage = escapeHtml(message);
+  const safeCategory = escapeHtml(category);
+  const safePriority = escapeHtml(priority);
+
   const priorityColors: Record<string, string> = {
     low: '#6b7280',
     normal: '#2563eb',
@@ -174,31 +194,31 @@ export async function sendSupportTicketNotification(params: SendSupportTicketPar
     <tr>
       <td style="background-color: #ffffff; border-radius: 16px; padding: 40px 32px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
         <h2 style="margin: 0 0 8px 0; font-size: 20px; color: #1a1a1a;">New Support Ticket</h2>
-        <p style="margin: 0 0 24px 0; font-size: 14px; color: #999;">Ticket #${ticketId.slice(0, 8)}</p>
+        <p style="margin: 0 0 24px 0; font-size: 14px; color: #999;">Ticket #${escapeHtml(ticketId.slice(0, 8))}</p>
         <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 24px;">
           <tr>
             <td style="padding: 8px 0; font-size: 14px; color: #555; border-bottom: 1px solid #eee;"><strong>From:</strong></td>
-            <td style="padding: 8px 0; font-size: 14px; color: #333; border-bottom: 1px solid #eee;">${userEmail}</td>
+            <td style="padding: 8px 0; font-size: 14px; color: #333; border-bottom: 1px solid #eee;">${safeUserEmail}</td>
           </tr>
           <tr>
             <td style="padding: 8px 0; font-size: 14px; color: #555; border-bottom: 1px solid #eee;"><strong>Business:</strong></td>
-            <td style="padding: 8px 0; font-size: 14px; color: #333; border-bottom: 1px solid #eee;">${orgName}</td>
+            <td style="padding: 8px 0; font-size: 14px; color: #333; border-bottom: 1px solid #eee;">${safeOrgName}</td>
           </tr>
           <tr>
             <td style="padding: 8px 0; font-size: 14px; color: #555; border-bottom: 1px solid #eee;"><strong>Category:</strong></td>
-            <td style="padding: 8px 0; font-size: 14px; color: #333; border-bottom: 1px solid #eee;">${category}</td>
+            <td style="padding: 8px 0; font-size: 14px; color: #333; border-bottom: 1px solid #eee;">${safeCategory}</td>
           </tr>
           <tr>
             <td style="padding: 8px 0; font-size: 14px; color: #555;"><strong>Priority:</strong></td>
-            <td style="padding: 8px 0; font-size: 14px;"><span style="color: ${pColor}; font-weight: 600;">${priority.charAt(0).toUpperCase() + priority.slice(1)}</span></td>
+            <td style="padding: 8px 0; font-size: 14px;"><span style="color: ${pColor}; font-weight: 600;">${safePriority.charAt(0).toUpperCase() + safePriority.slice(1)}</span></td>
           </tr>
         </table>
-        <h3 style="margin: 0 0 8px 0; font-size: 16px; color: #1a1a1a;">${subject}</h3>
+        <h3 style="margin: 0 0 8px 0; font-size: 16px; color: #1a1a1a;">${safeSubject}</h3>
         <div style="background: #f9f9f9; border-left: 4px solid #2563eb; padding: 12px 16px; border-radius: 4px; margin-bottom: 24px;">
-          <p style="margin: 0; font-size: 14px; color: #333; line-height: 1.6; white-space: pre-wrap;">${message}</p>
+          <p style="margin: 0; font-size: 14px; color: #333; line-height: 1.6; white-space: pre-wrap;">${safeMessage}</p>
         </div>
         <p style="margin: 0; font-size: 13px; color: #999; text-align: center;">
-          Reply to this email or respond to ${userEmail} directly.
+          Reply to this email or respond to ${safeUserEmail} directly.
         </p>
       </td>
     </tr>
@@ -231,6 +251,10 @@ export async function sendNegativeReviewNotification(
 ): Promise<boolean> {
   const { to, businessName, rating, comment, customerName, customerContact, dashboardUrl } = params;
 
+  const safeBusinessName = escapeHtml(businessName);
+  const safeCustomerLabel = customerName ? escapeHtml(customerName) : 'A customer';
+  const safeComment = comment ? escapeHtml(comment) : null;
+  const safeCustomerContact = customerContact ? escapeHtml(customerContact) : null;
   const subject = `New negative review (${rating} star${rating !== 1 ? 's' : ''}) for ${businessName}`;
   const customerLabel = customerName || 'A customer';
 
@@ -247,10 +271,10 @@ export async function sendNegativeReviewNotification(
       <td style="background-color: #ffffff; border-radius: 16px; padding: 40px 32px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
         <h2 style="margin: 0 0 8px 0; font-size: 20px; color: #1a1a1a;">Negative Review Alert</h2>
         <p style="margin: 0 0 16px 0; font-size: 16px; color: #555; line-height: 1.5;">
-          ${customerLabel} left a <strong>${rating}-star</strong> review for <strong>${businessName}</strong>.
+          ${safeCustomerLabel} left a <strong>${rating}-star</strong> review for <strong>${safeBusinessName}</strong>.
         </p>
-        ${comment ? `<div style="background: #f9f9f9; border-left: 4px solid #e53935; padding: 12px 16px; border-radius: 4px; margin-bottom: 24px;"><p style="margin: 0; font-size: 14px; color: #333; line-height: 1.5;">&ldquo;${comment}&rdquo;</p></div>` : ''}
-        ${customerContact ? `<p style="margin: 0 0 16px 0; font-size: 14px; color: #555;"><strong>Contact:</strong> ${customerContact}</p>` : ''}
+        ${safeComment ? `<div style="background: #f9f9f9; border-left: 4px solid #e53935; padding: 12px 16px; border-radius: 4px; margin-bottom: 24px;"><p style="margin: 0; font-size: 14px; color: #333; line-height: 1.5;">&ldquo;${safeComment}&rdquo;</p></div>` : ''}
+        ${safeCustomerContact ? `<p style="margin: 0 0 16px 0; font-size: 14px; color: #555;"><strong>Contact:</strong> ${safeCustomerContact}</p>` : ''}
         <div style="text-align: center; margin: 32px 0;">
           <a href="${dashboardUrl}" style="display: inline-block; background: linear-gradient(135deg, #e53935 0%, #d32f2f 100%); color: #ffffff; text-decoration: none; padding: 14px 40px; border-radius: 12px; font-size: 16px; font-weight: 600;">
             View in Dashboard

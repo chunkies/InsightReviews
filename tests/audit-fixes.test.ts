@@ -196,7 +196,7 @@ describe('2.4 — React.cache() for org lookups', () => {
 // =============================================================================
 
 describe('3.5 — Trial gaming prevention in create-checkout', () => {
-  it('source code checks stripe_customer_id to determine trial eligibility', () => {
+  it('source code checks Stripe subscription history to determine trial eligibility', () => {
     const source = readFileSync(
       resolve(__dirname, '../app/api/stripe/create-checkout/route.ts'),
       'utf-8',
@@ -205,44 +205,56 @@ describe('3.5 — Trial gaming prevention in create-checkout', () => {
     // Must select stripe_customer_id from org
     expect(source).toMatch(/stripe_customer_id/);
 
-    // Must have logic that uses stripe_customer_id for trial eligibility
+    // Must have logic that uses isNewSubscriber for trial eligibility
     expect(source).toMatch(/isNewSubscriber/);
 
-    // New subscriber logic should check for absence of stripe_customer_id
-    expect(source).toMatch(/!org\.stripe_customer_id/);
+    // Must check for prior subscriptions in Stripe to prevent trial gaming
+    expect(source).toMatch(/hadPriorSubscription/);
+
+    // Must verify customer exists before reusing (handles stale IDs)
+    expect(source).toMatch(/customers\.retrieve/);
   });
 
-  it('returning user with stripe_customer_id does NOT get a trial', () => {
+  it('returning user with prior subscriptions does NOT get a trial', () => {
     // Replicate the isNewSubscriber logic from the route
-    function isNewSubscriber(stripeCustomerId: string | null, billingPlan: string | null): boolean {
-      return !stripeCustomerId && (billingPlan === 'trial' || billingPlan === 'pending' || !billingPlan);
+    function isNewSubscriber(hadPriorSubscription: boolean, billingPlan: string | null): boolean {
+      return !hadPriorSubscription && (billingPlan === 'pending' || !billingPlan);
     }
 
-    // Returning user: has a stripe_customer_id from previous subscription
-    expect(isNewSubscriber('cus_existing_123', 'pending')).toBe(false);
-    expect(isNewSubscriber('cus_existing_123', 'cancelled')).toBe(false);
-    expect(isNewSubscriber('cus_existing_123', null)).toBe(false);
+    // Returning user: has had a subscription before
+    expect(isNewSubscriber(true, 'pending')).toBe(false);
+    expect(isNewSubscriber(true, 'cancelled')).toBe(false);
+    expect(isNewSubscriber(true, null)).toBe(false);
   });
 
-  it('genuinely new user without stripe_customer_id gets a trial', () => {
-    function isNewSubscriber(stripeCustomerId: string | null, billingPlan: string | null): boolean {
-      return !stripeCustomerId && (billingPlan === 'trial' || billingPlan === 'pending' || !billingPlan);
+  it('genuinely new user without prior subscriptions gets a trial', () => {
+    function isNewSubscriber(hadPriorSubscription: boolean, billingPlan: string | null): boolean {
+      return !hadPriorSubscription && (billingPlan === 'pending' || !billingPlan);
     }
 
-    // Brand new user: no stripe_customer_id, pending plan
-    expect(isNewSubscriber(null, 'pending')).toBe(true);
-    expect(isNewSubscriber(null, 'trial')).toBe(true);
-    expect(isNewSubscriber(null, null)).toBe(true);
+    // Brand new user: no prior subscriptions, pending plan
+    expect(isNewSubscriber(false, 'pending')).toBe(true);
+    expect(isNewSubscriber(false, null)).toBe(true);
   });
 
-  it('user with stripe_customer_id but billing_plan=pending does NOT get trial', () => {
-    function isNewSubscriber(stripeCustomerId: string | null, billingPlan: string | null): boolean {
-      return !stripeCustomerId && (billingPlan === 'trial' || billingPlan === 'pending' || !billingPlan);
+  it('user with existing customer but no subscriptions still gets trial', () => {
+    // This is the key fix: a Stripe customer can exist from a failed checkout
+    // but if they have no subscriptions, they should still get a trial
+    function isNewSubscriber(hadPriorSubscription: boolean, billingPlan: string | null): boolean {
+      return !hadPriorSubscription && (billingPlan === 'pending' || !billingPlan);
     }
 
-    // This is the key trial gaming scenario: user cancelled, plan reset to pending,
-    // but stripe_customer_id persists from prior subscription
-    expect(isNewSubscriber('cus_returning_user', 'pending')).toBe(false);
+    expect(isNewSubscriber(false, 'pending')).toBe(true);
+  });
+
+  it('user who had a trial and cancelled does NOT get another trial', () => {
+    function isNewSubscriber(hadPriorSubscription: boolean, billingPlan: string | null): boolean {
+      return !hadPriorSubscription && (billingPlan === 'pending' || !billingPlan);
+    }
+
+    // Had a subscription (trial counts as subscription in Stripe)
+    expect(isNewSubscriber(true, 'pending')).toBe(false);
+    expect(isNewSubscriber(true, 'cancelled')).toBe(false);
   });
 });
 

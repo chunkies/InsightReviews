@@ -6,12 +6,23 @@ import {
   Alert,
 } from '@mui/material';
 import { ArrowRight, ArrowLeft, CreditCard } from 'lucide-react';
-import { SLUG_REGEX } from '@/lib/utils/constants';
 interface OnboardingWizardProps {
   userId: string;
 }
 
 const steps = ['Business Info', 'Review Platforms'];
+
+function generateSlug(name: string) {
+  const base = name
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .slice(0, 42);
+  if (!base) return '';
+  const suffix = Math.random().toString(36).slice(2, 6);
+  return `${base}-${suffix}`;
+}
 
 export function OnboardingWizard({ userId: _userId }: OnboardingWizardProps) {
   const [activeStep, setActiveStep] = useState(0);
@@ -20,7 +31,6 @@ export function OnboardingWizard({ userId: _userId }: OnboardingWizardProps) {
 
   // Step 1: Business info
   const [businessName, setBusinessName] = useState('');
-  const [slug, setSlug] = useState('');
   const [phone, setPhone] = useState('');
 
   // Step 2: Platforms
@@ -28,35 +38,12 @@ export function OnboardingWizard({ userId: _userId }: OnboardingWizardProps) {
   const [yelpUrl, setYelpUrl] = useState('');
   const [facebookUrl, setFacebookUrl] = useState('');
 
-  function generateSlug(name: string) {
-    const base = name
-      .toLowerCase()
-      .replace(/[^a-z0-9\s-]/g, '')
-      .replace(/\s+/g, '-')
-      .replace(/-+/g, '-')
-      .slice(0, 42);
-    if (!base) return '';
-    const suffix = Math.random().toString(36).slice(2, 6);
-    return `${base}-${suffix}`;
-  }
-
-  function handleNameChange(name: string) {
-    setBusinessName(name);
-    if (!slug || slug === generateSlug(businessName)) {
-      setSlug(generateSlug(name));
-    }
-  }
-
   async function handleComplete() {
     setLoading(true);
     setError(null);
 
     try {
-      if (!SLUG_REGEX.test(slug)) {
-        setError('Slug can only contain lowercase letters, numbers, and hyphens');
-        setLoading(false);
-        return;
-      }
+      const slug = generateSlug(businessName);
 
       // Step 1: Create the organization
       const res = await fetch('/api/onboarding/create', {
@@ -130,17 +117,9 @@ export function OnboardingWizard({ userId: _userId }: OnboardingWizardProps) {
             fullWidth
             label="Business Name"
             value={businessName}
-            onChange={(e) => handleNameChange(e.target.value)}
+            onChange={(e) => setBusinessName(e.target.value)}
             required
             autoFocus
-            sx={{ mb: 2 }}
-          />
-          <TextField
-            fullWidth
-            label="URL Slug"
-            value={slug}
-            onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
-            helperText={slug ? `Your review link: insightreviews.com.au/r/${slug}` : 'Auto-generated from business name'}
             sx={{ mb: 2 }}
           />
           <TextField
@@ -155,7 +134,7 @@ export function OnboardingWizard({ userId: _userId }: OnboardingWizardProps) {
             fullWidth
             variant="contained"
             endIcon={<ArrowRight size={18} />}
-            disabled={!businessName || !slug}
+            disabled={!businessName.trim()}
             onClick={() => setActiveStep(1)}
             size="large"
           >

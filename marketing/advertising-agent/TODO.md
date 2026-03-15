@@ -2,7 +2,7 @@
 *Last updated: 2026-03-15*
 
 **Goal:** $6,320 MRR = 80 customers × $79/mo
-**Current:** $0 MRR, 0 paying customers, 45 cold emails sent
+**Current:** $0 MRR, 0 paying customers, 117 cold emails sent (72 sent Mar 15)
 **Realistic timeline:** 9-14 months (5-7 months if in-person sales go hard)
 
 ---
@@ -45,7 +45,7 @@ Walk in with your phone. Pull up their Google reviews. Say:
 - [ ] **Prepare a tablet/phone with the demo ready** — show the SMS flow, the star rating screen, the smart routing
 - [ ] **Pull up their actual Google profile** before walking in — reference their real rating and review count
 - [ ] **Offer done-for-you setup** — "I'll set it up for you right now, takes 5 minutes. Upload your logo, configure your Google link, everything."
-- [ ] **Give them a 14-day free trial on the spot** — no card required
+- [ ] **Give them a 14-day free trial on the spot** — card collected but not charged for 14 days
 - [ ] **Print 50 one-page leave-behinds** — for businesses where the owner isn't there (leave with staff)
 - [ ] **First 10 customers: offer 60-day free trial** in exchange for feedback + case study. Social proof is worth more than $790 right now.
 
@@ -65,21 +65,27 @@ Walk in with your phone. Pull up their Google reviews. Say:
 
 ### Infrastructure (DONE)
 - [x] Cold email sequence written (3 emails: Day 0, Day 3, Day 8)
-- [x] Master list: `marketing/cold-email-master-list.json` (45 targets, all Email 1 sent)
+- [x] Master list: `marketing/cold-email-master-list.json` (117 targets, all Email 1 sent)
 - [x] Send script: `marketing/send-next-batch.js` (handles duplicates, follow-ups, status tracking)
+- [x] Batch 5 send script: `marketing/send-batch5.js` (category-personalised emails)
 - [x] `/send-emails` skill built — automates research + personalisation + sending
-- [x] **45 cold emails sent** (25 on Mar 13 + 20 personalised on Mar 14)
+- [x] **117 cold emails sent** (45 on Mar 13-14, 72 personalised on Mar 15)
+
+### Email Stats (as of Mar 15)
+- 117 sent, 0 replies, 0 signups
+- 3 bounced (Orchid Day Spa, K1 Motors, Freedom Dental)
+- Fernwood's 6 "clicks" were Mimecast security scanner (not real engagement)
+- No spam reports, no unsubscribes. Sender reputation: 96%
 
 ### Follow-up Schedule
-- [ ] **Email 2 for Batches 1-3 (25 targets)** — Due **Mar 16** (tomorrow)
-- [ ] **Email 2 for Batch 4 (20 targets)** — Due **Mar 17**
-- [ ] **Email 3 for Batches 1-3** — Due Mar 21
-- [ ] **Email 3 for Batch 4** — Due Mar 22
+- [ ] **Email 2 for Batches 1-4 (45 targets)** — Due **Mar 16-17**
+- [ ] **Email 2 for Batch 5 (72 targets)** — Due **Mar 18**
+- [ ] **Email 3 for Batches 1-4** — Due Mar 21-22
+- [ ] **Email 3 for Batch 5** — Due Mar 23
 
 ### Pipeline Growth (Ongoing)
-- [ ] **Scale to 25 new targets per day** — Use `/send-emails` to research, add to master list, and send
-- [ ] **Diversify categories** — Currently 90% food. Need more: dentists, physios, gyms, mechanics, salons, vets, tradies
-- [ ] **Target: 500 emails sent by end of March** — Currently at 45. Need ~18/day.
+- [x] **Diversified categories** — Now covers: cafes, restaurants, bars, pubs, hotels, bakeries, dentists, salons, beauty, chiros, physios, gyms, florists, barbers
+- [ ] **Target: 500 emails sent by end of March** — Currently at 117. Need ~25/day.
 - [ ] **Track replies daily** — Check sly.tristan1@gmail.com. Any reply = remove from sequence, respond personally.
 
 ### Cold Email Math
@@ -138,11 +144,13 @@ Walk in with your phone. Pull up their Google reviews. Say:
 ## PHASE 5 — SEO & Content (Compounds Over 6-12 Months)
 
 ### Blog Posts
-- [ ] **Add /blog route** to insightreviews.com.au
-- [ ] **Write: "How to Get More Google Reviews in 2026"** — ~1,500 words, practical steps
-- [ ] **Write: "How to Deal With Negative Google Reviews"**
+- [x] **Blog route live** at insightreviews.com.au/blog/
+- [x] **"How to Get More Google Reviews in 2026"** — live at /blog/get-more-google-reviews
+- [x] **"How to Deal With Negative Google Reviews"** — live at /blog/negative-google-reviews
 - [ ] **Write: "Google Review Link — How to Get Your Direct Review Link"** — potential free tool for email capture
-- [ ] **Submit sitemap** to Google Search Console
+- [ ] **Submit sitemap** to Google Search Console (sitemap.xml is generated, need to verify site in GSC)
+- [x] **SEO metadata** — JSON-LD structured data, keywords, canonical URLs, og:locale en_AU
+- [x] **Sitemap** includes landing, signup, both blog posts, subscribe
 
 ### Directory Cleanup (Low Priority — Enough for Now)
 - 51 directories submitted. Stop adding more. Focus on:
@@ -188,27 +196,39 @@ Walk in with your phone. Pull up their Google reviews. Say:
 - [x] Quora: 10/10 answers published as Tristan Sly
 - [x] Cold DM templates drafted (marketing/READY-TO-POST.md)
 - [x] Cold email sequence written (3 emails in marketing/COLD-EMAIL-SEQUENCE.md)
-- [x] Target list: 100 Melbourne businesses (marketing/OUTREACH-LIST.md)
-- [x] Master list: 45 targets with sent tracking (marketing/cold-email-master-list.json)
+- [x] Target list: 365+ Melbourne businesses (marketing/target-businesses.csv)
+- [x] Master list: 117 targets with sent tracking (marketing/cold-email-master-list.json)
 - [x] `/send-emails` skill built — automates research + send + tracking
-- [x] send-next-batch.js built (handles duplicates, follow-ups, status)
-- [x] **45 cold emails sent** (25 generic Mar 13 + 20 personalised Mar 14)
-- [x] Diversified target list: marketing/MELBOURNE-TARGETS-NEW.md (dentists, gyms, mechanics, beauty, chiro)
+- [x] send-next-batch.js + send-batch5.js built (handles duplicates, follow-ups, personalisation)
+- [x] **117 cold emails sent** (25 generic Mar 13, 20 personalised Mar 14, 72 category-personalised Mar 15)
+- [x] Diversified target list across 14 categories (cafes, restaurants, bars, pubs, hotels, dentists, salons, beauty, chiros, physios, gyms, florists, barbers, bakeries)
 - [x] Business email pipeline (SendGrid inbound → Gmail)
 - [x] Homepage badges (12 directory backlinks in footer)
 - [x] SendGrid domain authentication verified
 - [x] LinkedIn/Facebook posts drafted (not posted — personal branding concern)
+- [x] **Billing flow redesigned** — Stripe as single source of truth, card collected on signup
+- [x] **Stripe price fixed** — $79 AUD/month (was $29 USD), both test and live
+- [x] **SEO overhaul** — JSON-LD structured data, meta tags, canonical URLs, keywords
+- [x] **510 tests passing** across 18 test files — all major features covered
+- [x] **Dark mode fixed** — Getting Started section
+- [x] **Landing page updated** — "No card required" → "14 days free"
+- [x] **Blog post 1** — "How to Get More Google Reviews" (live)
+- [x] **Blog post 2** — "How to Deal With Negative Google Reviews" (in progress)
+- [x] **Leave-behind PDF** — one-pager for in-person sales (in progress)
+- [x] **.env.production fixed** — removed trailing \n from all values
 
 ---
 
 ## Tracking — Cold Email Sequence Dates
 
-| Batch | Email 1 Sent | Email 2 Due (Day 3) | Email 3 Due (Day 8) |
-|-------|-------------|---------------------|---------------------|
-| Batch 1 (10 targets) | Mar 13 | **Mar 16** | Mar 21 |
-| Batch 2 (7 targets) | Mar 13 | **Mar 16** | Mar 21 |
-| Batch 3 (8 targets) | Mar 13 | **Mar 16** | Mar 21 |
-| Batch 4 (20 targets — personalised) | Mar 14 | **Mar 17** | Mar 22 |
+| Batch | Targets | Email 1 Sent | Email 2 Due (Day 3) | Email 3 Due (Day 8) |
+|-------|---------|-------------|---------------------|---------------------|
+| Batch 1 (generic) | 10 | Mar 13 | **Mar 16** | Mar 21 |
+| Batch 2 (generic) | 7 | Mar 13 | **Mar 16** | Mar 21 |
+| Batch 3 (generic) | 8 | Mar 13 | **Mar 16** | Mar 21 |
+| Batch 4 (personalised) | 20 | Mar 14 | **Mar 17** | Mar 22 |
+| Batch 5a (category-personalised) | 51 | Mar 15 | **Mar 18** | Mar 23 |
+| Batch 5b (category-personalised) | 21 | Mar 15 | **Mar 18** | Mar 23 |
 
 ---
 

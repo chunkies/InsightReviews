@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
-import { createStripeClient } from '@/lib/stripe/server';
 
 export async function POST(request: NextRequest) {
   try {
@@ -64,14 +63,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ orgId: existingMember.organization_id });
     }
 
-    // Create Stripe customer first
-    const stripe = createStripeClient();
-    const customer = await stripe.customers.create({
-      email: user.email,
-      metadata: { orgName: businessName },
-    });
-
-    // Create organization with billing_plan='pending' — Stripe Checkout will activate the trial
+    // Create organization with billing_plan='pending'
+    // Stripe customer will be created later during checkout (create-checkout handles this)
     const { data: org, error: orgError } = await supabase
       .from('organizations')
       .insert({
@@ -80,7 +73,6 @@ export async function POST(request: NextRequest) {
         phone: phone || null,
         billing_plan: 'pending',
         trial_ends_at: null,
-        stripe_customer_id: customer.id,
       })
       .select('id')
       .single();
@@ -91,11 +83,6 @@ export async function POST(request: NextRequest) {
       }
       return NextResponse.json({ error: orgError.message }, { status: 500 });
     }
-
-    // Update Stripe customer metadata with org ID now that we have it
-    await stripe.customers.update(customer.id, {
-      metadata: { organizationId: org.id, orgName: businessName },
-    });
 
     // Add user as owner
     const { error: memberError } = await supabase.from('organization_members').insert({

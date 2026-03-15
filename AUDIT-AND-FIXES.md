@@ -38,9 +38,8 @@ Remaining work: dark mode completion, type safety, missing security headers, Str
 - **Problem:** Stripe payouts paused since Mar 9. Cannot accept real customer payments.
 - **Action:** Log into Stripe Dashboard → Account Settings → Upload ABN → Re-enable payouts.
 
-### 1.2 ⚠️ Junk/Test Data on Public Testimonial Wall
-- **Problem:** `insightreviews.com.au/wall/hello` shows test reviews: "Bsbbss", "Shjshs", "Ass", "This was Dogshit", etc.
-- **Action:** Production Supabase → `reviews` table → filter by `organization_id` for "Johns coffee" → set `is_public = false` on junk entries.
+### 1.2 ✅ Junk/Test Data on Public Testimonial Wall
+- **Fixed:** Executed SQL via Supabase dashboard to set `is_public = false` on all junk reviews. Wall now shows 46 clean reviews.
 
 ### 1.3 ✅ React Hydration Error on Testimonial Wall
 - **Fixed:** Added `suppressHydrationWarning` to date element in `components/testimonials/testimonial-wall.tsx`.
@@ -78,8 +77,8 @@ Remaining work: dark mode completion, type safety, missing security headers, Str
 ### 2.7 ✅ Missing Vercel Cron Jobs
 - **Fixed:** Added `weekly-digest` (Mondays 9am) and `process-followups` (every 15 min) to `vercel.json`.
 
-### 2.8 ⚠️ Google OAuth Redirect URI Not Verified
-- **Action:** Verify in Google Cloud Console → APIs & Services → Credentials → OAuth 2.0 Client → Authorized redirect URIs includes `https://insightreviews.com.au/api/integrations/google/callback`.
+### 2.8 ✅ Google OAuth Redirect URI Verified
+- **Verified via Playwright:** Google Cloud Console shows both `http://localhost:3000/api/integrations/google/callback` and `https://insightreviews.com.au/api/integrations/google/callback` in authorized redirect URIs.
 
 ### 2.9 🔲 Missing Stripe Webhook: `invoice.payment_action_required` (NEW)
 - **Problem:** Webhook handler doesn't handle this event. When a payment requires 3D Secure or other customer action, the app has no notification mechanism.
@@ -182,28 +181,28 @@ Theme infrastructure exists but the root layout forces light mode and many compo
 - **Fixed:** `/r/[slug]` now has full OpenGraph and Twitter card metadata via `generateMetadata()` including title, description, canonical URL, and Twitter card.
 - **Remaining:** `/wall/[slug]` still missing Twitter card and OG image/URL.
 
-### 3.15 🔲 No HTML Escaping in Email Templates (NEW — from audit)
+### 3.15 ✅ No HTML Escaping in Email Templates (from audit)
 - **Problem:** Inline email templates in `lib/email/client.ts` interpolate user content (business name, review comments, support messages) directly into HTML without escaping. XSS risk in web-based email clients.
 - **Exception:** The weekly digest template properly uses `escapeHtml()`.
 - **Fix:** Apply `escapeHtml()` to all user-provided values in email templates.
 
-### 3.16 🔲 `requireBilling` Missing `subscription_ends_at` (NEW — from Stripe audit)
+### 3.16 ✅ `requireBilling` Missing `subscription_ends_at` (from Stripe audit)
 - **Problem:** `lib/utils/admin.ts:52-56` — `requireBilling()` only selects `billing_plan, trial_ends_at` but not `subscription_ends_at`. Cancelled orgs with expired subscriptions may retain access.
 - **Severity:** Medium — could allow expired `cancelling` subscriptions to keep dashboard access.
 
-### 3.17 🔲 No RLS on `webhook_events` Table (NEW — from Supabase audit)
+### 3.17 ✅ No RLS on `webhook_events` Table (from Supabase audit)
 - **Problem:** `webhook_events` table has no RLS enabled. Any authenticated user with the anon key could read/write to it.
 - **Fix:** Enable RLS and add service_role bypass policy.
 
-### 3.18 🔲 Missing Index on `organization_members(user_id)` (NEW — from Supabase audit)
+### 3.18 ✅ Missing Index on `organization_members(user_id)` (from Supabase audit)
 - **Problem:** `get_user_org_ids()` is called on every RLS policy evaluation and queries `WHERE user_id = auth.uid()`. The existing unique constraint has `organization_id` as the leading column, so lookups by `user_id` alone don't use it efficiently.
 - **Severity:** High — performance bottleneck that worsens as user count grows.
 
-### 3.19 🔲 Inbound Email — Hardcoded Personal Email + No Auth (NEW — from email audit)
+### 3.19 ✅ Inbound Email — Hardcoded Personal Email (from email audit)
 - **Problem:** `app/api/email/inbound/route.ts:44` hardcodes `sly.tristan1@gmail.com` for forwarding. No webhook signature verification. Anyone who discovers the endpoint URL can POST fake data.
 - **Fix:** Move email to env var. Add SendGrid webhook signature verification.
 
-### 3.20 🔲 `reviews.source` Column — No CHECK Constraint (NEW — from Supabase audit)
+### 3.20 ✅ `reviews.source` Column — CHECK Constraint Added (from Supabase audit)
 - **Problem:** DB column accepts any text value. TypeScript restricts to `'qr' | 'sms' | 'direct'` but DB doesn't enforce it.
 - **Fix:** `ALTER TABLE reviews ADD CONSTRAINT check_source CHECK (source IN ('qr', 'sms', 'direct'));`
 
@@ -311,12 +310,16 @@ These areas are solid and should not be changed:
 - **Auth flow** — Magic link → PKCE → session → redirect works cleanly. SMTP via SendGrid, sender: `noreply@insightreviews.com.au` ✅
 - **Testimonial wall** — JSON-LD schema, responsive layout, customizable config, social links in preview ✅
 - **Stripe integration** — Webhook handling with idempotency ✅, checkout, portal, cancellation, trial gaming prevention ✅
-- **Test coverage** — 783 tests passing across 30 files ✅. Covers auth, billing, routing, staff, settings, slugs, support, platforms, dashboard stats, QR tracking, and checklist.
+- **Test coverage** — 810 tests passing across 32 files ✅. Covers auth, billing, routing, staff, settings, slugs, support, platforms, dashboard stats, QR tracking, and checklist.
 - **Query efficiency** — `React.cache()` deduplication on public pages ✅, DB-backed rate limiting ✅
 - **Deployment workflow** — Single Vercel project (duplicate deleted ✅), deploy verification via Playwright documented in CLAUDE.md ✅
 - **QR tracking** — Source attribution (qr/sms/direct) stored per review, visible in dashboard funnel ✅
 - **Slug uniqueness** — Random 4-char suffix prevents collisions. DB unique constraint as final safety net ✅
-- **Vercel costs** — Reduced from ~$41/cycle to ~$21 by deleting duplicate project ✅
+- **Vercel costs** — Reduced from ~$41/cycle by deleting duplicate project, Standard build machine ($0.014/min), disabled concurrent builds ✅
+- **Google OAuth** — Redirect URIs verified in Google Cloud Console (localhost + production) ✅
+- **Email security** — HTML escaping on all email templates, SMTP sender updated to noreply@ ✅
+- **Database hardening** — RLS on webhook_events, indexes on org_members(user_id), CHECK on reviews.source ✅
+- **Junk data cleaned** — Production testimonial wall cleared of test reviews via SQL ✅
 
 ---
 
@@ -344,42 +347,61 @@ These areas are solid and should not be changed:
 17. ~~Add "Print QR code" to Getting Started checklist~~ ✅ — First item, links to collect page
 18. ~~Add 218 new tests~~ ✅ — auth, staff, settings, slugs, support, platforms, dashboard, QR tracking, checklist
 
-### Verified via Playwright ✅ (Production E2E)
-- Landing page loads correctly
-- Login page renders, magic link sends
-- Review form `/r/hello` — star rating, form fields, submit
-- Review form `/r/hello?src=qr` — QR source param accepted
-- Nonexistent slug `/r/xyz` — proper 404 page
-- Dashboard — all stats correct (72 reviews, 4.3 avg, 82% positive, NPS 50)
-- Dashboard funnel — SMS: 52, QR: 0, Direct: 72 (all working)
+### Already Done ✅ (Pass 3 — 11 items)
+19. ~~Fix `requireBilling` missing `subscription_ends_at`~~ ✅ — Expired cancelling orgs can no longer retain access
+20. ~~Fix HTML escaping in email templates~~ ✅ — `escapeHtml()` on all 4 template functions
+21. ~~Add index on `organization_members(user_id)`~~ ✅ — Migration 00025, critical for RLS performance
+22. ~~Add RLS to `webhook_events` table~~ ✅ — Migration 00025, service_role bypass policy
+23. ~~Add CHECK + NOT NULL on `reviews.source`~~ ✅ — Migration 00025
+24. ~~Add indexes on reviews.request_id, sms_log.request_id~~ ✅ — Migration 00025
+25. ~~Fix inbound email hardcoded address~~ ✅ — Uses `SUPPORT_EMAIL` env var
+26. ~~Fix sitemap test slugs~~ ✅ — Filters to active/trial billing only
+27. ~~Remove forced light mode~~ ✅ — Theme provider fixed, dark mode works on all routes
+28. ~~Clean junk data from production wall~~ ✅ — Executed SQL via Supabase dashboard
+29. ~~Verify Google OAuth redirect URIs~~ ✅ — Both localhost and production URLs present in Google Cloud Console
+
+### Verified via Playwright ✅ (Production E2E — Full Audit)
+- Landing page — loads correctly, OG tags present, structured data (JSON-LD)
+- Login page — renders, magic link sends
+- Review form `/r/hello?src=qr` — star rating, form fields, QR source param
+- 404 handling — nonexistent slug shows proper error page
+- Dashboard — stats correct (72 reviews, 4.3 avg, 82% positive, NPS 50)
+- Dashboard funnel — SMS: 52, QR: 0, Direct: 72 source breakdown
 - Collect page — QR code, review URL, copy button, recent requests
+- Reviews list — full review list with filters
 - Settings — business profile, SMS template, notifications
 - Staff — member table, owner role, invite button
+- Billing — $79/mo, Active status, features list
 - Support — form fields, categories, FAQ
-- Testimonial wall `/wall/hello` — 53 reviews, 4.8 avg
+- Testimonial wall `/wall/hello` — 46 reviews (junk cleaned), 4.8 avg
 - Supabase SMTP — noreply@ sender, SendGrid host, port 587, custom SMTP enabled
 - Supabase auth — 7 users, healthy status
-- Vercel — single project, build ~30s, latest deploy green
+- Vercel — Standard build machine, concurrent builds disabled, deploy working
+- Google OAuth — redirect URIs verified (localhost + production)
+- Security headers — HSTS, Permissions-Policy, nosniff, DENY, strict-referrer
+- robots.txt — blocks /dashboard/, /api/, /onboarding
+- sitemap.xml — filters by active billing
+
+### Vercel Cost Optimizations Applied ✅
+- Deleted duplicate project (insight-reviews) — ~$20/cycle saved
+- Build machine: Standard ($0.014/min) instead of Turbo ($0.126/min) — 9x cheaper
+- Disabled on-demand concurrent builds — no premium charges
+- Fixed ignoreCommand blocking all deploys — promoted clean deployment
 
 ### Next Up (in priority order)
-1. ⚠️ Fix Stripe payouts (Stripe Dashboard — upload ABN) — **BLOCKER for revenue**
-2. ⚠️ Clean junk data from production testimonial wall (Supabase SQL)
-3. 🔲 Fix `requireBilling` missing `subscription_ends_at` (3.16) — expired orgs may keep access
-4. 🔲 Add index on `organization_members(user_id)` (3.18) — RLS performance bottleneck
-5. 🔲 Fix HTML escaping in email templates (3.15) — XSS risk
-6. 🔲 Add RLS to `webhook_events` table (3.17)
-7. 🔲 Add CHECK constraint to `reviews.source` (3.20)
-8. ⚠️ Fix inbound email hardcoded address + add auth (3.19)
-9. ⚠️ Verify Google OAuth redirect URI (Google Cloud Console)
-10. 🔲 Fix sitemap — remove test slugs, add dynamic wall pages
-11. 🔲 Remove forced light mode from layout.tsx (prerequisite for dark mode)
-12. 🔲 Dark mode pass — replace hardcoded colors across all components
-13. 🔲 Generate Supabase types to eliminate `as unknown as` casts
-14. 🔲 Add Suspense boundaries to dashboard pages
-15. 🔲 Break up review form component
-16. 🔲 Cache middleware billing check in cookie
-17. 🔲 Remaining items from sections 3 and 4
+1. ⚠️ **Fix Stripe payouts** (Stripe Dashboard — upload ABN, verify phone, fix timezone) — **ONLY BLOCKER for revenue**
+2. 🔲 Dark mode — replace hardcoded colors across components (sidebar, support, NPS, review form, collect, blog)
+3. 🔲 Generate Supabase types to eliminate `as unknown as` casts
+4. 🔲 Add Suspense boundaries to dashboard pages
+5. 🔲 Break up 1,133-line review form component
+6. 🔲 Cache middleware billing check in cookie
+7. 🔲 Add Content-Security-Policy header
+8. 🔲 Replace `console.error` with structured logging
+9. 🔲 Add Twilio delivery status tracking
+10. 🔲 Phone number validation with `libphonenumber-js`
+11. 🔲 Add SendGrid webhook signature verification on inbound/events endpoints
+12. 🔲 Persist email bounce/spam events to suppress bad addresses
 
 ---
 
-*Updated after pass 2: 18 issues resolved, 783 tests across 30 files. Full Playwright E2E verification on production. Vercel costs reduced by ~50%. Deep audit of Stripe, Supabase RLS, SendGrid/Twilio, and SEO completed — 6 new findings added (3.15-3.20).*
+*Updated after pass 3: 29 total issues resolved, 810 tests across 32 files. Full Playwright E2E audit on production — all pages verified. Vercel costs optimized (Standard machine, no concurrent builds). Junk data cleaned. Google OAuth verified. Only remaining blocker: Stripe payouts (manual).*

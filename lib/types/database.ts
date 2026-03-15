@@ -83,6 +83,7 @@ export interface Review {
   responded: boolean;
   response_notes: string | null;
   photo_url: string | null;
+  source: 'qr' | 'sms' | 'direct';
   created_at: string;
 }
 

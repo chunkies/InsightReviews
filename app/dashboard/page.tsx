@@ -34,7 +34,7 @@ export default async function DashboardPage() {
   const [reviewsRes, requestsRes, recentRes, leaderboardRequestsRes, orgMembersRes] = await Promise.all([
     supabase
       .from('reviews')
-      .select('id, rating, created_at, review_request_id, redirected_to')
+      .select('id, rating, created_at, review_request_id, redirected_to, source')
       .eq('organization_id', orgId)
       .gte('created_at', statsStart),
     supabase
@@ -77,6 +77,7 @@ export default async function DashboardPage() {
   // Build funnel data — track ALL reviews through the pipeline
   const smsLinkedReviews = reviews.filter((r) => r.review_request_id !== null);
   const walkInReviews = reviews.filter((r) => r.review_request_id === null);
+  const qrReviews = reviews.filter((r) => r.source === 'qr');
   const allPositiveReviews = reviews.filter((r) => r.rating >= positiveThreshold);
   const allRedirectedReviews = allPositiveReviews.filter(
     (r) => Array.isArray(r.redirected_to) && r.redirected_to.length > 0
@@ -88,6 +89,7 @@ export default async function DashboardPage() {
     positiveReviews: allPositiveReviews.length,
     redirectedToplatform: allRedirectedReviews.length,
     walkInReviews: walkInReviews.length,
+    qrReviews: qrReviews.length,
   };
 
   // Build leaderboard data

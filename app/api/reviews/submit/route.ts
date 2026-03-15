@@ -12,7 +12,7 @@ const MAX_NAME_LENGTH = 200;
 
 export async function POST(request: NextRequest) {
   try {
-    const { slug, rating, comment, customerName, customerContact, reviewRequestId, photoUrl } = await request.json();
+    const { slug, rating, comment, customerName, customerContact, reviewRequestId, source, photoUrl } = await request.json();
 
     if (!slug || !rating || rating < 1 || rating > 5) {
       return NextResponse.json({ error: 'Invalid data' }, { status: 400 });
@@ -132,6 +132,7 @@ export async function POST(request: NextRequest) {
         is_public: isPositive, // Auto-publish positive reviews
         redirected_to: [],
         photo_url: photoUrl || null,
+        source: ['qr', 'sms', 'direct'].includes(source) ? source : 'direct',
       })
       .select('id')
       .single();

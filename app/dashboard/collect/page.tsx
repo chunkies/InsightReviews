@@ -49,6 +49,7 @@ export default async function CollectPage() {
 
   const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000').trim();
   const reviewUrl = `${siteUrl}/r/${org.slug}`;
+  const qrUrl = `${reviewUrl}?src=qr`;
 
   return (
     <Box>
@@ -61,6 +62,7 @@ export default async function CollectPage() {
         orgName={org.name}
         orgSlug={org.slug}
         reviewUrl={reviewUrl}
+        qrUrl={qrUrl}
         recentRequests={recentRequests}
       />
     </Box>

@@ -49,6 +49,7 @@ interface ReviewFormContentProps {
     display_order: number;
   }>;
   reviewRequestId?: string;
+  source?: string;
   config?: WallConfig;
   thankYouConfig?: ThankYouConfig;
 }
@@ -255,7 +256,7 @@ function BackgroundGlow({ rating, formState }: { rating: number; formState: Form
 
 /* ─── Main Component ────────────────────────────────────────────── */
 
-export function ReviewFormContent({ org, platforms, reviewRequestId, config: cfg, thankYouConfig: tyc }: ReviewFormContentProps) {
+export function ReviewFormContent({ org, platforms, reviewRequestId, source, config: cfg, thankYouConfig: tyc }: ReviewFormContentProps) {
   const config = cfg ?? DEFAULT_WALL_CONFIG;
   const tyConfig = tyc ?? DEFAULT_THANKYOU_CONFIG;
   const accentColor = config.accentColor;
@@ -355,6 +356,7 @@ export function ReviewFormContent({ org, platforms, reviewRequestId, config: cfg
           customerName: customerName || null,
           customerContact: customerContact || null,
           reviewRequestId: reviewRequestId || null,
+          source: source || 'direct',
           photoUrl,
         }),
       });

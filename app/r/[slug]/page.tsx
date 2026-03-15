@@ -11,7 +11,7 @@ export const revalidate = 300; // Cache for 5 minutes
 
 interface PageProps {
   params: Promise<{ slug: string }>;
-  searchParams: Promise<{ rid?: string }>;
+  searchParams: Promise<{ rid?: string; src?: string }>;
 }
 
 function getSupabaseClient() {
@@ -51,7 +51,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function ReviewPage({ params, searchParams }: PageProps) {
   const { slug } = await params;
-  const { rid: reviewRequestId } = await searchParams;
+  const { rid: reviewRequestId, src: source } = await searchParams;
 
   const supabase = getSupabaseClient();
   const org = await getOrgBySlug(slug);
@@ -168,6 +168,7 @@ export default async function ReviewPage({ params, searchParams }: PageProps) {
           }}
           platforms={platforms ?? []}
           reviewRequestId={reviewRequestId}
+          source={source || (reviewRequestId ? 'sms' : 'direct')}
           config={config}
         />
       </Container>

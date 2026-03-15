@@ -11,6 +11,7 @@ export interface FunnelData {
   positiveReviews: number;
   redirectedToplatform: number;
   walkInReviews: number;
+  qrReviews: number;
 }
 
 interface FunnelStage {
@@ -146,7 +147,7 @@ export function ReviewFunnel({ data }: { data: FunnelData }) {
             <Typography variant="caption" color="text.secondary" fontWeight={600} sx={{ mb: 1.5, display: 'block', textTransform: 'uppercase', letterSpacing: 0.5 }}>
               Review Sources
             </Typography>
-            <Box sx={{ display: 'flex', gap: 2 }}>
+            <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
               <SourceCard
                 icon={<Send size={16} />}
                 label="SMS Requests"
@@ -157,10 +158,18 @@ export function ReviewFunnel({ data }: { data: FunnelData }) {
               />
               <SourceCard
                 icon={<QrCode size={16} />}
-                label="Walk-in / QR"
-                count={data.walkInReviews}
-                sublabel="Direct submissions"
+                label="QR Code"
+                count={data.qrReviews}
+                sublabel="Scanned at counter"
                 color="#8b5cf6"
+                isDark={isDark}
+              />
+              <SourceCard
+                icon={<MessageSquare size={16} />}
+                label="Direct Link"
+                count={data.walkInReviews - data.qrReviews}
+                sublabel="Shared link / walk-in"
+                color="#6b7280"
                 isDark={isDark}
               />
             </Box>

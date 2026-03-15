@@ -21,10 +21,12 @@ interface CollectFormProps {
   orgName: string;
   orgSlug: string;
   reviewUrl: string;
+  qrUrl?: string;
   recentRequests?: RecentRequest[];
 }
 
-export function CollectForm({ orgId, orgName, orgSlug, reviewUrl, recentRequests = [] }: CollectFormProps) {
+export function CollectForm({ orgId, orgName, orgSlug, reviewUrl, qrUrl, recentRequests = [] }: CollectFormProps) {
+  const qrCodeUrl = qrUrl || reviewUrl;
   const { showSnackbar } = useSnackbar();
 
   // SMS form state
@@ -63,7 +65,7 @@ export function CollectForm({ orgId, orgName, orgSlug, reviewUrl, recentRequests
 
   const handleDownloadQR = useCallback(async () => {
     try {
-      const dataUrl = await generateQRDataUrl(reviewUrl, 600);
+      const dataUrl = await generateQRDataUrl(qrCodeUrl, 600);
       const link = document.createElement('a');
       link.download = `${orgSlug}-qr-code.png`;
       link.href = dataUrl;
@@ -75,7 +77,7 @@ export function CollectForm({ orgId, orgName, orgSlug, reviewUrl, recentRequests
 
   const handlePrintCard = useCallback(async () => {
     try {
-      const dataUrl = await generateQRDataUrl(reviewUrl, 400);
+      const dataUrl = await generateQRDataUrl(qrCodeUrl, 400);
       const printWindow = window.open('', '_blank');
       if (!printWindow) return;
       printWindow.document.write(`
@@ -217,7 +219,7 @@ export function CollectForm({ orgId, orgName, orgSlug, reviewUrl, recentRequests
         </Box>
 
         <CardContent sx={{ p: 3, textAlign: 'center' }}>
-          <QRCodeDisplay url={reviewUrl} size={200} />
+          <QRCodeDisplay url={qrCodeUrl} size={200} />
 
           <Typography variant="body2" color="text.secondary" sx={{ mt: 1.5, mb: 2 }}>
             Customers scan this with their phone camera to leave a review

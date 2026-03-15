@@ -1,4 +1,5 @@
 {
+  "regions": ["iad1"],
   "crons": [
     { "path": "/api/cron/sync-integrations", "schedule": "0 */6 * * *" },
     { "path": "/api/cron/weekly-digest", "schedule": "0 9 * * 1" },

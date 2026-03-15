@@ -30,8 +30,7 @@ export const metadata: Metadata = {
     },
   },
   verification: {
-    // Add Google Search Console verification when available
-    // google: 'verification-token',
+    google: 'm4IpEgczxr-EE9dSEq8o45oUbe-yLl-WbnkqbKkn7bo',
   },
 };
 

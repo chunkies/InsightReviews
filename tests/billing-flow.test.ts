@@ -293,7 +293,12 @@ describe('Webhook — subscription status mapping', () => {
   ) {
     const updateData: Record<string, unknown> = {};
 
-    if (stripeStatus === 'trialing') {
+    if (stripeStatus === 'trialing' && cancelAtPeriodEnd) {
+      updateData.billing_plan = 'cancelling';
+      updateData.trial_ends_at = trialEnd
+        ? new Date(trialEnd * 1000).toISOString()
+        : null;
+    } else if (stripeStatus === 'trialing' && !cancelAtPeriodEnd) {
       updateData.billing_plan = 'trial';
       updateData.trial_ends_at = trialEnd
         ? new Date(trialEnd * 1000).toISOString()
@@ -314,10 +319,17 @@ describe('Webhook — subscription status mapping', () => {
     return updateData;
   }
 
-  it('maps trialing → trial with trial_ends_at', () => {
+  it('maps trialing (active) → trial with trial_ends_at', () => {
     const trialEnd = Math.floor(Date.now() / 1000) + 14 * 86400;
     const result = mapStripeStatus('trialing', false, trialEnd, null);
     expect(result.billing_plan).toBe('trial');
+    expect(result.trial_ends_at).toBeTruthy();
+  });
+
+  it('maps trialing + cancel_at_period_end → cancelling (trial cancelled)', () => {
+    const trialEnd = Math.floor(Date.now() / 1000) + 10 * 86400;
+    const result = mapStripeStatus('trialing', true, trialEnd, null);
+    expect(result.billing_plan).toBe('cancelling');
     expect(result.trial_ends_at).toBeTruthy();
   });
 
@@ -340,7 +352,7 @@ describe('Webhook — subscription status mapping', () => {
     expect(result.billing_plan).toBe('past_due');
   });
 
-  it('handles trialing with no trial_end', () => {
+  it('handles trialing (active) with no trial_end', () => {
     const result = mapStripeStatus('trialing', false, null, null);
     expect(result.billing_plan).toBe('trial');
     expect(result.trial_ends_at).toBeNull();

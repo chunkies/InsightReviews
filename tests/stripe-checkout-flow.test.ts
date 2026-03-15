@@ -339,7 +339,13 @@ describe('Webhook — full subscription lifecycle mapping', () => {
   ) {
     const updateData: Record<string, unknown> = {};
 
-    if (stripeStatus === 'trialing') {
+    if (stripeStatus === 'trialing' && cancelAtPeriodEnd) {
+      // Trial cancelled — keep access until trial ends
+      updateData.billing_plan = 'cancelling';
+      updateData.trial_ends_at = trialEnd
+        ? new Date(trialEnd * 1000).toISOString()
+        : null;
+    } else if (stripeStatus === 'trialing' && !cancelAtPeriodEnd) {
       updateData.billing_plan = 'trial';
       updateData.trial_ends_at = trialEnd
         ? new Date(trialEnd * 1000).toISOString()
@@ -399,13 +405,18 @@ describe('Webhook — full subscription lifecycle mapping', () => {
       expect(result.billing_plan).toBe('trial');
     });
 
-    it('user cancels during trial → still trialing but marked for cancellation', () => {
-      // Stripe still reports 'trialing' with cancel_at_period_end
-      // Our cancel endpoint sets billing_plan to 'cancelling' directly
-      // But the webhook may get 'active' + cancel_at_period_end after trial converts
-      const cancelAt = Math.floor(Date.now() / 1000) + 14 * 86400;
-      const result = mapStripeEvent('active', true, null, cancelAt);
+    it('user cancels during trial → trialing + cancel_at_period_end → cancelling', () => {
+      // Stripe fires subscription.updated with status='trialing' + cancel_at_period_end=true
+      const trialEnd = Math.floor(Date.now() / 1000) + 10 * 86400;
+      const result = mapStripeEvent('trialing', true, trialEnd, null);
       expect(result.billing_plan).toBe('cancelling');
+      expect(result.trial_ends_at).toBeTruthy();
+    });
+
+    it('user uncancels during trial → trialing + cancel_at_period_end=false → trial', () => {
+      const trialEnd = Math.floor(Date.now() / 1000) + 10 * 86400;
+      const result = mapStripeEvent('trialing', false, trialEnd, null);
+      expect(result.billing_plan).toBe('trial');
     });
   });
 

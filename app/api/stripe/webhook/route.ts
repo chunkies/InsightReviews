@@ -90,7 +90,13 @@ export async function POST(request: NextRequest) {
         stripe_subscription_id: subId,
       };
 
-      if (subscription.status === 'trialing') {
+      if (subscription.status === 'trialing' && subscription.cancel_at_period_end) {
+        // Trial cancelled — keep access until trial ends but don't charge after
+        updateData.billing_plan = 'cancelling';
+        updateData.trial_ends_at = subscription.trial_end
+          ? new Date(subscription.trial_end * 1000).toISOString()
+          : null;
+      } else if (subscription.status === 'trialing' && !subscription.cancel_at_period_end) {
         updateData.billing_plan = 'trial';
         updateData.trial_ends_at = subscription.trial_end
           ? new Date(subscription.trial_end * 1000).toISOString()

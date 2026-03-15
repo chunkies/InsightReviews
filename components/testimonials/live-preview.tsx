@@ -4,7 +4,7 @@ import { useState, memo } from 'react';
 import {
   Box, Paper, Typography, IconButton,
 } from '@mui/material';
-import { Star, MessageSquare, LayoutGrid, Smartphone } from 'lucide-react';
+import { Star, MessageSquare, LayoutGrid, Smartphone, Instagram, Facebook, Globe } from 'lucide-react';
 import { ReviewFormContent } from '@/components/review-form/review-form-content';
 import type { ThankYouConfig } from '@/components/review-form/review-form-content';
 import type { WallConfig } from '@/lib/types/wall-config';
@@ -617,6 +617,31 @@ function ThankYouPreview({
             </Typography>
           </Box>
         )}
+
+        {Object.keys(thankYouConfig.socialLinks).length > 0 && (
+          <Box sx={{ mt: 2 }}>
+            <Typography variant="caption" fontWeight={600} color="text.secondary" sx={{ display: 'block', mb: 0.75 }}>
+              Follow us
+            </Typography>
+            <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1 }}>
+              {thankYouConfig.socialLinks.instagram && (
+                <Box sx={{ width: 36, height: 36, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(228,64,95,0.1)', color: '#E4405F' }}>
+                  <Instagram size={18} />
+                </Box>
+              )}
+              {thankYouConfig.socialLinks.facebook && (
+                <Box sx={{ width: 36, height: 36, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(24,119,242,0.1)', color: '#1877F2' }}>
+                  <Facebook size={18} />
+                </Box>
+              )}
+              {thankYouConfig.socialLinks.google && (
+                <Box sx={{ width: 36, height: 36, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(66,133,244,0.1)', color: '#4285F4' }}>
+                  <Globe size={18} />
+                </Box>
+              )}
+            </Box>
+          </Box>
+        )}
       </Paper>
     );
   }
@@ -682,6 +707,31 @@ function ThankYouPreview({
           </Typography>
         </Box>
       )}
+
+      {Object.keys(thankYouConfig.socialLinks).length > 0 && (
+          <Box sx={{ mb: 2 }}>
+            <Typography variant="caption" fontWeight={600} color="text.secondary" sx={{ display: 'block', mb: 0.75 }}>
+              Follow us
+            </Typography>
+            <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1 }}>
+              {thankYouConfig.socialLinks.instagram && (
+                <Box sx={{ width: 36, height: 36, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(228,64,95,0.1)', color: '#E4405F' }}>
+                  <Instagram size={18} />
+                </Box>
+              )}
+              {thankYouConfig.socialLinks.facebook && (
+                <Box sx={{ width: 36, height: 36, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(24,119,242,0.1)', color: '#1877F2' }}>
+                  <Facebook size={18} />
+                </Box>
+              )}
+              {thankYouConfig.socialLinks.google && (
+                <Box sx={{ width: 36, height: 36, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(66,133,244,0.1)', color: '#4285F4' }}>
+                  <Globe size={18} />
+                </Box>
+              )}
+            </Box>
+          </Box>
+        )}
 
       <Box sx={{
         p: 1.75,

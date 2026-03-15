@@ -29,12 +29,15 @@ export function OnboardingWizard({ userId: _userId }: OnboardingWizardProps) {
   const [facebookUrl, setFacebookUrl] = useState('');
 
   function generateSlug(name: string) {
-    return name
+    const base = name
       .toLowerCase()
       .replace(/[^a-z0-9\s-]/g, '')
       .replace(/\s+/g, '-')
       .replace(/-+/g, '-')
-      .slice(0, 50);
+      .slice(0, 42);
+    if (!base) return '';
+    const suffix = Math.random().toString(36).slice(2, 6);
+    return `${base}-${suffix}`;
   }
 
   function handleNameChange(name: string) {

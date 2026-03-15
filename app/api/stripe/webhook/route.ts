@@ -33,6 +33,16 @@ export async function POST(request: NextRequest) {
     }
   );
 
+  // Idempotency check — skip if we've already processed this event
+  const { error: idempotencyError } = await supabase
+    .from('webhook_events')
+    .insert({ stripe_event_id: event.id, event_type: event.type });
+
+  if (idempotencyError?.code === '23505') {
+    // Unique constraint violation — already processed
+    return NextResponse.json({ received: true, duplicate: true });
+  }
+
   switch (event.type) {
     case 'checkout.session.completed': {
       const session = event.data.object as Stripe.Checkout.Session;

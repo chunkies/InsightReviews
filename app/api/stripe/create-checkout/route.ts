@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    // Get org
+    // Get org (include stripe_customer_id to detect returning users)
     const { data: org } = await supabase
       .from('organizations')
       .select('id, name, stripe_customer_id, billing_plan')
@@ -59,8 +59,9 @@ export async function POST(request: NextRequest) {
         .eq('id', org.id);
     }
 
-    // Only give trial to new subscribers (not cancelled/returning users)
-    const isNewSubscriber = org.billing_plan === 'trial' || org.billing_plan === 'pending' || !org.billing_plan;
+    // Only give trial to genuinely new subscribers — if they already have a Stripe customer,
+    // they've subscribed before and shouldn't get another trial (prevents trial gaming)
+    const isNewSubscriber = !org.stripe_customer_id && (org.billing_plan === 'trial' || org.billing_plan === 'pending' || !org.billing_plan);
 
     const session = await stripe.checkout.sessions.create({
       customer: customerId,

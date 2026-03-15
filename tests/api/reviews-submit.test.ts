@@ -21,6 +21,11 @@ const mockOwnerMemberSelect = vi.fn().mockReturnValue({ eq: mockOwnerMemberEq1 }
 
 const mockGetUserById = vi.fn().mockResolvedValue({ data: { user: { email: 'owner@test.com' } } });
 
+// Rate limit mock: reviews.select('id', { count: 'exact', head: true }).eq().gte()
+const mockRateLimitGte = vi.fn().mockReturnValue({ count: 0 });
+const mockRateLimitEq = vi.fn().mockReturnValue({ gte: mockRateLimitGte });
+
+let reviewCallCount = 0;
 const mockFrom = vi.fn((table: string) => {
   if (table === 'organizations') {
     return { select: mockSelect };
@@ -34,6 +39,16 @@ const mockFrom = vi.fn((table: string) => {
   if (table === 'review_requests') {
     return { select: mockReviewRequestSelect, update: mockReviewRequestUpdate };
   }
+  if (table === 'followup_queue') {
+    return { insert: vi.fn().mockReturnValue({ error: null }) };
+  }
+  // reviews table — first call is rate limit, subsequent calls are insert
+  reviewCallCount++;
+  if (reviewCallCount % 2 === 1) {
+    // Rate limit check
+    return { select: vi.fn().mockReturnValue({ eq: mockRateLimitEq }) };
+  }
+  // Insert
   return { insert: mockInsert };
 });
 
@@ -64,6 +79,7 @@ function makeRequest(body: Record<string, unknown>): NextRequest {
 describe('POST /api/reviews/submit', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    reviewCallCount = 0;
     vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', 'http://127.0.0.1:54421');
     vi.stubEnv('SUPABASE_SERVICE_ROLE_KEY', 'test-service-key');
   });

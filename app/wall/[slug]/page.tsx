@@ -1,8 +1,9 @@
+import { cache } from 'react';
 import { createServerClient } from '@supabase/ssr';
 import { notFound } from 'next/navigation';
 import { TestimonialWall } from '@/components/testimonials/testimonial-wall';
 import { mergeWallConfig } from '@/lib/types/wall-config';
-import { isAdminEmail } from '@/lib/utils/admin';
+import { checkReviewPageAccess } from '@/lib/utils/review-page-access';
 import type { Metadata } from 'next';
 
 export const revalidate = 300; // Cache for 5 minutes
@@ -24,14 +25,19 @@ function getSupabaseClient() {
   );
 }
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { slug } = await params;
+const getOrgBySlug = cache(async (slug: string) => {
   const supabase = getSupabaseClient();
   const { data: org } = await supabase
     .from('organizations')
-    .select('name')
+    .select('id, name, logo_url, wall_config, billing_plan, trial_ends_at, subscription_ends_at')
     .eq('slug', slug)
     .single();
+  return org;
+});
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const org = await getOrgBySlug(slug);
 
   const name = org?.name || 'Business';
   return {
@@ -98,12 +104,7 @@ export default async function TestimonialWallPage({ params }: PageProps) {
   const { slug } = await params;
 
   const supabase = getSupabaseClient();
-
-  const { data: org } = await supabase
-    .from('organizations')
-    .select('id, name, logo_url, wall_config, billing_plan, trial_ends_at, subscription_ends_at')
-    .eq('slug', slug)
-    .single();
+  const org = await getOrgBySlug(slug);
 
   if (!org) notFound();
 
@@ -116,19 +117,20 @@ export default async function TestimonialWallPage({ params }: PageProps) {
     .limit(1)
     .maybeSingle();
 
-  let isAdminOrg = false;
+  let ownerEmail: string | null = null;
   if (ownerMember?.user_id) {
     const { data: { user: ownerUser } } = await supabase.auth.admin.getUserById(ownerMember.user_id);
-    isAdminOrg = isAdminEmail(ownerUser?.email);
+    ownerEmail = ownerUser?.email ?? null;
   }
 
-  // Block wall if billing expired (admin orgs bypass)
-  const plan = org.billing_plan ?? 'none';
-  const isExpiredTrial = plan === 'trial' && org.trial_ends_at && new Date(org.trial_ends_at) < new Date();
-  const isExpiredCancelling = plan === 'cancelling' && (org.subscription_ends_at || org.trial_ends_at) && new Date((org.subscription_ends_at || org.trial_ends_at)!).getTime() < Date.now();
-  const isInactive = ['cancelled', 'past_due', 'none'].includes(plan);
+  const access = checkReviewPageAccess({
+    billingPlan: org.billing_plan,
+    trialEndsAt: org.trial_ends_at,
+    subscriptionEndsAt: org.subscription_ends_at,
+    ownerEmail,
+  });
 
-  if (!isAdminOrg && (isExpiredTrial || isExpiredCancelling || isInactive)) {
+  if (!access.allowed) {
     return (
       <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, textAlign: 'center' }}>
         <div>

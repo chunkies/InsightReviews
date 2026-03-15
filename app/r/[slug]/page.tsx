@@ -1,9 +1,10 @@
+import { cache } from 'react';
 import { Box, Container, Typography } from '@mui/material';
 import { createServerClient } from '@supabase/ssr';
 import { notFound } from 'next/navigation';
 import { ReviewFormContent } from '@/components/review-form/review-form-content';
 import { mergeWallConfig } from '@/lib/types/wall-config';
-import { isAdminEmail } from '@/lib/utils/admin';
+import { checkReviewPageAccess } from '@/lib/utils/review-page-access';
 import type { Metadata } from 'next';
 
 export const revalidate = 300; // Cache for 5 minutes
@@ -26,20 +27,25 @@ function getSupabaseClient() {
   );
 }
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { slug } = await params;
+const getOrgBySlug = cache(async (slug: string) => {
   const supabase = getSupabaseClient();
   const { data: org } = await supabase
     .from('organizations')
-    .select('name')
+    .select('id, name, slug, logo_url, positive_threshold, wall_config, review_form_heading, review_form_subheading, thankyou_positive_title, thankyou_positive_message, thankyou_negative_title, thankyou_negative_message, thankyou_coupon_code, thankyou_coupon_text, thankyou_social_links, billing_plan, trial_ends_at, subscription_ends_at')
     .eq('slug', slug)
     .single();
+  return org;
+});
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const org = await getOrgBySlug(slug);
 
   const name = org?.name || 'Business';
   return {
     title: `Leave a Review for ${name}`,
     description: `Share your experience at ${name}. Your feedback helps us improve.`,
-    robots: { index: false, follow: false },
+    robots: { index: true, follow: true },
   };
 }
 
@@ -48,12 +54,7 @@ export default async function ReviewPage({ params, searchParams }: PageProps) {
   const { rid: reviewRequestId } = await searchParams;
 
   const supabase = getSupabaseClient();
-
-  const { data: org } = await supabase
-    .from('organizations')
-    .select('id, name, slug, logo_url, positive_threshold, wall_config, review_form_heading, review_form_subheading, thankyou_positive_title, thankyou_positive_message, thankyou_negative_title, thankyou_negative_message, thankyou_coupon_code, thankyou_coupon_text, thankyou_social_links, billing_plan, trial_ends_at, subscription_ends_at')
-    .eq('slug', slug)
-    .single();
+  const org = await getOrgBySlug(slug);
 
   if (!org) notFound();
 
@@ -66,19 +67,20 @@ export default async function ReviewPage({ params, searchParams }: PageProps) {
     .limit(1)
     .maybeSingle();
 
-  let isAdminOrg = false;
+  let ownerEmail: string | null = null;
   if (ownerMember?.user_id) {
     const { data: { user: ownerUser } } = await supabase.auth.admin.getUserById(ownerMember.user_id);
-    isAdminOrg = isAdminEmail(ownerUser?.email);
+    ownerEmail = ownerUser?.email ?? null;
   }
 
-  // Block review form if billing expired (admin orgs bypass)
-  const plan = org.billing_plan ?? 'none';
-  const isExpiredTrial = plan === 'trial' && org.trial_ends_at && new Date(org.trial_ends_at) < new Date();
-  const isExpiredCancelling = plan === 'cancelling' && org.subscription_ends_at && new Date(org.subscription_ends_at) < new Date();
-  const isInactive = ['cancelled', 'past_due', 'none'].includes(plan);
+  const access = checkReviewPageAccess({
+    billingPlan: org.billing_plan,
+    trialEndsAt: org.trial_ends_at,
+    subscriptionEndsAt: org.subscription_ends_at,
+    ownerEmail,
+  });
 
-  if (!isAdminOrg && (isExpiredTrial || isExpiredCancelling || isInactive)) {
+  if (!access.allowed) {
     return (
       <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', p: 3 }}>
         <Container maxWidth="sm" sx={{ textAlign: 'center' }}>

@@ -2,37 +2,16 @@ import { createServerClient } from '@supabase/ssr';
 import { NextRequest, NextResponse } from 'next/server';
 import { fireWebhook } from '@/lib/utils/webhook';
 import { sendNegativeReviewNotification } from '@/lib/email/client';
-import { isAdminEmail } from '@/lib/utils/admin';
+import { checkReviewPageAccess } from '@/lib/utils/review-page-access';
 
-// Simple in-memory rate limiting: IP -> { count, resetAt }
-const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
 const RATE_LIMIT_MAX = 10;
-const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000; // 1 hour
-
-function isRateLimited(ip: string): boolean {
-  const now = Date.now();
-  const entry = rateLimitMap.get(ip);
-
-  if (!entry || now >= entry.resetAt) {
-    rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
-    return false;
-  }
-
-  entry.count++;
-  return entry.count > RATE_LIMIT_MAX;
-}
+const RATE_LIMIT_WINDOW_SECONDS = 3600; // 1 hour
 
 const MAX_COMMENT_LENGTH = 10000;
 const MAX_NAME_LENGTH = 200;
 
 export async function POST(request: NextRequest) {
   try {
-    // Rate limit by IP
-    const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
-    if (isRateLimited(ip)) {
-      return NextResponse.json({ error: 'Too many submissions. Please try again later.' }, { status: 429 });
-    }
-
     const { slug, rating, comment, customerName, customerContact, reviewRequestId, photoUrl } = await request.json();
 
     if (!slug || !rating || rating < 1 || rating > 5) {
@@ -59,6 +38,7 @@ export async function POST(request: NextRequest) {
       }
     );
 
+
     // Look up org by slug
     const { data: org } = await supabase
       .from('organizations')
@@ -70,6 +50,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Business not found' }, { status: 404 });
     }
 
+    // Database-backed rate limiting per org (works across serverless instances)
+    const windowStart = new Date(Date.now() - RATE_LIMIT_WINDOW_SECONDS * 1000).toISOString();
+    const { count: recentReviewCount } = await supabase
+      .from('reviews')
+      .select('id', { count: 'exact', head: true })
+      .eq('organization_id', org.id)
+      .gte('created_at', windowStart);
+
+    if (recentReviewCount !== null && recentReviewCount >= RATE_LIMIT_MAX) {
+      return NextResponse.json({ error: 'Too many submissions. Please try again later.' }, { status: 429 });
+    }
+
     // Check if org owner is an admin (bypass billing check)
     const { data: ownerMember } = await supabase
       .from('organization_members')
@@ -79,19 +71,20 @@ export async function POST(request: NextRequest) {
       .limit(1)
       .maybeSingle();
 
-    let isAdminOrg = false;
+    let ownerEmail: string | null = null;
     if (ownerMember?.user_id) {
       const { data: { user: ownerUser } } = await supabase.auth.admin.getUserById(ownerMember.user_id);
-      isAdminOrg = isAdminEmail(ownerUser?.email);
+      ownerEmail = ownerUser?.email ?? null;
     }
 
-    // Block submissions if billing is expired (admin orgs bypass)
-    const plan = org.billing_plan ?? 'none';
-    const isExpiredTrial = plan === 'trial' && org.trial_ends_at && new Date(org.trial_ends_at) < new Date();
-    const isExpiredCancelling = plan === 'cancelling' && org.subscription_ends_at && new Date(org.subscription_ends_at) < new Date();
-    const isInactive = ['cancelled', 'past_due', 'none'].includes(plan);
+    const access = checkReviewPageAccess({
+      billingPlan: org.billing_plan,
+      trialEndsAt: org.trial_ends_at,
+      subscriptionEndsAt: org.subscription_ends_at,
+      ownerEmail,
+    });
 
-    if (!isAdminOrg && (isExpiredTrial || isExpiredCancelling || isInactive)) {
+    if (!access.allowed) {
       return NextResponse.json({ error: 'This review page is currently unavailable' }, { status: 403 });
     }
 

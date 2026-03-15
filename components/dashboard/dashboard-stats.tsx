@@ -1,7 +1,7 @@
 'use client';
 
 import { Grid, Card, CardContent, Typography, Box } from '@mui/material';
-import { Star, TrendingUp, Send, ArrowUp, ArrowDown, Clock, MessageSquare, CheckCircle2, Circle, Link2, Users, Megaphone, Layout } from 'lucide-react';
+import { Star, TrendingUp, Send, ArrowUp, ArrowDown, Clock, MessageSquare, CheckCircle2, Circle, Link2, Users, Megaphone, Layout, QrCode } from 'lucide-react';
 import {
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
 } from 'recharts';
@@ -37,6 +37,12 @@ export function DashboardStats({ stats, recentReviews, chartData, funnelData }: 
   const weekChange = stats.thisWeekReviews - stats.lastWeekReviews;
 
   const checklistItems = [
+    {
+      label: 'Print your QR code for the counter',
+      done: false,
+      href: '/dashboard/collect',
+      icon: <QrCode size={16} />,
+    },
     {
       label: 'Connect a review platform',
       done: false, // Will be overridden below if integrations data is available
@@ -199,12 +205,14 @@ export function DashboardStats({ stats, recentReviews, chartData, funnelData }: 
           <Grid container spacing={2.5} sx={{ height: '100%' }}>
             <Grid size={12}>
               <Card
-                sx={{
-                  background: 'linear-gradient(135deg, #f59e0b08 0%, #f59e0b18 100%)',
+                sx={(theme) => ({
+                  background: theme.palette.mode === 'dark'
+                    ? 'linear-gradient(135deg, rgba(245,158,11,0.05) 0%, rgba(245,158,11,0.12) 100%)'
+                    : 'linear-gradient(135deg, #f59e0b08 0%, #f59e0b18 100%)',
                   border: '1px solid',
-                  borderColor: '#f59e0b20',
+                  borderColor: theme.palette.mode === 'dark' ? 'rgba(245,158,11,0.2)' : '#f59e0b20',
                   height: '100%',
-                }}
+                })}
               >
                 <CardContent sx={{ p: 2.5, '&:last-child': { pb: 2.5 } }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -232,12 +240,14 @@ export function DashboardStats({ stats, recentReviews, chartData, funnelData }: 
             </Grid>
             <Grid size={12}>
               <Card
-                sx={{
-                  background: 'linear-gradient(135deg, #16a34a08 0%, #16a34a18 100%)',
+                sx={(theme) => ({
+                  background: theme.palette.mode === 'dark'
+                    ? 'linear-gradient(135deg, rgba(22,163,74,0.05) 0%, rgba(22,163,74,0.12) 100%)'
+                    : 'linear-gradient(135deg, #16a34a08 0%, #16a34a18 100%)',
                   border: '1px solid',
-                  borderColor: '#16a34a20',
+                  borderColor: theme.palette.mode === 'dark' ? 'rgba(22,163,74,0.2)' : '#16a34a20',
                   height: '100%',
-                }}
+                })}
               >
                 <CardContent sx={{ p: 2.5, '&:last-child': { pb: 2.5 } }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -260,11 +270,13 @@ export function DashboardStats({ stats, recentReviews, chartData, funnelData }: 
         {/* Secondary stat cards */}
         <Grid size={{ xs: 12, sm: 6, md: 4 }}>
           <Card
-            sx={{
-              background: 'linear-gradient(135deg, #2563eb08 0%, #2563eb18 100%)',
+            sx={(theme) => ({
+              background: theme.palette.mode === 'dark'
+                ? 'linear-gradient(135deg, rgba(37,99,235,0.05) 0%, rgba(37,99,235,0.12) 100%)'
+                : 'linear-gradient(135deg, #2563eb08 0%, #2563eb18 100%)',
               border: '1px solid',
-              borderColor: '#2563eb20',
-            }}
+              borderColor: theme.palette.mode === 'dark' ? 'rgba(37,99,235,0.2)' : '#2563eb20',
+            })}
           >
             <CardContent sx={{ p: 2.5, '&:last-child': { pb: 2.5 } }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
@@ -279,11 +291,13 @@ export function DashboardStats({ stats, recentReviews, chartData, funnelData }: 
         </Grid>
         <Grid size={{ xs: 12, sm: 6, md: 4 }}>
           <Card
-            sx={{
-              background: 'linear-gradient(135deg, #8b5cf608 0%, #8b5cf618 100%)',
+            sx={(theme) => ({
+              background: theme.palette.mode === 'dark'
+                ? 'linear-gradient(135deg, rgba(139,92,246,0.05) 0%, rgba(139,92,246,0.12) 100%)'
+                : 'linear-gradient(135deg, #8b5cf608 0%, #8b5cf618 100%)',
               border: '1px solid',
-              borderColor: '#8b5cf620',
-            }}
+              borderColor: theme.palette.mode === 'dark' ? 'rgba(139,92,246,0.2)' : '#8b5cf620',
+            })}
           >
             <CardContent sx={{ p: 2.5, '&:last-child': { pb: 2.5 } }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
@@ -298,11 +312,13 @@ export function DashboardStats({ stats, recentReviews, chartData, funnelData }: 
         </Grid>
         <Grid size={{ xs: 12, sm: 6, md: 4 }}>
           <Card
-            sx={{
-              background: 'linear-gradient(135deg, #ec489908 0%, #ec489918 100%)',
+            sx={(theme) => ({
+              background: theme.palette.mode === 'dark'
+                ? 'linear-gradient(135deg, rgba(236,72,153,0.05) 0%, rgba(236,72,153,0.12) 100%)'
+                : 'linear-gradient(135deg, #ec489908 0%, #ec489918 100%)',
               border: '1px solid',
-              borderColor: '#ec489920',
-            }}
+              borderColor: theme.palette.mode === 'dark' ? 'rgba(236,72,153,0.2)' : '#ec489920',
+            })}
           >
             <CardContent sx={{ p: 2.5, '&:last-child': { pb: 2.5 } }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>

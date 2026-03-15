@@ -302,6 +302,7 @@ export function TestimonialWall({ org, reviews, config: configProp }: Testimonia
                       {review.customer_name || 'Anonymous'}
                     </Typography>
                     <Typography
+                      suppressHydrationWarning
                       sx={{
                         fontFamily: config.bodyFont,
                         fontSize: '0.75rem',

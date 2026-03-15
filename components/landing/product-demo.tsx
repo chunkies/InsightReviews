@@ -40,7 +40,8 @@ export function ProductDemo() {
       {/* Phone frame */}
       <Box
         sx={{
-          width: { xs: 240, md: 260 },
+          width: { xs: 220, sm: 240, md: 260 },
+          maxWidth: '85vw',
           borderRadius: '32px',
           border: '3px solid #e2e8f0',
           backgroundColor: 'white',

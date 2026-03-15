@@ -167,25 +167,45 @@ Theme infrastructure exists but the root layout forces light mode and many compo
 ### 3.10 ✅ Review Form Pages Marked as No-Index
 - **Fixed:** Changed `robots: { index: false }` to `robots: { index: true, follow: true }` in `app/r/[slug]/page.tsx`.
 
-### 3.11 🔲 Missing Security Headers (NEW)
-- **Problem:** `next.config.ts` is missing important security headers:
-  - `Strict-Transport-Security` (enforces HTTPS)
-  - `Permissions-Policy` (controls browser features)
-  - `Content-Security-Policy` (prevents XSS/injection)
-- **Currently only has:** `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`
-- **File:** `next.config.ts:4-15`
+### 3.11 ✅ Security Headers (Mostly Complete)
+- **Present:** `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: strict-origin-when-cross-origin`, `Strict-Transport-Security: max-age=63072000; includeSubDomains; preload`, `Permissions-Policy: camera=(), microphone=(), geolocation=(), interest-cohort=()`
+- **Missing:** `Content-Security-Policy` — worth adding eventually but complex for Next.js + MUI + inline styles
 
 ### 3.12 🔲 Missing Stripe Webhook: `customer.subscription.trial_will_end` (NEW)
 - **Problem:** No handler for trial expiry warning. Customers get no notification 3 days before trial ends, leading to churn surprise.
 - **File:** `app/api/stripe/webhook/route.ts`
 
-### 3.13 🔲 Missing Email Unsubscribe Header (NEW)
-- **Problem:** `sendEmail()` in `lib/email/client.ts` doesn't include `List-Unsubscribe` or `List-Unsubscribe-Post` headers. Required by Gmail/Outlook and CAN-SPAM/GDPR.
-- **File:** `lib/email/client.ts:11-40`
+### 3.13 ✅ Email Unsubscribe Headers
+- **Fixed:** `sendEmail()` already includes `List-Unsubscribe` headers per the email audit.
 
 ### 3.14 ✅ Missing OG/Twitter Cards on Review Pages
 - **Fixed:** `/r/[slug]` now has full OpenGraph and Twitter card metadata via `generateMetadata()` including title, description, canonical URL, and Twitter card.
 - **Remaining:** `/wall/[slug]` still missing Twitter card and OG image/URL.
+
+### 3.15 🔲 No HTML Escaping in Email Templates (NEW — from audit)
+- **Problem:** Inline email templates in `lib/email/client.ts` interpolate user content (business name, review comments, support messages) directly into HTML without escaping. XSS risk in web-based email clients.
+- **Exception:** The weekly digest template properly uses `escapeHtml()`.
+- **Fix:** Apply `escapeHtml()` to all user-provided values in email templates.
+
+### 3.16 🔲 `requireBilling` Missing `subscription_ends_at` (NEW — from Stripe audit)
+- **Problem:** `lib/utils/admin.ts:52-56` — `requireBilling()` only selects `billing_plan, trial_ends_at` but not `subscription_ends_at`. Cancelled orgs with expired subscriptions may retain access.
+- **Severity:** Medium — could allow expired `cancelling` subscriptions to keep dashboard access.
+
+### 3.17 🔲 No RLS on `webhook_events` Table (NEW — from Supabase audit)
+- **Problem:** `webhook_events` table has no RLS enabled. Any authenticated user with the anon key could read/write to it.
+- **Fix:** Enable RLS and add service_role bypass policy.
+
+### 3.18 🔲 Missing Index on `organization_members(user_id)` (NEW — from Supabase audit)
+- **Problem:** `get_user_org_ids()` is called on every RLS policy evaluation and queries `WHERE user_id = auth.uid()`. The existing unique constraint has `organization_id` as the leading column, so lookups by `user_id` alone don't use it efficiently.
+- **Severity:** High — performance bottleneck that worsens as user count grows.
+
+### 3.19 🔲 Inbound Email — Hardcoded Personal Email + No Auth (NEW — from email audit)
+- **Problem:** `app/api/email/inbound/route.ts:44` hardcodes `sly.tristan1@gmail.com` for forwarding. No webhook signature verification. Anyone who discovers the endpoint URL can POST fake data.
+- **Fix:** Move email to env var. Add SendGrid webhook signature verification.
+
+### 3.20 🔲 `reviews.source` Column — No CHECK Constraint (NEW — from Supabase audit)
+- **Problem:** DB column accepts any text value. TypeScript restricts to `'qr' | 'sms' | 'direct'` but DB doesn't enforce it.
+- **Fix:** `ALTER TABLE reviews ADD CONSTRAINT check_source CHECK (source IN ('qr', 'sms', 'direct'));`
 
 ---
 
@@ -342,23 +362,24 @@ These areas are solid and should not be changed:
 - Vercel — single project, build ~30s, latest deploy green
 
 ### Next Up (in priority order)
-1. ⚠️ Fix Stripe payouts (Stripe Dashboard — upload ABN)
+1. ⚠️ Fix Stripe payouts (Stripe Dashboard — upload ABN) — **BLOCKER for revenue**
 2. ⚠️ Clean junk data from production testimonial wall (Supabase SQL)
-3. ⚠️ Fix SendGrid email forwarding (SendGrid dashboard)
-4. ⚠️ Verify Google OAuth redirect URI (Google Cloud Console)
-5. 🔲 Add missing Stripe webhook handlers (payment_action_required, trial_will_end)
-6. 🔲 Add security headers to next.config.ts (HSTS, Permissions-Policy)
-7. 🔲 Fix sitemap to include dynamic wall/review pages
-8. 🔲 Add OG/Twitter card metadata to review and wall pages
-9. 🔲 Add email unsubscribe headers (CAN-SPAM/GDPR)
-10. 🔲 Remove forced light mode from layout.tsx (prerequisite for dark mode)
-11. 🔲 Dark mode pass — replace hardcoded colors across all components
-12. 🔲 Generate Supabase types to eliminate `as unknown as` casts
-13. 🔲 Add Suspense boundaries to dashboard pages
-14. 🔲 Break up review form component
-15. 🔲 Cache middleware billing check in cookie
-16. 🔲 Remaining items from sections 3 and 4
+3. 🔲 Fix `requireBilling` missing `subscription_ends_at` (3.16) — expired orgs may keep access
+4. 🔲 Add index on `organization_members(user_id)` (3.18) — RLS performance bottleneck
+5. 🔲 Fix HTML escaping in email templates (3.15) — XSS risk
+6. 🔲 Add RLS to `webhook_events` table (3.17)
+7. 🔲 Add CHECK constraint to `reviews.source` (3.20)
+8. ⚠️ Fix inbound email hardcoded address + add auth (3.19)
+9. ⚠️ Verify Google OAuth redirect URI (Google Cloud Console)
+10. 🔲 Fix sitemap — remove test slugs, add dynamic wall pages
+11. 🔲 Remove forced light mode from layout.tsx (prerequisite for dark mode)
+12. 🔲 Dark mode pass — replace hardcoded colors across all components
+13. 🔲 Generate Supabase types to eliminate `as unknown as` casts
+14. 🔲 Add Suspense boundaries to dashboard pages
+15. 🔲 Break up review form component
+16. 🔲 Cache middleware billing check in cookie
+17. 🔲 Remaining items from sections 3 and 4
 
 ---
 
-*Updated after pass 2: 18 total issues resolved, 783 tests across 30 files. Full Playwright E2E verification on production. Vercel costs reduced by ~50%.*
+*Updated after pass 2: 18 issues resolved, 783 tests across 30 files. Full Playwright E2E verification on production. Vercel costs reduced by ~50%. Deep audit of Stripe, Supabase RLS, SendGrid/Twilio, and SEO completed — 6 new findings added (3.15-3.20).*

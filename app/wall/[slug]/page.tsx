@@ -2,6 +2,7 @@ import { createServerClient } from '@supabase/ssr';
 import { notFound } from 'next/navigation';
 import { TestimonialWall } from '@/components/testimonials/testimonial-wall';
 import { mergeWallConfig } from '@/lib/types/wall-config';
+import { isAdminEmail } from '@/lib/utils/admin';
 import type { Metadata } from 'next';
 
 export const revalidate = 300; // Cache for 5 minutes
@@ -106,13 +107,25 @@ export default async function TestimonialWallPage({ params }: PageProps) {
 
   if (!org) notFound();
 
-  // Block wall if billing expired
+  // Check if org owner is an admin (bypass billing check)
+  const { data: ownerMember } = await supabase
+    .from('organization_members')
+    .select('user_id, users:user_id(email)')
+    .eq('organization_id', org.id)
+    .eq('role', 'owner')
+    .limit(1)
+    .maybeSingle();
+
+  const ownerEmail = (ownerMember?.users as unknown as { email: string } | null)?.email;
+  const isAdminOrg = isAdminEmail(ownerEmail);
+
+  // Block wall if billing expired (admin orgs bypass)
   const plan = org.billing_plan ?? 'none';
   const isExpiredTrial = plan === 'trial' && org.trial_ends_at && new Date(org.trial_ends_at) < new Date();
   const isExpiredCancelling = plan === 'cancelling' && (org.subscription_ends_at || org.trial_ends_at) && new Date((org.subscription_ends_at || org.trial_ends_at)!).getTime() < Date.now();
   const isInactive = ['cancelled', 'past_due', 'none'].includes(plan);
 
-  if (isExpiredTrial || isExpiredCancelling || isInactive) {
+  if (!isAdminOrg && (isExpiredTrial || isExpiredCancelling || isInactive)) {
     return (
       <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, textAlign: 'center' }}>
         <div>

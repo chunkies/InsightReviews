@@ -13,9 +13,18 @@ const mockReviewRequestEq = vi.fn().mockReturnValue({ single: mockReviewRequestS
 const mockReviewRequestSelect = vi.fn().mockReturnValue({ eq: mockReviewRequestEq });
 const mockReviewRequestUpdate = vi.fn().mockReturnValue({ eq: vi.fn().mockReturnValue({ error: null }) });
 
+const mockOwnerMemberSingle = vi.fn().mockResolvedValue({ data: { user_id: 'owner-1', users: { email: 'owner@test.com' } } });
+const mockOwnerMemberLimit = vi.fn().mockReturnValue({ maybeSingle: mockOwnerMemberSingle });
+const mockOwnerMemberEq2 = vi.fn().mockReturnValue({ limit: mockOwnerMemberLimit });
+const mockOwnerMemberEq1 = vi.fn().mockReturnValue({ eq: mockOwnerMemberEq2 });
+const mockOwnerMemberSelect = vi.fn().mockReturnValue({ eq: mockOwnerMemberEq1 });
+
 const mockFrom = vi.fn((table: string) => {
   if (table === 'organizations') {
     return { select: mockSelect };
+  }
+  if (table === 'organization_members') {
+    return { select: mockOwnerMemberSelect };
   }
   if (table === 'activity_log') {
     return { insert: mockActivityInsert };

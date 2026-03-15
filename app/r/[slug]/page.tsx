@@ -3,6 +3,7 @@ import { createServerClient } from '@supabase/ssr';
 import { notFound } from 'next/navigation';
 import { ReviewFormContent } from '@/components/review-form/review-form-content';
 import { mergeWallConfig } from '@/lib/types/wall-config';
+import { isAdminEmail } from '@/lib/utils/admin';
 import type { Metadata } from 'next';
 
 export const revalidate = 300; // Cache for 5 minutes
@@ -56,13 +57,25 @@ export default async function ReviewPage({ params, searchParams }: PageProps) {
 
   if (!org) notFound();
 
-  // Block review form if billing expired
+  // Check if org owner is an admin (bypass billing check)
+  const { data: ownerMember } = await supabase
+    .from('organization_members')
+    .select('user_id, users:user_id(email)')
+    .eq('organization_id', org.id)
+    .eq('role', 'owner')
+    .limit(1)
+    .maybeSingle();
+
+  const ownerEmail = (ownerMember?.users as unknown as { email: string } | null)?.email;
+  const isAdminOrg = isAdminEmail(ownerEmail);
+
+  // Block review form if billing expired (admin orgs bypass)
   const plan = org.billing_plan ?? 'none';
   const isExpiredTrial = plan === 'trial' && org.trial_ends_at && new Date(org.trial_ends_at) < new Date();
   const isExpiredCancelling = plan === 'cancelling' && org.subscription_ends_at && new Date(org.subscription_ends_at) < new Date();
   const isInactive = ['cancelled', 'past_due', 'none'].includes(plan);
 
-  if (isExpiredTrial || isExpiredCancelling || isInactive) {
+  if (!isAdminOrg && (isExpiredTrial || isExpiredCancelling || isInactive)) {
     return (
       <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', p: 3 }}>
         <Container maxWidth="sm" sx={{ textAlign: 'center' }}>

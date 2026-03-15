@@ -2,6 +2,7 @@ import { createServerClient } from '@supabase/ssr';
 import { NextRequest, NextResponse } from 'next/server';
 import { fireWebhook } from '@/lib/utils/webhook';
 import { sendNegativeReviewNotification } from '@/lib/email/client';
+import { isAdminEmail } from '@/lib/utils/admin';
 
 // Simple in-memory rate limiting: IP -> { count, resetAt }
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
@@ -69,13 +70,25 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Business not found' }, { status: 404 });
     }
 
-    // Block submissions if billing is expired
+    // Check if org owner is an admin (bypass billing check)
+    const { data: ownerMember } = await supabase
+      .from('organization_members')
+      .select('user_id, users:user_id(email)')
+      .eq('organization_id', org.id)
+      .eq('role', 'owner')
+      .limit(1)
+      .maybeSingle();
+
+    const ownerEmail = (ownerMember?.users as unknown as { email: string } | null)?.email;
+    const isAdminOrg = isAdminEmail(ownerEmail);
+
+    // Block submissions if billing is expired (admin orgs bypass)
     const plan = org.billing_plan ?? 'none';
     const isExpiredTrial = plan === 'trial' && org.trial_ends_at && new Date(org.trial_ends_at) < new Date();
     const isExpiredCancelling = plan === 'cancelling' && org.subscription_ends_at && new Date(org.subscription_ends_at) < new Date();
     const isInactive = ['cancelled', 'past_due', 'none'].includes(plan);
 
-    if (isExpiredTrial || isExpiredCancelling || isInactive) {
+    if (!isAdminOrg && (isExpiredTrial || isExpiredCancelling || isInactive)) {
       return NextResponse.json({ error: 'This review page is currently unavailable' }, { status: 403 });
     }
 

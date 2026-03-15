@@ -17,7 +17,7 @@ export const RATING_COLORS: Record<number, string> = {
 export const PLAN = {
   name: 'InsightReviews',
   price: 79,
-  priceId: process.env.STRIPE_PRICE_ID || '',
+  priceId: (process.env.STRIPE_PRICE_ID || '').trim(),
   trialDays: 14,
   currency: 'aud',
 } as const;

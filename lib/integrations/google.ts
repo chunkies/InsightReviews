@@ -22,11 +22,22 @@ const GOOGLE_AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth';
 const GBP_API_BASE = 'https://mybusinessaccountmanagement.googleapis.com/v1';
 const GBP_INFO_BASE = 'https://mybusinessbusinessinformation.googleapis.com/v1';
 
-function getCredentials() {
+export function getCredentials() {
+  const clientId = process.env.GOOGLE_CLIENT_ID;
+  const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+
+  if (!clientId || !clientSecret) {
+    throw new Error('Google OAuth not configured: GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET must be set');
+  }
+  if (!siteUrl) {
+    throw new Error('NEXT_PUBLIC_SITE_URL must be set for Google OAuth redirect');
+  }
+
   return {
-    clientId: process.env.GOOGLE_CLIENT_ID!,
-    clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-    redirectUri: `${process.env.NEXT_PUBLIC_SITE_URL!.trim()}/api/integrations/google/callback`,
+    clientId,
+    clientSecret,
+    redirectUri: `${siteUrl.trim()}/api/integrations/google/callback`,
   };
 }
 

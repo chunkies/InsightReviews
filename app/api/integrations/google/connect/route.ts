@@ -32,6 +32,9 @@ export async function POST() {
     return NextResponse.json({ url: authUrl });
   } catch (error) {
     console.error('Google connect error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    const message = error instanceof Error && error.message.includes('Google OAuth not configured')
+      ? 'Google integration is not configured. Please contact support.'
+      : 'Internal server error';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

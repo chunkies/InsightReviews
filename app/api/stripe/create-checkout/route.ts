@@ -46,6 +46,7 @@ export async function POST(request: NextRequest) {
 
     // Create or reuse Stripe customer (verify it still exists in Stripe)
     let customerId = org.stripe_customer_id;
+    let customerIsNew = false;
     if (customerId) {
       try {
         await stripe.customers.retrieve(customerId);
@@ -64,6 +65,7 @@ export async function POST(request: NextRequest) {
         metadata: { organizationId: org.id, orgName: org.name },
       });
       customerId = customer.id;
+      customerIsNew = true;
 
       await supabase
         .from('organizations')
@@ -71,9 +73,8 @@ export async function POST(request: NextRequest) {
         .eq('id', org.id);
     }
 
-    // Only give trial to genuinely new subscribers — if they already have a Stripe customer,
-    // they've subscribed before and shouldn't get another trial (prevents trial gaming)
-    const isNewSubscriber = !org.stripe_customer_id && (org.billing_plan === 'trial' || org.billing_plan === 'pending' || !org.billing_plan);
+    // Give trial to new subscribers or those whose stale customer was cleared
+    const isNewSubscriber = customerIsNew && (org.billing_plan === 'trial' || org.billing_plan === 'pending' || !org.billing_plan);
 
     const session = await stripe.checkout.sessions.create({
       customer: customerId,

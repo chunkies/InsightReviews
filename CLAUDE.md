@@ -237,7 +237,8 @@ Follow this process for every fix or feature:
 6. **Wait for deploy and verify it succeeded** — after pushing, you MUST:
    - Run `npx vercel ls` and check the latest deployment status
    - Wait until the status changes from `Building` to `● Ready` or `● Error`
-   - If `● Error`: run `npx vercel inspect <deployment-url>` to diagnose, then `npx vercel --prod` to redeploy if it was transient
+   - If `● Error` with 0ms build time: the Vercel git integration's "Ignored Build Step" is rejecting the build. Run `npx vercel --prod` to deploy manually (this bypasses the git hook). The Vercel Dashboard > Settings > Git > Ignored Build Step may need to be set to "Don't ignore any builds"
+   - If `● Error` with a real build duration: check logs with `npx vercel inspect <url>` and fix the build error
    - Do NOT proceed to Playwright testing until the deployment shows `● Ready`
 7. **After deploy completes** — use **Playwright MCP** to test the production site end-to-end:
    - Navigate to the affected pages

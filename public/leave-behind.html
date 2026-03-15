@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>InsightReviews — Leave Behind</title>
+  <style>
+    @page {
+      size: A4;
+      margin: 12mm 14mm;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      color: #1e293b;
+      line-height: 1.45;
+      font-size: 13.5px;
+      max-width: 210mm;
+      margin: 0 auto;
+      padding: 12mm 14mm;
+      background: #fff;
+    }
+
+    /* --- Header --- */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 18px;
+      padding-bottom: 14px;
+      border-bottom: 2.5px solid #2563eb;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-icon {
+      width: 36px;
+      height: 36px;
+      background: #2563eb;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .logo-icon svg {
+      width: 22px;
+      height: 22px;
+    }
+
+    .logo-text {
+      font-size: 22px;
+      font-weight: 700;
+      color: #2563eb;
+      letter-spacing: -0.3px;
+    }
+
+    .header-tagline {
+      font-size: 11px;
+      color: #64748b;
+      text-align: right;
+    }
+
+    /* --- Hero --- */
+    .hero {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .hero h1 {
+      font-size: 23px;
+      font-weight: 800;
+      color: #0f172a;
+      line-height: 1.25;
+      margin-bottom: 6px;
+    }
+
+    .hero h1 span {
+      color: #2563eb;
+    }
+
+    .hero-sub {
+      font-size: 13.5px;
+      color: #475569;
+      font-weight: 500;
+    }
+
+    /* --- Problem --- */
+    .problem {
+      background: #f0f5ff;
+      border-left: 4px solid #2563eb;
+      padding: 12px 16px;
+      margin-bottom: 20px;
+      border-radius: 0 6px 6px 0;
+    }
+
+    .problem p {
+      font-size: 13px;
+      color: #334155;
+      margin-bottom: 4px;
+    }
+
+    .problem p:last-child {
+      margin-bottom: 0;
+    }
+
+    .problem strong {
+      color: #1e40af;
+    }
+
+    /* --- How It Works --- */
+    .section-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .steps {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 22px;
+    }
+
+    .step {
+      flex: 1;
+      text-align: center;
+      padding: 14px 10px;
+      background: #f8fafc;
+      border-radius: 10px;
+      border: 1px solid #e2e8f0;
+    }
+
+    .step-icon {
+      width: 44px;
+      height: 44px;
+      background: #2563eb;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 8px;
+    }
+
+    .step-icon svg {
+      width: 22px;
+      height: 22px;
+    }
+
+    .step-number {
+      font-size: 11px;
+      font-weight: 700;
+      color: #2563eb;
+      margin-bottom: 3px;
+    }
+
+    .step-title {
+      font-size: 12.5px;
+      font-weight: 600;
+      color: #0f172a;
+      line-height: 1.3;
+    }
+
+    .step-desc {
+      font-size: 11px;
+      color: #64748b;
+      margin-top: 2px;
+    }
+
+    /* --- Two Column: Features + Pricing --- */
+    .two-col {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+
+    .col-features {
+      flex: 1.2;
+    }
+
+    .col-pricing {
+      flex: 0.8;
+    }
+
+    .features-list {
+      list-style: none;
+      padding: 0;
+    }
+
+    .features-list li {
+      font-size: 12.5px;
+      padding: 4.5px 0;
+      display: flex;
+      align-items: flex-start;
+      gap: 7px;
+      color: #334155;
+    }
+
+    .features-list li svg {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    /* --- Pricing Card --- */
+    .pricing-card {
+      background: #2563eb;
+      color: #fff;
+      border-radius: 12px;
+      padding: 18px 16px;
+      text-align: center;
+    }
+
+    .pricing-card .price-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      opacity: 0.85;
+      margin-bottom: 4px;
+    }
+
+    .pricing-card .price {
+      font-size: 36px;
+      font-weight: 800;
+      line-height: 1.1;
+    }
+
+    .pricing-card .price span {
+      font-size: 14px;
+      font-weight: 500;
+      opacity: 0.8;
+    }
+
+    .pricing-card .price-per {
+      font-size: 12px;
+      opacity: 0.8;
+      margin-bottom: 10px;
+    }
+
+    .pricing-card .price-features {
+      list-style: none;
+      padding: 0;
+      text-align: left;
+      font-size: 12px;
+      margin-bottom: 0;
+    }
+
+    .pricing-card .price-features li {
+      padding: 3px 0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .pricing-card .price-features li svg {
+      width: 14px;
+      height: 14px;
+      flex-shrink: 0;
+    }
+
+    /* --- Stats Bar --- */
+    .stats-bar {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .stat {
+      flex: 1;
+      text-align: center;
+      padding: 10px 8px;
+      background: #f8fafc;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+    }
+
+    .stat-number {
+      font-size: 20px;
+      font-weight: 800;
+      color: #2563eb;
+    }
+
+    .stat-label {
+      font-size: 10.5px;
+      color: #64748b;
+      line-height: 1.2;
+    }
+
+    /* --- CTA Footer --- */
+    .cta {
+      text-align: center;
+      padding: 14px 16px;
+      background: #0f172a;
+      border-radius: 10px;
+      color: #fff;
+    }
+
+    .cta-headline {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .cta-url {
+      font-size: 18px;
+      font-weight: 800;
+      color: #60a5fa;
+      letter-spacing: -0.2px;
+    }
+
+    .cta-email {
+      font-size: 12px;
+      color: #94a3b8;
+      margin-top: 4px;
+    }
+
+    /* --- Print --- */
+    @media print {
+      body {
+        padding: 0;
+        font-size: 13.5px;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        color-adjust: exact !important;
+      }
+
+      .problem, .step, .stat, .pricing-card, .cta, .logo-icon, .step-icon {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="header">
+    <div class="logo">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+        </svg>
+      </div>
+      <span class="logo-text">InsightReviews</span>
+    </div>
+    <div class="header-tagline">Smart review collection<br>for local businesses</div>
+  </div>
+
+  <!-- Hero -->
+  <div class="hero">
+    <h1>Get More 5-Star Reviews.<br><span>Catch Bad Ones Before They Go Public.</span></h1>
+    <div class="hero-sub">Built for Australian local businesses</div>
+  </div>
+
+  <!-- Problem -->
+  <div class="problem">
+    <p>Your happy customers never think to leave a review. <strong>The unhappy ones always do.</strong></p>
+    <p>A <strong>0.5-star increase on Google = 5-9% more revenue</strong> (Harvard Business School study)</p>
+  </div>
+
+  <!-- How It Works -->
+  <div class="section-title">How It Works</div>
+  <div class="steps">
+    <div class="step">
+      <div class="step-icon">
+        <!-- QR / phone icon -->
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="7" height="7" rx="1"/>
+          <rect x="14" y="3" width="7" height="7" rx="1"/>
+          <rect x="3" y="14" width="7" height="7" rx="1"/>
+          <rect x="14" y="14" width="3" height="3"/>
+          <line x1="21" y1="14" x2="21" y2="14.01"/>
+          <line x1="21" y1="21" x2="21" y2="21.01"/>
+        </svg>
+      </div>
+      <div class="step-number">Step 1</div>
+      <div class="step-title">Customer scans QR code or gets an SMS</div>
+      <div class="step-desc">At the counter, in-store, or after service</div>
+    </div>
+    <div class="step">
+      <div class="step-icon">
+        <!-- Star icon -->
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+        </svg>
+      </div>
+      <div class="step-number">Step 2</div>
+      <div class="step-title">They tap a star rating</div>
+      <div class="step-desc">Takes 30 seconds. No app, no login.</div>
+    </div>
+    <div class="step">
+      <div class="step-icon">
+        <!-- Route / split icon -->
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="18" cy="5" r="3"/>
+          <circle cx="18" cy="19" r="3"/>
+          <circle cx="6" cy="12" r="3"/>
+          <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+          <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+        </svg>
+      </div>
+      <div class="step-number">Step 3</div>
+      <div class="step-title">Smart routing does the rest</div>
+      <div class="step-desc">4-5 stars &rarr; Google/Yelp. 1-3 stars &rarr; stays private.</div>
+    </div>
+  </div>
+
+  <!-- Two columns: Features + Pricing -->
+  <div class="two-col">
+    <div class="col-features">
+      <div class="section-title">What You Get</div>
+      <ul class="features-list">
+        <li>
+          <svg viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          <span><strong>QR code + SMS</strong> review collection</span>
+        </li>
+        <li>
+          <svg viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          <span><strong>Smart routing</strong> to Google, Yelp, Facebook</span>
+        </li>
+        <li>
+          <svg viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          <span><strong>Negative review alerts</strong> — instant email notifications</span>
+        </li>
+        <li>
+          <svg viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          <span><strong>Dashboard</strong> with analytics and trends</span>
+        </li>
+        <li>
+          <svg viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          <span><strong>Staff leaderboard</strong> — see who sends the most requests</span>
+        </li>
+        <li>
+          <svg viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          <span><strong>Testimonial wall</strong> — embed your best reviews on your site</span>
+        </li>
+        <li>
+          <svg viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          <span><strong>Unlimited reviews</strong>, no per-seat charges</span>
+        </li>
+        <li>
+          <svg viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          <span><strong>Fully branded</strong> — your logo, your colours</span>
+        </li>
+      </ul>
+    </div>
+    <div class="col-pricing">
+      <div class="section-title">Pricing</div>
+      <div class="pricing-card">
+        <div class="price-label">Simple pricing</div>
+        <div class="price">$79<span>/mo</span></div>
+        <div class="price-per">per location</div>
+        <ul class="price-features">
+          <li>
+            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            14-day free trial
+          </li>
+          <li>
+            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            No credit card required
+          </li>
+          <li>
+            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            No lock-in, cancel anytime
+          </li>
+          <li>
+            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            Setup in under 2 minutes
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats Bar -->
+  <div class="stats-bar">
+    <div class="stat">
+      <div class="stat-number">95%</div>
+      <div class="stat-label">SMS open rate<br>(vs 20% for email)</div>
+    </div>
+    <div class="stat">
+      <div class="stat-number">30 sec</div>
+      <div class="stat-label">Average time<br>to leave a review</div>
+    </div>
+    <div class="stat">
+      <div class="stat-number">88%</div>
+      <div class="stat-label">of consumers trust<br>online reviews</div>
+    </div>
+    <div class="stat">
+      <div class="stat-number">5-9%</div>
+      <div class="stat-label">revenue increase per<br>0.5-star improvement</div>
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <div class="cta">
+    <div class="cta-headline">Start your free 14-day trial today</div>
+    <div class="cta-url">insightreviews.com.au</div>
+    <div class="cta-email">Questions? Email tristan@insightreviews.com.au</div>
+  </div>
+
+</body>
+</html>

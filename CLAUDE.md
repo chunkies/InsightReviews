@@ -24,6 +24,7 @@ InsightReviews helps brick-and-mortar businesses (cafes, salons, dentists, gyms,
 | SMS | Twilio |
 | Deployment | Vercel |
 | Testing | Vitest + React Testing Library |
+| E2E Testing | Playwright MCP (browser automation) |
 | Linting | ESLint 9 |
 
 ## Core User Flows
@@ -224,6 +225,49 @@ npx supabase db reset # Reset + apply migrations + seed
 2. `npm run lint` — zero ESLint warnings
 3. `npm run test` — all tests pass
 
+## Development & Deployment Workflow
+
+Follow this process for every fix or feature:
+
+1. **Implement the fix/feature locally**
+2. **Write tests** covering the main flow and functionality — use Vitest for unit/integration tests
+3. **Test locally** — run the dev server, verify the fix manually, and run the full test suite (`npm run test`)
+4. **Verify build** — `npm run build` must pass with zero errors
+5. **Commit and push** — conventional commits (`feat:`, `fix:`, `test:`)
+6. **Wait for deploy and verify it succeeded** — after pushing, you MUST:
+   - Run `npx vercel ls` and check the latest deployment status
+   - Wait until the status changes from `Building` to `● Ready` or `● Error`
+   - If `● Error`: run `npx vercel inspect <deployment-url>` to diagnose, then `npx vercel --prod` to redeploy if it was transient
+   - Do NOT proceed to Playwright testing until the deployment shows `● Ready`
+7. **After deploy completes** — use **Playwright MCP** to test the production site end-to-end:
+   - Navigate to the affected pages
+   - Take screenshots to visually verify
+   - Check `browser_console_messages` for errors (especially React hydration errors)
+   - Click through the user flow (forms, buttons, submissions)
+   - If any issues are found, go back to step 1 and repeat
+8. **Be mindful of build minutes and costs** — avoid unnecessary deploys. Batch related fixes into a single deploy where possible.
+
+### Playwright MCP Testing
+
+Use the Playwright MCP browser tools to verify deployed features:
+- `browser_navigate` — load pages
+- `browser_snapshot` — check page structure and accessibility
+- `browser_take_screenshot` — visual verification
+- `browser_click` / `browser_fill_form` — test interactive flows
+- Always test both the happy path and error states
+- Test on the production URL (`insightreviews.com.au`) after each deploy
+
+### Database Migrations
+
+- Always check that all local migrations have been applied to production: `npx supabase db push --linked`
+- Missing migrations are a common source of production bugs (queries fail silently when columns don't exist)
+
+## Design & UX Standards
+
+- **Dark mode**: All pages and components must support dark mode via MUI theme. Test both light and dark modes.
+- **Responsiveness**: All pages must work on mobile (xs), tablet (sm/md), and desktop (lg+). Use MUI breakpoints and `sx` responsive syntax.
+- **Good design**: Follow MUI design patterns. Use consistent spacing, typography hierarchy, and colour palette. Avoid cluttered layouts — prefer whitespace and clear visual hierarchy.
+
 ## Conventions
 
 ### Server vs Client Components
@@ -285,6 +329,13 @@ STRIPE_PRICE_ID=
 TWILIO_ACCOUNT_SID=
 TWILIO_AUTH_TOKEN=
 TWILIO_PHONE_NUMBER=
+
+# Google Business Profile OAuth
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+
+# Admin (bypass billing checks)
+ADMIN_EMAILS=
 ```
 
 ## Git Workflow

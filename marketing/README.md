@@ -2,17 +2,22 @@
 
 ## Your Sales Toolkit
 
-### In-Person Sales
-**Print this and walk into businesses:**
-- **Leave-behind PDF:** [insightreviews.com.au/leave-behind.html](https://insightreviews.com.au/leave-behind.html) — open in browser, Cmd+P to print
+### In-Person Sales — [Full Playbook →](IN-PERSON-SALES-PLAYBOOK.md)
+
+**Before you leave the house, print:**
+1. **QR code counter cards** — Dashboard → Collect Reviews → "Print Counter Card" (print 10)
+2. **Leave-behind PDFs** — [insightreviews.com.au/leave-behind.html](https://insightreviews.com.au/leave-behind.html) → Cmd+P (print 10)
 
 **The 30-second pitch:**
-> "Hey, I noticed you've got [X] stars on Google. Your happy customers just never think to leave a review — it's always the unhappy ones who post. I built a tool that fixes that. After a customer visits, you send a quick SMS, and happy customers get nudged to Google. Unhappy ones stay private so you can follow up first. Want me to show you? Takes 2 minutes."
+> "Hey, I just looked up your Google page — you've got [X] stars. Your happy customers probably never think to leave a review. I built something that fixes that. This QR code goes on your counter — customer scans it, taps a star rating, and happy ones get sent straight to Google. Unhappy ones stay private so you can follow up. Want me to show you? Takes 2 minutes."
 
-**Then pull up their Google listing on your phone and show them:**
-1. Their current rating vs a competitor nearby
-2. The InsightReviews demo — SMS flow, star rating screen, smart routing
-3. Offer to set it up on the spot — 14-day free trial, card collected but not charged
+**Then demo it live:**
+1. Hand them the QR code card — "This goes on your counter"
+2. Scan it yourself on your phone — show the review form
+3. Explain: "4-5 stars → Google. 1-3 stars → stays private, you get notified."
+4. Close: "$79/mo, first 2 weeks free, I'll set you up right now."
+
+**Read the [full playbook](IN-PERSON-SALES-PLAYBOOK.md) for objection handling, best streets, daily targets, and follow-up scripts.**
 
 ### Cold Email
 **Send follow-up emails to existing targets:**
@@ -76,11 +81,10 @@ YELP_API_KEY=xxx node marketing/find-targets.js
 - **Google Search Console** verified, sitemap submitted
 - **Sender reputation:** 96%
 - **Paying customers:** 0
+- **Stripe payouts:** ✅ Verification submitted (awaiting review)
 
 ## What Will Actually Get You Customers
 
-1. **Walk into businesses.** Lygon St, Chapel St, Smith St, Sydney Rd, Fitzroy St. 10 businesses per day. Print the leave-behind. Pull up their Google rating. Demo on your phone. Offer to set it up on the spot.
+1. **Walk into businesses.** Read the [In-Person Sales Playbook](IN-PERSON-SALES-PLAYBOOK.md). Print QR cards and leave-behinds. Hit Lygon St, Smith St, Chapel St, Sydney Rd. 10 businesses per day. Demo on your phone. Set them up on the spot.
 
-2. **Follow up on cold emails.** The 45 from Mar 13-14 need Day 3 follow-ups. Run `send-next-batch.js --email=2`.
-
-3. **Fix Stripe payouts.** dashboard.stripe.com → Account Status → upload ABN.
+2. **Follow up.** Walk back into businesses where you left QR cards after 2-3 days. Check if they had any scans.

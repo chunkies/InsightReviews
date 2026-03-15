@@ -73,8 +73,14 @@ export async function POST(request: NextRequest) {
         .eq('id', org.id);
     }
 
-    // Give trial to new subscribers or those whose stale customer was cleared
-    const isNewSubscriber = customerIsNew && (org.billing_plan === 'trial' || org.billing_plan === 'pending' || !org.billing_plan);
+    // Give trial if org has never had an active subscription (pending = never subscribed)
+    // Check Stripe for any prior subscriptions to prevent trial gaming
+    let hadPriorSubscription = false;
+    if (!customerIsNew) {
+      const subs = await stripe.subscriptions.list({ customer: customerId, limit: 1 });
+      hadPriorSubscription = subs.data.length > 0;
+    }
+    const isNewSubscriber = !hadPriorSubscription && (org.billing_plan === 'pending' || !org.billing_plan);
 
     const session = await stripe.checkout.sessions.create({
       customer: customerId,

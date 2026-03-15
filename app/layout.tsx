@@ -5,31 +5,33 @@ import { SnackbarProvider } from '@/components/providers/snackbar-provider';
 import { Analytics } from '@vercel/analytics/next';
 
 export const metadata: Metadata = {
-  title: 'InsightReviews — Get More 5-Star Reviews for Your Local Business',
-  description: 'QR code on the counter. Customer scans, rates, done. Happy customers go to Google. Unhappy ones stay private. $79/mo, 14-day free trial.',
+  title: {
+    default: 'InsightReviews — Get More 5-Star Reviews for Your Local Business',
+    template: '%s | InsightReviews',
+  },
+  description: 'Turn happy customers into 5-star Google reviews. Smart review routing for Australian local businesses. $79/mo, 14-day free trial.',
+  metadataBase: new URL('https://insightreviews.com.au'),
   icons: {
     icon: '/icon.svg',
   },
   openGraph: {
-    title: 'InsightReviews — Get More 5-Star Reviews',
-    description: 'QR code on the counter. Customer scans, rates, done. Happy customers go to Google. Unhappy ones stay private. Built for local businesses.',
-    url: 'https://insightreviews.com.au',
     siteName: 'InsightReviews',
-    type: 'website',
-    images: [
-      {
-        url: 'https://insightreviews.com.au/screenshots/dashboard-hero.png',
-        width: 1200,
-        height: 630,
-        alt: 'InsightReviews dashboard showing review analytics',
-      },
-    ],
+    locale: 'en_AU',
   },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'InsightReviews — Get More 5-Star Reviews',
-    description: 'QR code on the counter. Customer scans, rates, done. Happy customers go to Google. Unhappy ones stay private.',
-    images: ['https://insightreviews.com.au/screenshots/dashboard-hero.png'],
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+  verification: {
+    // Add Google Search Console verification when available
+    // google: 'verification-token',
   },
 };
 

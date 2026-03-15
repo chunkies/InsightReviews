@@ -87,7 +87,7 @@ We built InsightReviews to fix exactly this. After a customer visits, your staff
 - Happy customers (4-5 stars) get nudged straight to your Google page to leave a public review.
 - Unhappy customers (1-3 stars) stay private so you can follow up before anything goes public.
 
-More 5-star reviews online, fewer bad surprises. It's $79/mo with a 14-day free trial — no card required.
+More 5-star reviews online, fewer bad surprises. It's $79/mo with a 14-day free trial.
 
 Worth a look? https://insightreviews.com.au
 

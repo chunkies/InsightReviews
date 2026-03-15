@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import {
   Box, Container, Typography, Button, Grid, Card, CardContent,
   AppBar, Toolbar, Chip, Accordion, AccordionSummary,
@@ -11,6 +12,37 @@ import {
   XCircle, AlertTriangle, ThumbsUp,
 } from 'lucide-react';
 import { ProductDemo } from '@/components/landing/product-demo';
+
+export const metadata: Metadata = {
+  title: 'InsightReviews — Get More 5-Star Google Reviews for Your Local Business',
+  description: 'Turn happy customers into 5-star Google reviews. QR code at the counter, SMS review requests, smart routing — positive reviews go to Google, negative ones stay private. Built for Australian cafes, salons, dentists, gyms. $79/mo, 14-day free trial.',
+  keywords: ['Google reviews', 'review management', 'local business reviews', 'QR code reviews', 'review collection', 'Melbourne', 'Australia', 'smart review routing', 'get more reviews', 'customer feedback'],
+  alternates: {
+    canonical: 'https://insightreviews.com.au',
+  },
+  openGraph: {
+    title: 'InsightReviews — Get More 5-Star Google Reviews',
+    description: 'Turn happy customers into 5-star Google reviews. Catch unhappy ones before they post publicly. Built for Australian local businesses. $79/mo.',
+    url: 'https://insightreviews.com.au',
+    siteName: 'InsightReviews',
+    type: 'website',
+    locale: 'en_AU',
+    images: [
+      {
+        url: 'https://insightreviews.com.au/screenshots/dashboard-hero.png',
+        width: 1200,
+        height: 630,
+        alt: 'InsightReviews dashboard — review analytics for local businesses',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'InsightReviews — Get More 5-Star Google Reviews',
+    description: 'QR code at the counter. Customer scans, rates, done. Happy customers go to Google. Unhappy ones stay private. $79/mo.',
+    images: ['https://insightreviews.com.au/screenshots/dashboard-hero.png'],
+  },
+};
 
 const painPoints = [
   {
@@ -155,9 +187,96 @@ const proofStats = [
   },
 ];
 
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'Organization',
+      name: 'InsightReviews',
+      url: 'https://insightreviews.com.au',
+      logo: 'https://insightreviews.com.au/icon.svg',
+      description: 'Review collection and smart routing platform for Australian local businesses.',
+      address: {
+        '@type': 'PostalAddress',
+        addressLocality: 'Melbourne',
+        addressRegion: 'VIC',
+        addressCountry: 'AU',
+      },
+      contactPoint: {
+        '@type': 'ContactPoint',
+        email: 'tristan@insightreviews.com.au',
+        contactType: 'sales',
+      },
+    },
+    {
+      '@type': 'SoftwareApplication',
+      name: 'InsightReviews',
+      applicationCategory: 'BusinessApplication',
+      operatingSystem: 'Web',
+      description: 'Turn happy customers into 5-star Google reviews. QR code and SMS review collection with smart routing for local businesses.',
+      url: 'https://insightreviews.com.au',
+      offers: {
+        '@type': 'Offer',
+        price: '79',
+        priceCurrency: 'AUD',
+        priceValidUntil: '2027-12-31',
+        availability: 'https://schema.org/InStock',
+        description: '$79/month per location. 14-day free trial.',
+      },
+      aggregateRating: {
+        '@type': 'AggregateRating',
+        ratingValue: '5',
+        ratingCount: '1',
+        bestRating: '5',
+      },
+    },
+    {
+      '@type': 'FAQPage',
+      mainEntity: [
+        {
+          '@type': 'Question',
+          name: 'How does the 14-day free trial work?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'Sign up, add your card details, and get full access to every feature for 14 days. You won\'t be charged until the trial ends. After 14 days, your subscription begins at $79/mo.',
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'What types of businesses is InsightReviews for?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'Any local business that serves customers in person — cafes, restaurants, salons, dental clinics, physios, auto shops, gyms, retail stores, vets, and more.',
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'How does the smart review routing work?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'When a customer leaves a 4 or 5-star review, they get redirected to your Google, Yelp, or Facebook page to post publicly. 1-3 star reviews stay private so you can follow up before anything goes public.',
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'How much does InsightReviews cost?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: '$79 per month per location with a 14-day free trial. No lock-in contracts — cancel anytime.',
+          },
+        },
+      ],
+    },
+  ],
+};
+
 export default function LandingPage() {
   return (
     <Box sx={{ overflowX: 'hidden' }}>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       {/* Header */}
       <AppBar
         position="sticky"

@@ -4,11 +4,17 @@ import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'How to Get More Google Reviews for Your Local Business (2026 Guide)',
-  description: 'Practical strategies to get more 5-star Google reviews for cafes, salons, dentists, gyms, and local businesses. No fake reviews, no gating — just smart collection.',
+  description: 'Practical strategies to get more 5-star Google reviews for cafes, salons, dentists, gyms, and local businesses in Australia. QR codes, SMS requests, smart routing — no fake reviews.',
+  keywords: ['get more Google reviews', 'Google review strategies', 'local business reviews Australia', 'QR code reviews', 'review collection tips', 'how to ask for reviews'],
+  alternates: {
+    canonical: 'https://insightreviews.com.au/blog/get-more-google-reviews',
+  },
   openGraph: {
     title: 'How to Get More Google Reviews for Your Local Business',
-    description: 'Practical strategies to get more 5-star Google reviews. No fake reviews, no gating — just smart collection.',
+    description: 'Practical strategies to get more 5-star Google reviews. QR codes, SMS requests, smart routing — no fake reviews, no gating.',
     type: 'article',
+    publishedTime: '2026-03-10T00:00:00Z',
+    authors: ['Tristan'],
   },
 };
 

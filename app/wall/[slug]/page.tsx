@@ -110,14 +110,17 @@ export default async function TestimonialWallPage({ params }: PageProps) {
   // Check if org owner is an admin (bypass billing check)
   const { data: ownerMember } = await supabase
     .from('organization_members')
-    .select('user_id, users:user_id(email)')
+    .select('user_id')
     .eq('organization_id', org.id)
     .eq('role', 'owner')
     .limit(1)
     .maybeSingle();
 
-  const ownerEmail = (ownerMember?.users as unknown as { email: string } | null)?.email;
-  const isAdminOrg = isAdminEmail(ownerEmail);
+  let isAdminOrg = false;
+  if (ownerMember?.user_id) {
+    const { data: { user: ownerUser } } = await supabase.auth.admin.getUserById(ownerMember.user_id);
+    isAdminOrg = isAdminEmail(ownerUser?.email);
+  }
 
   // Block wall if billing expired (admin orgs bypass)
   const plan = org.billing_plan ?? 'none';

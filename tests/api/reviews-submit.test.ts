@@ -13,11 +13,13 @@ const mockReviewRequestEq = vi.fn().mockReturnValue({ single: mockReviewRequestS
 const mockReviewRequestSelect = vi.fn().mockReturnValue({ eq: mockReviewRequestEq });
 const mockReviewRequestUpdate = vi.fn().mockReturnValue({ eq: vi.fn().mockReturnValue({ error: null }) });
 
-const mockOwnerMemberSingle = vi.fn().mockResolvedValue({ data: { user_id: 'owner-1', users: { email: 'owner@test.com' } } });
+const mockOwnerMemberSingle = vi.fn().mockResolvedValue({ data: { user_id: 'owner-1' } });
 const mockOwnerMemberLimit = vi.fn().mockReturnValue({ maybeSingle: mockOwnerMemberSingle });
 const mockOwnerMemberEq2 = vi.fn().mockReturnValue({ limit: mockOwnerMemberLimit });
 const mockOwnerMemberEq1 = vi.fn().mockReturnValue({ eq: mockOwnerMemberEq2 });
 const mockOwnerMemberSelect = vi.fn().mockReturnValue({ eq: mockOwnerMemberEq1 });
+
+const mockGetUserById = vi.fn().mockResolvedValue({ data: { user: { email: 'owner@test.com' } } });
 
 const mockFrom = vi.fn((table: string) => {
   if (table === 'organizations') {
@@ -38,6 +40,7 @@ const mockFrom = vi.fn((table: string) => {
 vi.mock('@supabase/ssr', () => ({
   createServerClient: () => ({
     from: mockFrom,
+    auth: { admin: { getUserById: mockGetUserById } },
   }),
 }));
 

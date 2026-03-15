@@ -1,5 +1,6 @@
 {
   "crons": [
     { "path": "/api/cron/sync-integrations", "schedule": "0 */6 * * *" }
-  ]
+  ],
+  "ignoreCommand": "git diff --quiet HEAD^ HEAD -- app/ components/ lib/ middleware.ts next.config.ts package.json package-lock.json tsconfig.json public/ vercel.json"
 }

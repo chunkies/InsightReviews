@@ -44,8 +44,20 @@ export async function POST(request: NextRequest) {
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL!.trim();
     const stripe = createStripeClient();
 
-    // Create or reuse Stripe customer
+    // Create or reuse Stripe customer (verify it still exists in Stripe)
     let customerId = org.stripe_customer_id;
+    if (customerId) {
+      try {
+        await stripe.customers.retrieve(customerId);
+      } catch {
+        // Customer doesn't exist in Stripe (deleted or wrong environment) — clear it
+        customerId = null;
+        await supabase
+          .from('organizations')
+          .update({ stripe_customer_id: null })
+          .eq('id', org.id);
+      }
+    }
     if (!customerId) {
       const customer = await stripe.customers.create({
         email: user.email,

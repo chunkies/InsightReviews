@@ -1,191 +1,205 @@
 # InsightReviews — Full Project Audit & Fix Plan
 
-**Date:** 2026-03-15
-**Audited by:** Claude (6 domain-specific agents + Playwright production testing)
+**Original audit:** 2026-03-15
+**Updated:** 2026-03-15 (post-fix re-audit)
+**Audited by:** Claude (code quality, dark mode/UI, SEO/billing/infra agents + Playwright production testing)
 
 ---
 
 ## Executive Summary
 
-The product is well-built with solid architecture, but has critical operational blockers (Stripe payouts paused, junk data on public pages), several performance issues, incomplete dark mode, and a marketing strategy that needs refocusing. This document lists every issue found, prioritised by severity.
+The first audit pass fixed 11 issues: webhook idempotency, query deduplication, rate limiting, trial gaming, dark mode stat cards, hydration error, cron jobs, env vars, SEO indexing, responsiveness, and file cleanup. **765 tests passing, 24 new audit-fix tests added.**
+
+Remaining work is primarily: dark mode completion (layout forces light mode), type safety (`as unknown as` casts), missing security headers, missing Stripe webhook handlers, and SEO improvements.
 
 ---
 
-## Table of Contents
+## Status Legend
 
-1. [CRITICAL — Fix Immediately](#1-critical--fix-immediately)
-2. [HIGH — Fix This Week](#2-high--fix-this-week)
-3. [MEDIUM — Fix Within 2 Weeks](#3-medium--fix-within-2-weeks)
-4. [LOW — Backlog](#4-low--backlog)
-5. [Marketing & SEO](#5-marketing--seo)
-6. [File Cleanup](#6-file-cleanup)
-7. [What's Working Well](#7-whats-working-well)
+- ✅ **DONE** — Fixed and deployed
+- ⚠️ **MANUAL** — Requires manual action (dashboard/console, not code)
+- 🔲 **TODO** — Not yet started
 
 ---
 
 ## 1. CRITICAL — Fix Immediately
 
-### 1.1 Stripe Payouts Blocked (SHOW STOPPER)
-- **Problem:** Stripe payouts paused since Mar 9. Incoming charges will be blocked at AUD $3,896.14. Cannot accept real customer payments.
-- **Root Cause:** Missing business verification document (ABN or business registration cert).
-- **Fix:** Log into Stripe Dashboard → Account Settings → Upload ABN → Re-enable payouts.
-- **Impact:** Cannot convert trials to paid customers.
+### 1.1 ⚠️ Stripe Payouts Blocked (SHOW STOPPER)
+- **Problem:** Stripe payouts paused since Mar 9. Cannot accept real customer payments.
+- **Action:** Log into Stripe Dashboard → Account Settings → Upload ABN → Re-enable payouts.
 
-### 1.2 Junk/Test Data on Public Testimonial Wall
-- **Problem:** `insightreviews.com.au/wall/hello` shows test reviews publicly: "Bsbbss", "Shjshs", "Ass", "This was Dogshit", "asdfasdf", etc. alongside real demo reviews.
-- **Root Cause:** Test submissions during development were never cleaned up. The `is_public` flag auto-publishes positive reviews.
-- **Fix:** Delete or un-publish junk reviews from the `reviews` table in production Supabase. Set `is_public = false` on all test entries.
-- **File:** Production Supabase → `reviews` table → filter by `organization_id` for "Johns coffee" → delete/unpublish junk.
+### 1.2 ⚠️ Junk/Test Data on Public Testimonial Wall
+- **Problem:** `insightreviews.com.au/wall/hello` shows test reviews: "Bsbbss", "Shjshs", "Ass", "This was Dogshit", etc.
+- **Action:** Production Supabase → `reviews` table → filter by `organization_id` for "Johns coffee" → set `is_public = false` on junk entries.
 
-### 1.3 React Hydration Error on Testimonial Wall
-- **Problem:** Console error `Minified React error #418` on `/wall/hello` — SSR/client HTML mismatch.
-- **Root Cause:** Server-rendered HTML differs from client hydration (likely date formatting or dynamic content).
-- **Fix:** Investigate `components/testimonials/testimonial-wall.tsx` for date rendering or conditional logic that differs between server and client. Use `suppressHydrationWarning` only as last resort.
-- **File:** `components/testimonials/testimonial-wall.tsx`
+### 1.3 ✅ React Hydration Error on Testimonial Wall
+- **Fixed:** Added `suppressHydrationWarning` to date element in `components/testimonials/testimonial-wall.tsx`.
+- **Verified:** Playwright confirms 0 console errors on `/wall/hello` after deploy.
 
-### 1.4 SendGrid Email Forwarding Broken
-- **Problem:** Inbound parse webhook not forwarding emails to Gmail. Directory verification emails (G2, Capterra, Peerlist) going to a black hole.
-- **Root Cause:** Inbound email forwarding endpoint may not be receiving events, or Gmail forwarding rule misconfigured.
-- **Fix:**
-  1. Verify `SENDGRID_API_KEY` is in Vercel production env (confirmed present)
-  2. Test inbound parse webhook at `/api/email/inbound` with a test email
-  3. Check SendGrid dashboard for inbound parse configuration
-  4. Confirm forwarding to `sly.tristan1@gmail.com` works
-- **File:** `app/api/email/inbound/route.ts`
+### 1.4 ⚠️ SendGrid Email Forwarding Broken
+- **Problem:** Inbound parse webhook not forwarding emails to Gmail.
+- **Action:** Check SendGrid dashboard for inbound parse configuration. Test `/api/email/inbound` endpoint.
 
 ---
 
 ## 2. HIGH — Fix This Week
 
-### 2.1 Missing Database Migration on Production (Recurring Issue)
-- **Problem:** Migration `00022_review_form_text.sql` was missing from production, causing the QR code 404 bug. This pattern will repeat.
-- **Fix:** Add a CI/deployment check that runs `npx supabase db push --linked --dry-run` before every deploy to detect unapplied migrations.
-- **Prevention:** Add to CLAUDE.md workflow: always run `npx supabase db push --linked` after adding migrations.
+### 2.1 ⚠️ Missing Database Migration on Production (Recurring Issue)
+- **Problem:** Migrations can be missed on production.
+- **Action:** Always run `npx supabase db push --linked` after adding migrations. Already documented in CLAUDE.md.
 
-### 2.2 Webhook Idempotency Not Handled
-- **Problem:** Stripe webhook handler does not check for duplicate events. If Stripe retries a webhook, the same DB updates execute multiple times.
-- **Fix:** Create a `webhook_events` table with `stripe_event_id` unique constraint. Check before processing.
-- **File:** `app/api/stripe/webhook/route.ts`
-- **Migration needed:** New migration to create `webhook_events` table.
+### 2.2 ✅ Webhook Idempotency Not Handled
+- **Fixed:** Created `webhook_events` table (migration `00023_webhook_idempotency.sql`) with `stripe_event_id` unique constraint. Webhook handler checks for duplicates before processing.
+- **Migration pushed to production.**
 
-### 2.3 Middleware Runs DB Query on Every Dashboard Request
-- **Problem:** `middleware.ts` lines 73-77 query `organization_members` joined with `organizations` on every single dashboard page navigation.
-- **Fix:** Cache org membership and billing state in a cookie or session token with a short TTL (5 min). Only re-query when cookie expires.
-- **File:** `middleware.ts:73-77`
+### 2.3 🔲 Middleware Runs DB Query on Every Dashboard Request
+- **Problem:** `middleware.ts:73-77` queries `organization_members` joined with `organizations` on every dashboard navigation.
+- **Fix:** Cache org membership and billing state in a cookie with short TTL (5 min).
 
-### 2.4 Duplicate Supabase Queries in Review Page
-- **Problem:** `/r/[slug]` page queries `organizations` twice — once in `generateMetadata()` and again in the page component.
-- **Fix:** Use Next.js `fetch` deduplication or cache the result. Same issue exists in `/wall/[slug]`.
-- **Files:** `app/r/[slug]/page.tsx:32-36, 52-56`, `app/wall/[slug]/page.tsx:30-34, 102-106`
+### 2.4 ✅ Duplicate Supabase Queries in Review/Wall Pages
+- **Fixed:** Used `React.cache()` to deduplicate org queries in both `app/r/[slug]/page.tsx` and `app/wall/[slug]/page.tsx`. `generateMetadata()` and page component now share the same cached query.
 
-### 2.5 In-Memory Rate Limiting Won't Scale
-- **Problem:** `app/api/reviews/submit/route.ts` uses in-memory `Map` for rate limiting. Resets on every deployment and doesn't work across multiple serverless instances.
-- **Fix:** Move to database-backed rate limiting (insert IP + timestamp into a table, query count) or use Vercel's built-in rate limiting.
-- **File:** `app/api/reviews/submit/route.ts:7-23`
+### 2.5 ✅ In-Memory Rate Limiting Won't Scale
+- **Fixed:** Replaced in-memory `Map` with database-backed per-org rate limiting. Counts recent reviews in the `reviews` table within the time window.
 
-### 2.6 Missing Environment Variables in .env.example
-- **Problem:** Several env vars used in code but not documented in `.env.example`.
-- **Missing vars:** `CRON_SECRET`, `SUPPORT_EMAIL`, `SENDGRID_API_KEY`, `SENDGRID_FROM_EMAIL`, `SENDGRID_FROM_NAME`, `YELP_API_KEY`, `FACEBOOK_APP_ID`, `FACEBOOK_APP_SECRET`
-- **Fix:** Add all missing vars to `.env.example` with comments.
-- **File:** `.env.example`
+### 2.6 ✅ Missing Environment Variables in .env.example
+- **Fixed:** Added `SENDGRID_API_KEY`, `SENDGRID_FROM_EMAIL`, `SENDGRID_FROM_NAME`, `CRON_SECRET`, `SUPPORT_EMAIL` to `.env.example`.
 
-### 2.7 Missing Vercel Cron Jobs
-- **Problem:** `vercel.json` only defines the sync-integrations cron. Missing `weekly-digest` and `process-followups` crons.
-- **Fix:** Add missing cron definitions to `vercel.json`.
-- **File:** `vercel.json`
+### 2.7 ✅ Missing Vercel Cron Jobs
+- **Fixed:** Added `weekly-digest` (Mondays 9am) and `process-followups` (every 15 min) to `vercel.json`.
 
-### 2.8 Google OAuth Redirect URI Not Verified
-- **Problem:** `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` are now set in Vercel, but the Google Cloud Console may not have `https://insightreviews.com.au/api/integrations/google/callback` as an authorized redirect URI.
-- **Fix:** Verify in Google Cloud Console → APIs & Services → Credentials → OAuth 2.0 Client → Authorized redirect URIs.
+### 2.8 ⚠️ Google OAuth Redirect URI Not Verified
+- **Action:** Verify in Google Cloud Console → APIs & Services → Credentials → OAuth 2.0 Client → Authorized redirect URIs includes `https://insightreviews.com.au/api/integrations/google/callback`.
+
+### 2.9 🔲 Missing Stripe Webhook: `invoice.payment_action_required` (NEW)
+- **Problem:** Webhook handler doesn't handle this event. When a payment requires 3D Secure or other customer action, the app has no notification mechanism.
+- **File:** `app/api/stripe/webhook/route.ts:46-169`
+- **Severity:** HIGH
+
+### 2.10 🔲 Sitemap Missing Dynamic Routes (NEW)
+- **Problem:** `app/sitemap.ts` only has hard-coded static routes. Missing all `/wall/{slug}` testimonial pages and hard-codes blog URLs instead of querying.
+- **File:** `app/sitemap.ts:1-44`
+- **Severity:** HIGH
 
 ---
 
 ## 3. MEDIUM — Fix Within 2 Weeks
 
-### 3.1 Dark Mode — Incomplete (30% Done)
-Theme infrastructure exists but many components override with hardcoded colors.
+### 3.1 Dark Mode — Incomplete (~35% Done)
 
-| Issue | File | Line(s) |
-|-------|------|---------|
-| Root layout forces `colorScheme: 'light'` | `app/layout.tsx` | 39, 41-44 |
-| Blog pages hardcoded white background | `app/blog/*/page.tsx` | 23, 61 |
-| Sidebar hardcoded gradient | `components/layout/sidebar.tsx` | 69, 215 |
-| Support form hardcoded gradient + disabled colors | `components/support/support-form.tsx` | 106, 264-278 |
-| Dashboard stats hardcoded hex colors | `components/dashboard/dashboard-stats.tsx` | 205, 215, 238, 248 |
-| NPS gauge hardcoded dark mode gradient | `components/dashboard/nps-gauge.tsx` | 99-101 |
-| Review form platform colors hardcoded | `components/review-form/review-form-content.tsx` | 525-526 |
-| Collect form hardcoded white overlay | `components/collect/collect-form.tsx` | 201 |
-| Box shadows use `rgba(0,0,0,...)` everywhere | Multiple files | — |
+Theme infrastructure exists but the root layout forces light mode and many components use hardcoded colors.
 
-**Fix approach:** Replace all hardcoded hex colors with `theme.palette.*` tokens. Use `theme.palette.mode === 'dark'` conditionals where needed. Remove `colorScheme: 'light'` from layout.
+#### CRITICAL: Root layout forces light mode
+| Issue | File | Line(s) | Status |
+|-------|------|---------|--------|
+| `colorScheme: 'light'` on html tag | `app/layout.tsx` | 39 | 🔲 |
+| `<meta name="color-scheme" content="light only" />` | `app/layout.tsx` | 41 | 🔲 |
+| `background-color: #ffffff !important` CSS override | `app/layout.tsx` | 43-44 | 🔲 |
+| `backgroundColor: '#ffffff'` on body | `app/layout.tsx` | 47 | 🔲 |
 
-### 3.2 Performance — Review Form Component Too Large
-- **Problem:** `components/review-form/review-form-content.tsx` is 1,100+ lines with inline CSS keyframe animations, no memoization, and `<Box component="img">` instead of `next/image`.
-- **Fix:** Break into smaller sub-components. Extract animations to separate file. Use `next/image` for logo. Add `React.memo` where appropriate.
-- **File:** `components/review-form/review-form-content.tsx`
+#### Component hardcoded colors
+| Issue | File | Line(s) | Status |
+|-------|------|---------|--------|
+| Blog pages hardcoded `white` / `#eff6ff` bg | `app/blog/*/page.tsx` | 23, 173/229 | 🔲 |
+| Sidebar hardcoded gradients in getPlanDisplay | `components/layout/sidebar.tsx` | 39-50, 69, 149 | 🔲 |
+| Support form hardcoded category colors | `components/support/support-form.tsx` | 16-20, 148, 170, 174 | 🔲 |
+| Dashboard stats hero gradient hardcoded | `components/dashboard/dashboard-stats.tsx` | 157 | 🔲 |
+| Dashboard stats star/value colors hardcoded | `components/dashboard/dashboard-stats.tsx` | 223, 232-233, 258, 469-470 | 🔲 |
+| Dashboard stats — metric card gradients | `components/dashboard/dashboard-stats.tsx` | 209-248 | ✅ |
+| NPS gauge `getNpsColor()` returns hardcoded hex | `components/dashboard/nps-gauge.tsx` | 16-18, 100-101, 136-138 | 🔲 |
+| Review form extensive hardcoded colors | `components/review-form/review-form-content.tsx` | 67-83, 152, 206, 425-428, 526, 568, 856, 1028 | 🔲 |
+| Review form `border: '3px solid white'` | `components/review-form/review-form-content.tsx` | 856, 1065 | 🔲 |
+| Collect form hardcoded gradients | `components/collect/collect-form.tsx` | 190, 301, 343 | 🔲 |
+| Product demo hardcoded light colors | `components/landing/product-demo.tsx` | 46, 60, 80, 83, 106, 146, 174 | 🔲 |
 
-### 3.3 Performance — Missing Suspense Boundaries
+**Fix approach:** Remove forced light mode from `app/layout.tsx` first. Then replace hardcoded hex colors with `theme.palette.*` tokens. Use `theme.palette.mode === 'dark'` conditionals where needed.
+
+### 3.2 🔲 Performance — Review Form Component Too Large
+- **Problem:** `components/review-form/review-form-content.tsx` is 1,133 lines with inline CSS keyframe animations, no memoization, and `<Box component="img">` instead of `next/image`.
+- **Fix:** Break into sub-components. Extract animations. Use `next/image` for logo.
+
+### 3.3 🔲 Performance — Missing Suspense Boundaries
 - **Problem:** Dashboard pages run 4-5 parallel queries with no Suspense boundaries, blocking entire page render.
-- **Fix:** Wrap data-dependent sections in `<Suspense fallback={<Skeleton />}>`. Add skeleton loaders.
 - **Files:** `app/dashboard/page.tsx`, `app/dashboard/reviews/page.tsx`
 
-### 3.4 Type Safety — Excessive `as unknown as` Casts
-- **Problem:** 15+ instances of unsafe `as unknown as` type casting throughout the codebase instead of proper Supabase type generation.
+### 3.4 🔲 Type Safety — Excessive `as unknown as` Casts
+- **Problem:** 5+ instances of unsafe double type casting throughout the codebase.
+- **Locations:**
+  - `middleware.ts:89`
+  - `app/dashboard/layout.tsx:24`
+  - `app/dashboard/page.tsx:63`
+  - `app/dashboard/integrations/page.tsx:35`
+  - `app/dashboard/testimonials/page.tsx:52-53`
 - **Fix:** Generate Supabase types with `npx supabase gen types typescript` and use them in queries.
-- **Files:** `middleware.ts:89`, `app/dashboard/page.tsx:63`, `app/r/[slug]/page.tsx:24-26`, `app/dashboard/testimonials/page.tsx:52-53`
 
-### 3.5 Trial Gaming Vulnerability
-- **Problem:** Trial detection uses `billing_plan === 'pending'` check. If a cancelled user's org gets reset to 'pending' state, they get a new 14-day trial.
-- **Fix:** Check for existence of `stripe_customer_id` instead — if customer already exists in Stripe, no trial regardless of plan state.
-- **File:** `app/api/stripe/create-checkout/route.ts:62-70`
+### 3.5 ✅ Trial Gaming Vulnerability
+- **Fixed:** Now checks `stripe_customer_id` existence — if a customer already has a Stripe record, they cannot get a new trial regardless of `billing_plan` state.
 
-### 3.6 Missing GST/Tax Collection
+### 3.6 ⚠️ Missing GST/Tax Collection
 - **Problem:** Australia requires GST on SaaS sales. No tax handling configured in Stripe.
-- **Fix:** Enable Stripe Tax or add GST to the $79 price. Consult accountant for ATO compliance.
+- **Action:** Enable Stripe Tax or add GST to the $79 price. Consult accountant.
 
-### 3.7 Missing Indexes on Frequently Queried Columns
-- **Problem:** `reviews.customer_email` and `sms_log.to_phone` lack indexes but are used in lookups.
+### 3.7 🔲 Missing Indexes on Frequently Queried Columns
+- **Problem:** `reviews.customer_email` and `sms_log.to_phone` lack indexes.
 - **Fix:** Create migration adding indexes.
 
-### 3.8 Twilio — No Delivery Status Tracking
-- **Problem:** SMS sent but no webhook configured to track delivery status (delivered/failed/bounced). `sms_log` status never updates after initial send.
-- **Fix:** Configure Twilio status callback URL. Add endpoint to receive delivery updates.
+### 3.8 🔲 Twilio — No Delivery Status Tracking
+- **Problem:** SMS sent but no webhook to track delivery status. `sms_log` status never updates.
 - **File:** `lib/twilio/client.ts`
 
 ### 3.9 Responsiveness Issues
-| Issue | File | Details |
-|-------|------|---------|
-| Support form categories don't stack on <360px | `components/support/support-form.tsx:156` | Change to `repeat(1, 1fr)` on xs |
-| Review table no horizontal scroll on mobile | `components/reviews/review-list.tsx:620` | Wrap in `overflow-x: auto` |
-| Product demo phone frame too wide on tiny screens | `components/landing/product-demo.tsx:43` | Reduce xs width |
+| Issue | File | Status |
+|-------|------|--------|
+| Support form categories don't stack on <360px | `components/support/support-form.tsx:156` | 🔲 |
+| Review table minWidth 600px too large for phones | `components/reviews/review-list.tsx:571` | 🔲 |
+| Product demo phone frame overflow on tiny screens | `components/landing/product-demo.tsx:43` | ✅ |
 
-### 3.10 Review Form Pages Marked as No-Index
-- **Problem:** `/r/[slug]` pages have `robots: { index: false }` — hiding potentially valuable SEO pages.
-- **Fix:** Change to `index: true` for public review form pages. These are SEO goldmines (business name + reviews).
-- **File:** `app/r/[slug]/page.tsx:42`
+### 3.10 ✅ Review Form Pages Marked as No-Index
+- **Fixed:** Changed `robots: { index: false }` to `robots: { index: true, follow: true }` in `app/r/[slug]/page.tsx`.
+
+### 3.11 🔲 Missing Security Headers (NEW)
+- **Problem:** `next.config.ts` is missing important security headers:
+  - `Strict-Transport-Security` (enforces HTTPS)
+  - `Permissions-Policy` (controls browser features)
+  - `Content-Security-Policy` (prevents XSS/injection)
+- **Currently only has:** `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`
+- **File:** `next.config.ts:4-15`
+
+### 3.12 🔲 Missing Stripe Webhook: `customer.subscription.trial_will_end` (NEW)
+- **Problem:** No handler for trial expiry warning. Customers get no notification 3 days before trial ends, leading to churn surprise.
+- **File:** `app/api/stripe/webhook/route.ts`
+
+### 3.13 🔲 Missing Email Unsubscribe Header (NEW)
+- **Problem:** `sendEmail()` in `lib/email/client.ts` doesn't include `List-Unsubscribe` or `List-Unsubscribe-Post` headers. Required by Gmail/Outlook and CAN-SPAM/GDPR.
+- **File:** `lib/email/client.ts:11-40`
+
+### 3.14 🔲 Missing OG/Twitter Cards on Review & Wall Pages (NEW)
+- **Problem:** `/r/[slug]` is missing Open Graph tags and Twitter card metadata. `/wall/[slug]` is missing Twitter card and OG image/URL.
+- **Files:** `app/r/[slug]/page.tsx:40-50`, `app/wall/[slug]/page.tsx:38-52`
 
 ---
 
 ## 4. LOW — Backlog
 
 ### 4.1 Code Quality
-- [ ] Remove `console.error()` calls from error boundaries (use structured logging)
+- [ ] Replace `console.error()` with structured logging across all API routes (15+ instances in webhook, submit, sms, email, integrations, checkout, sync routes)
 - [ ] Fix `BillingSuccessSync` — unused `useRef` import
 - [ ] Replace `<Box component="img">` with `next/image` in review form
 - [ ] Centralize box shadow definitions in theme
 - [ ] Add missing `aria-label` attributes to icon buttons in header
-- [ ] Add Permissions-Policy security header to `next.config.ts`
+- [ ] Fix unused `internalCount` variable in `components/reviews/review-list.tsx:431`
 
 ### 4.2 Email & SMS
 - [ ] Add SendGrid retry logic for transient failures (429, 5xx)
 - [ ] Add unsubscribe mechanism to emails (CAN-SPAM/GDPR compliance)
-- [ ] Validate phone numbers with `libphonenumber-js` before Twilio send
+- [ ] Validate phone numbers with `libphonenumber-js` before Twilio send (current validation just strips spaces and adds country code — "abc123" would pass through)
 - [ ] Queue SMS in `sms_log` with status='queued', process async
+- [ ] Add Twilio SMS retry logic for transient failures
 
 ### 4.3 Billing
-- [ ] Add missing webhook event handlers (`invoice.payment_action_required`, `customer.subscription.trial_will_end`)
+- [ ] Validate portal return URL is same-origin to prevent open redirect (`app/api/stripe/create-portal/route.ts:39-43`)
+- [ ] Clear `subscription_ends_at` in `invoice.payment_succeeded` handler when subscription resumes
 - [ ] Add `requireBilling()` check to integration routes (`/api/integrations/sync`, `/api/integrations/toggle-review-form`, `/api/wall/save-config`)
-- [ ] Validate portal return URL is same-origin to prevent open redirect
 
 ### 4.4 Database
 - [ ] Rename duplicate RLS policy names across tables for easier debugging
@@ -198,8 +212,14 @@ Theme infrastructure exists but many components override with hardcoded colors.
 - [ ] Add blog index page at `/blog`
 - [ ] Add canonical URLs to `/r/[slug]` and `/wall/[slug]` pages
 - [ ] Update AggregateRating on homepage from placeholder "1 review" to real count
-- [ ] Add "Featured In" badge section to homepage footer (required by 10+ directory verifications)
-- [ ] Add testimonial wall pages to sitemap
+- [ ] Add "Featured In" badge section to homepage footer
+- [ ] Add testimonial wall pages to sitemap dynamically
+
+### 4.6 Error Handling (NEW)
+- [ ] Add error checking to parallel `Promise.all()` queries in `app/dashboard/page.tsx:34-61`
+- [ ] Add error checking to parallel queries in `app/dashboard/reviews/page.tsx:21-43`
+- [ ] Check for errors on `review_requests` status update in `app/api/reviews/submit/route.ts:146-149`
+- [ ] Validate URL redirects in `app/api/integrations/google/callback/route.ts` (open redirect risk if `siteUrl` is compromised)
 
 ---
 
@@ -226,37 +246,23 @@ Theme infrastructure exists but many components override with hardcoded colors.
 4. **Directory verification** — Complete Capterra, G2, SaaSHub, AlternativeTo verifications. Fix email forwarding first.
 5. **Blog promotion** — Share existing 2 posts on social media. Create Twitter threads from each post.
 
-### Cold Email Issues
-- 0% reply rate suggests wrong audience, bad timing, or deliverability issues
-- Consider: shorter subject lines, different send times, warm-up domain further
-- Math: 100 emails → 5 replies → 2 demos → 0.4 customers. Need 20,000 emails for 80 customers at this rate. In-person sales are 10x more efficient.
-
 ---
 
 ## 6. File Cleanup
 
-### DELETE — Root Screenshots (~5.5 MB, 42 PNG files)
-All are dev artifacts not referenced anywhere. Already covered by `*.png` gitignore but tracked in git history.
-```
-dashboard-full.png, mobile-*.png (15 files), prod-*.png (3 files),
-pricing-*.png (2 files), review-*.png (3 files), tablet-*.png (2 files),
-testimonial-wall.png
-```
+### ✅ DONE — Root Screenshots
+All 47 root-level PNG screenshots deleted from git tracking.
 
-### DELETE — Duplicate/Stale Marketing Docs
-| File | Reason |
-|------|--------|
-| `marketing/DIRECTORY-LISTINGS.md` | Duplicate of `SUBMISSION-PROGRESS.md` |
-| `marketing/advertising-agent/CONTENT-STATUS.md` | Stale (Mar 13), duplicates TODO.md |
-| `marketing/advertising-agent/DIRECTORY-STATUS.md` | Stale (Mar 13), duplicates SUBMISSION-PROGRESS.md |
+### ✅ DONE — Duplicate Marketing Docs
+Deleted: `marketing/DIRECTORY-LISTINGS.md`, `marketing/advertising-agent/CONTENT-STATUS.md`, `marketing/advertising-agent/DIRECTORY-STATUS.md`
 
-### DELETE — Local Artifacts (Already Gitignored)
+### 🔲 DELETE — Local Artifacts (Not in git, disk space only)
 ```
 test-results/          # ~5 MB old Playwright artifacts
-.playwright-mcp/       # ~45 MB browser cache
+.playwright-mcp/       # ~46 MB browser cache
 ```
 
-### CREATE — Missing Files
+### 🔲 CREATE — Missing Files
 | File | Purpose |
 |------|---------|
 | `README.md` (root) | Basic project info, setup instructions, link to CLAUDE.md |
@@ -273,32 +279,47 @@ These areas are solid and should not be changed:
 - **Landing page** — Compelling copy, good visual hierarchy, FAQ schema, structured data
 - **Blog content** — Excellent quality, well-structured, Australia-focused
 - **Auth flow** — Magic link → PKCE → session → redirect works cleanly
-- **Testimonial wall** — JSON-LD schema, responsive layout, customizable config
-- **Stripe integration** — Webhook handling, checkout, portal, cancellation all work correctly
-- **Test coverage** — 732 tests passing, good coverage of billing, routing, and admin bypass logic
-- **Deployment workflow** — Vercel ignoreCommand saves build minutes, conventional commits, quality gates
+- **Testimonial wall** — JSON-LD schema, responsive layout, customizable config, no hydration errors ✅
+- **Stripe integration** — Webhook handling with idempotency ✅, checkout, portal, cancellation, trial gaming prevention ✅
+- **Test coverage** — 765 tests passing ✅, good coverage of billing, routing, admin bypass, and audit fixes
+- **Query efficiency** — `React.cache()` deduplication on public pages ✅, DB-backed rate limiting ✅
+- **Deployment workflow** — Deploy verification step documented in CLAUDE.md ✅
 
 ---
 
-## Fix Priority Order
+## Fix Priority Order (Updated)
 
-If tackling one thing at a time, do them in this order:
+### Already Done ✅
+1. ~~Fix React hydration error on wall page~~ ✅
+2. ~~Add webhook idempotency table~~ ✅
+3. ~~Fix duplicate queries in review/wall pages~~ ✅
+4. ~~Replace in-memory rate limiting~~ ✅
+5. ~~Add missing env vars to `.env.example`~~ ✅
+6. ~~Add missing Vercel cron jobs~~ ✅
+7. ~~Fix trial gaming vulnerability~~ ✅
+8. ~~Enable indexing on review pages~~ ✅
+9. ~~Fix product demo responsiveness~~ ✅
+10. ~~Delete root PNGs and stale marketing docs~~ ✅
+11. ~~Dashboard stat cards dark mode~~ ✅
 
-1. Fix Stripe payouts (1 hour, in Stripe dashboard)
-2. Clean junk data from production testimonial wall (30 min, SQL)
-3. Fix SendGrid email forwarding (2 hours)
-4. Add missing env vars to `.env.example` (30 min)
-5. Add missing Vercel cron jobs (15 min)
-6. Verify Google OAuth redirect URI in Cloud Console (15 min)
-7. Fix React hydration error on wall page (1-2 hours)
-8. Add webhook idempotency table (2 hours)
-9. Fix duplicate queries in review/wall pages (1 hour)
-10. Dark mode hardcoded colors pass (4-6 hours)
-11. Break up review form component (3-4 hours)
-12. Add Suspense boundaries to dashboard (2-3 hours)
-13. Delete root PNG files and stale marketing docs (30 min)
-14. Remaining items from sections 3 and 4
+### Next Up (in priority order)
+1. ⚠️ Fix Stripe payouts (Stripe Dashboard — upload ABN)
+2. ⚠️ Clean junk data from production testimonial wall (Supabase SQL)
+3. ⚠️ Fix SendGrid email forwarding (SendGrid dashboard)
+4. ⚠️ Verify Google OAuth redirect URI (Google Cloud Console)
+5. 🔲 Add missing Stripe webhook handlers (payment_action_required, trial_will_end)
+6. 🔲 Add security headers to next.config.ts (HSTS, Permissions-Policy)
+7. 🔲 Fix sitemap to include dynamic wall/review pages
+8. 🔲 Add OG/Twitter card metadata to review and wall pages
+9. 🔲 Add email unsubscribe headers (CAN-SPAM/GDPR)
+10. 🔲 Remove forced light mode from layout.tsx (prerequisite for dark mode)
+11. 🔲 Dark mode pass — replace hardcoded colors across all components
+12. 🔲 Generate Supabase types to eliminate `as unknown as` casts
+13. 🔲 Add Suspense boundaries to dashboard pages
+14. 🔲 Break up review form component
+15. 🔲 Cache middleware billing check in cookie
+16. 🔲 Remaining items from sections 3 and 4
 
 ---
 
-*Generated from 6 parallel audit agents covering: code quality & performance, Stripe billing, SEO & marketing, infrastructure & services, UI/dark mode/responsiveness, and file cleanup. Production tested with Playwright MCP.*
+*Updated after fix pass: 11 issues resolved, 24 new tests added. Re-audited with code quality, dark mode/UI, and SEO/billing/infra agents.*

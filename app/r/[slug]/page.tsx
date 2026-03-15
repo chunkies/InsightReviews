@@ -42,10 +42,25 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const org = await getOrgBySlug(slug);
 
   const name = org?.name || 'Business';
+  const description = `Share your experience at ${name}. Your feedback helps us improve.`;
   return {
     title: `Leave a Review for ${name}`,
-    description: `Share your experience at ${name}. Your feedback helps us improve.`,
+    description,
     robots: { index: true, follow: true },
+    openGraph: {
+      title: `Leave a Review for ${name}`,
+      description,
+      type: 'website',
+      url: `https://insightreviews.com.au/r/${slug}`,
+    },
+    twitter: {
+      card: 'summary',
+      title: `Leave a Review for ${name}`,
+      description,
+    },
+    alternates: {
+      canonical: `https://insightreviews.com.au/r/${slug}`,
+    },
   };
 }
 

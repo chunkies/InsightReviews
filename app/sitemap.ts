@@ -1,9 +1,11 @@
 import type { MetadataRoute } from 'next';
+import { createServerClient } from '@supabase/ssr';
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://insightreviews.com.au';
 
-  return [
+  // Static routes
+  const staticRoutes: MetadataRoute.Sitemap = [
     {
       url: baseUrl,
       lastModified: new Date(),
@@ -38,7 +40,38 @@ export default function sitemap(): MetadataRoute.Sitemap {
       url: `${baseUrl}/subscribe`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
-      priority: 0.4,
+      priority: 0.6,
     },
   ];
+
+  // Dynamic routes — fetch public org slugs for wall pages
+  try {
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      {
+        cookies: {
+          getAll() { return []; },
+          setAll() {},
+        },
+      }
+    );
+
+    const { data: orgs } = await supabase
+      .from('organizations')
+      .select('slug, updated_at')
+      .not('slug', 'is', null);
+
+    const wallRoutes: MetadataRoute.Sitemap = (orgs ?? []).map((org) => ({
+      url: `${baseUrl}/wall/${org.slug}`,
+      lastModified: org.updated_at ? new Date(org.updated_at) : new Date(),
+      changeFrequency: 'daily' as const,
+      priority: 0.7,
+    }));
+
+    return [...staticRoutes, ...wallRoutes];
+  } catch {
+    // If DB query fails, return static routes only
+    return staticRoutes;
+  }
 }

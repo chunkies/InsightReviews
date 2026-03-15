@@ -155,6 +155,44 @@ export async function POST(request: NextRequest) {
       break;
     }
 
+    case 'invoice.payment_action_required': {
+      const invoice = event.data.object as Stripe.Invoice & { subscription?: string | null };
+      const subId = typeof invoice.subscription === 'string'
+        ? invoice.subscription
+        : null;
+      if (subId) {
+        // Mark as past_due so the dashboard shows a warning
+        await supabase
+          .from('organizations')
+          .update({ billing_plan: 'past_due' })
+          .eq('stripe_subscription_id', subId);
+      }
+      break;
+    }
+
+    case 'customer.subscription.trial_will_end': {
+      const subscription = event.data.object as Stripe.Subscription;
+      const subId = subscription.id;
+      // Find the org and send a trial ending notification
+      const { data: trialOrg } = await supabase
+        .from('organizations')
+        .select('id, name, email')
+        .eq('stripe_subscription_id', subId)
+        .maybeSingle();
+
+      if (trialOrg?.email) {
+        // Log activity for dashboard visibility
+        await supabase.from('activity_log').insert({
+          organization_id: trialOrg.id,
+          user_id: null,
+          action: 'trial_ending_soon',
+          entity_type: 'organization',
+          details: { trial_end: subscription.trial_end ? new Date(subscription.trial_end * 1000).toISOString() : null },
+        });
+      }
+      break;
+    }
+
     case 'customer.subscription.deleted': {
       const subscription = event.data.object as Stripe.Subscription;
       const { error } = await supabase

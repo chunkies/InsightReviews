@@ -568,7 +568,7 @@ export function ReviewList({
       </Box>
 
       <TableContainer component={Paper} sx={{ overflowX: 'auto' }}>
-        <Table sx={{ minWidth: { xs: 600, md: 900 } }}>
+        <Table sx={{ minWidth: { xs: '100%', md: 900 } }}>
           <TableHead>
             <TableRow>
               {hasExternalReviews && <TableCell>Source</TableCell>}

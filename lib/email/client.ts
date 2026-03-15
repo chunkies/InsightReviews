@@ -30,6 +30,10 @@ async function sendEmail(params: {
       subject: params.subject,
       html: params.html,
       text: params.text,
+      headers: {
+        'List-Unsubscribe': `<mailto:${FROM_EMAIL}?subject=Unsubscribe>`,
+        'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+      },
     });
     return true;
   } catch (error: unknown) {

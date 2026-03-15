@@ -21,9 +21,11 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   if (!member) redirect('/onboarding');
 
-  const org = member.organizations as unknown as {
+  // Supabase join returns an array for relations; extract the first element
+  const orgs = member.organizations as {
     id: string; name: string; billing_plan: string; trial_ends_at: string | null; subscription_ends_at: string | null;
-  } | null;
+  }[] | null;
+  const org = Array.isArray(orgs) ? orgs[0] ?? null : orgs;
 
   // Allow billing=success through so client-side sync component can update DB
   const headersList = await headers();

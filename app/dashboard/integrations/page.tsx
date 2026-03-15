@@ -32,7 +32,7 @@ export default async function IntegrationsPage() {
     .eq('organization_id', member.organization_id);
 
   // Get review counts per integration
-  const integrationList = (integrations ?? []) as unknown as OrganizationIntegration[];
+  const integrationList = (integrations ?? []) as OrganizationIntegration[];
   const reviewCounts: Record<string, number> = {};
 
   if (integrationList.length > 0) {

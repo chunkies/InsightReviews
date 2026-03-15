@@ -49,8 +49,8 @@ export default async function TestimonialsPage() {
   ]);
 
   const reviews = reviewsRes.data ?? [];
-  const integrations = (integrationsRes.data ?? []) as unknown as OrganizationIntegration[];
-  const manualPlatforms = (platformsRes.data ?? []) as unknown as ReviewPlatform[];
+  const integrations = (integrationsRes.data ?? []) as OrganizationIntegration[];
+  const manualPlatforms = (platformsRes.data ?? []) as ReviewPlatform[];
 
   const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000').trim();
   const wallUrl = `${siteUrl}/wall/${org.slug}`;
@@ -117,7 +117,7 @@ export default async function TestimonialsPage() {
         orgId={org.id}
         wallUrl={wallUrl}
         reviewUrl={reviewUrl}
-        org={org as unknown as Organization}
+        org={org as Organization}
         isOwner={member.role === 'owner'}
         integrations={integrations}
         manualPlatforms={manualPlatforms}

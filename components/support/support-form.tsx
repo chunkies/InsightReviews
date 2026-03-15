@@ -153,7 +153,7 @@ export function SupportForm({ userEmail }: { userEmail: string }) {
         </Paper>
 
         {/* Category quick-picks */}
-        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: `repeat(${CATEGORIES.length}, 1fr)` }, gap: 1.5, mb: 3 }}>
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(1, 1fr)', sm: `repeat(${CATEGORIES.length}, 1fr)` }, gap: 1.5, mb: 3 }}>
           {CATEGORIES.map((c) => {
             const Icon = c.icon;
             const isSelected = category === c.value;

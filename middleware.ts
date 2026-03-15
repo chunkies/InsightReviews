@@ -68,8 +68,29 @@ export async function middleware(request: NextRequest) {
     return supabaseResponse;
   }
 
-  // For dashboard routes, check org membership and billing in a single query
+  // For dashboard routes, check org membership and billing
   if (pathname.startsWith('/dashboard')) {
+    const isBillingSuccess = request.nextUrl.searchParams.get('billing') === 'success';
+
+    // Try cached billing check first (cookie valid for 5 min)
+    const billingCache = request.cookies.get('ir_billing_cache')?.value;
+    if (billingCache && !isBillingSuccess) {
+      try {
+        const cached = JSON.parse(billingCache) as { orgId: string; plan: string; trialEnds: string | null; subEnds: string | null; exp: number };
+        if (cached.exp > Date.now()) {
+          if (!hasValidBilling(cached.plan, cached.trialEnds, user.email, cached.subEnds)) {
+            const url = request.nextUrl.clone();
+            url.pathname = '/subscribe';
+            url.search = `?org=${cached.orgId}`;
+            return NextResponse.redirect(url);
+          }
+          return supabaseResponse;
+        }
+      } catch {
+        // Invalid cache — fall through to DB query
+      }
+    }
+
     const { data: member } = await supabase
       .from('organization_members')
       .select('organization_id, organizations(billing_plan, trial_ends_at, subscription_ends_at)')
@@ -84,9 +105,27 @@ export async function middleware(request: NextRequest) {
     }
 
     // Check billing status (org data is joined in the same query)
-    // Allow ?billing=success through — the client-side sync component will update the DB
-    const isBillingSuccess = request.nextUrl.searchParams.get('billing') === 'success';
-    const org = member.organizations as unknown as { billing_plan: string; trial_ends_at: string | null; subscription_ends_at: string | null } | null;
+    const orgs = member.organizations as { billing_plan: string; trial_ends_at: string | null; subscription_ends_at: string | null }[] | null;
+    const org = Array.isArray(orgs) ? orgs[0] ?? null : orgs;
+
+    // Cache the billing state for 5 minutes
+    if (org) {
+      const cacheValue = JSON.stringify({
+        orgId: member.organization_id,
+        plan: org.billing_plan,
+        trialEnds: org.trial_ends_at,
+        subEnds: org.subscription_ends_at,
+        exp: Date.now() + 5 * 60 * 1000,
+      });
+      supabaseResponse.cookies.set('ir_billing_cache', cacheValue, {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'lax',
+        maxAge: 300,
+        path: '/',
+      });
+    }
+
     if (org && !isBillingSuccess && !hasValidBilling(org.billing_plan, org.trial_ends_at, user.email, org.subscription_ends_at)) {
       const url = request.nextUrl.clone();
       url.pathname = '/subscribe';
@@ -97,6 +136,8 @@ export async function middleware(request: NextRequest) {
     // Pass billing=success flag to server components via header
     if (isBillingSuccess) {
       supabaseResponse.headers.set('x-billing-success', '1');
+      // Invalidate billing cache on success so next load re-checks
+      supabaseResponse.cookies.set('ir_billing_cache', '', { maxAge: 0, path: '/' });
     }
   }
 

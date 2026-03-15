@@ -60,7 +60,9 @@ export default async function DashboardPage() {
       .eq('organization_id', orgId),
   ]);
 
-  const orgData = member.organizations as unknown as { positive_threshold: number } | null;
+  // Supabase join returns an array for relations; extract the first element
+  const orgArr = member.organizations as { positive_threshold: number }[] | null;
+  const orgData = Array.isArray(orgArr) ? orgArr[0] ?? null : orgArr;
   const positiveThreshold = orgData?.positive_threshold ?? 4;
   const reviews = reviewsRes.data ?? [];
   const requests = requestsRes.data ?? [];

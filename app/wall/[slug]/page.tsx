@@ -40,13 +40,23 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const org = await getOrgBySlug(slug);
 
   const name = org?.name || 'Business';
+  const description = `See what customers are saying about ${name}. Read real reviews from verified customers.`;
   return {
     title: `${name} — Customer Reviews`,
-    description: `See what customers are saying about ${name}. Read real reviews from verified customers.`,
+    description,
     openGraph: {
       title: `${name} — Customer Reviews`,
-      description: `See what customers are saying about ${name}.`,
+      description,
       type: 'website',
+      url: `https://insightreviews.com.au/wall/${slug}`,
+    },
+    twitter: {
+      card: 'summary',
+      title: `${name} — Customer Reviews`,
+      description,
+    },
+    alternates: {
+      canonical: `https://insightreviews.com.au/wall/${slug}`,
     },
   };
 }

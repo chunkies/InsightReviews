@@ -1,34 +1,54 @@
+import { type EmailOtpType } from '@supabase/supabase-js';
+import { type NextRequest } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { NextRequest, NextResponse } from 'next/server';
+import { redirect } from 'next/navigation';
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
+  const token_hash = searchParams.get('token_hash');
+  const type = searchParams.get('type') as EmailOtpType | null;
   const code = searchParams.get('code');
   const rawNext = searchParams.get('next') ?? '/dashboard';
-  // Prevent open redirect — only allow relative paths starting with /
   const next = rawNext.startsWith('/') && !rawNext.startsWith('//') ? rawNext : '/dashboard';
 
-  if (code) {
-    const supabase = await createClient();
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
+  const supabase = await createClient();
 
+  // Method 1: token_hash + type (standard email OTP / magic link flow)
+  if (token_hash && type) {
+    const { error } = await supabase.auth.verifyOtp({ type, token_hash });
     if (!error) {
-      // Check if user has an org
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { data: member } = await supabase
-          .from('organization_members')
-          .select('organization_id')
-          .eq('user_id', user.id)
-          .maybeSingle();
-
-        if (!member) {
-          return NextResponse.redirect(new URL('/onboarding', request.url));
-        }
-      }
-      return NextResponse.redirect(new URL(next, request.url));
+      return await redirectAfterAuth(supabase, request, next);
     }
   }
 
-  return NextResponse.redirect(new URL('/auth/error', request.url));
+  // Method 2: PKCE code exchange (fallback for OAuth / code-based flows)
+  if (code) {
+    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    if (!error) {
+      return await redirectAfterAuth(supabase, request, next);
+    }
+  }
+
+  redirect('/auth/error');
+}
+
+async function redirectAfterAuth(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  request: NextRequest,
+  next: string,
+) {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (user) {
+    const { data: member } = await supabase
+      .from('organization_members')
+      .select('organization_id')
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    if (!member) {
+      redirect('/onboarding');
+    }
+  }
+
+  redirect(next);
 }

@@ -26,6 +26,8 @@ jobs:
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
       VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
     steps:
+      - uses: actions/checkout@v4
+
       - name: Install Vercel CLI
         run: npm install -g vercel@latest
 
@@ -44,6 +46,13 @@ jobs:
             echo "Found latest preview: $LATEST"
             vercel promote "$LATEST" --token=${{ secrets.VERCEL_TOKEN }}
           fi
+
+      - name: Tag production release
+        run: |
+          TAG="prod-$(date -u +'%Y%m%d-%H%M%S')"
+          git tag -a "$TAG" -m "Production deploy $TAG"
+          git push origin "$TAG"
+          echo "Tagged commit as: $TAG"
 
       - name: Verify production
         run: |

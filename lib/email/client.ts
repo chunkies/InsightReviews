@@ -23,7 +23,7 @@ async function sendEmail(params: {
   text: string;
 }): Promise<boolean> {
   if (!SENDGRID_API_KEY) {
-    if (process.env.NODE_ENV === 'development') {
+    if (process.env.NODE_ENV === 'development' || process.env.STAGING_MODE === 'true') {
       console.log(`[EMAIL-DEV] To: ${params.to} | Subject: ${params.subject}`);
       return true;
     }

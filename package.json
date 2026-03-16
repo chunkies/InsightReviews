@@ -8,7 +8,9 @@
     "start": "next start",
     "lint": "eslint . --max-warnings 0",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "db:push:dev": "npx supabase db push --linked --db-url $SUPABASE_DEV_DB_URL",
+    "db:push:prod": "npx supabase db push --linked --db-url $SUPABASE_PROD_DB_URL"
   },
   "dependencies": {
     "@emotion/cache": "^11.14.0",

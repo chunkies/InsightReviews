@@ -1,8 +1,12 @@
 name: Deploy Production
 
 on:
-  push:
-    branches: [main]
+  workflow_dispatch:
+    inputs:
+      deployment_url:
+        description: 'Specific Vercel deployment URL to promote (leave empty for latest preview)'
+        required: false
+        type: string
 
 concurrency:
   group: production
@@ -14,28 +18,34 @@ jobs:
     uses: ./.github/workflows/ci.yml
 
   deploy-production:
-    name: Deploy to Vercel (Production)
+    name: Promote to Production
     needs: ci
     runs-on: ubuntu-latest
+    environment: production
     env:
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
       VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-
       - name: Install Vercel CLI
         run: npm install -g vercel@latest
 
-      - name: Pull Vercel environment
-        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+      - name: Promote to production
+        run: |
+          if [ -n "${{ inputs.deployment_url }}" ]; then
+            echo "Promoting specific deployment: ${{ inputs.deployment_url }}"
+            vercel promote "${{ inputs.deployment_url }}" --token=${{ secrets.VERCEL_TOKEN }}
+          else
+            echo "Promoting latest preview deployment to production..."
+            LATEST=$(vercel ls --token=${{ secrets.VERCEL_TOKEN }} 2>/dev/null | grep -m1 'Preview' | awk '{print $2}')
+            if [ -z "$LATEST" ]; then
+              echo "Error: No preview deployment found to promote"
+              exit 1
+            fi
+            echo "Found latest preview: $LATEST"
+            vercel promote "$LATEST" --token=${{ secrets.VERCEL_TOKEN }}
+          fi
 
-      - name: Build project
-        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
-
-      - name: Deploy to Vercel (production)
-        run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
+      - name: Verify production
+        run: |
+          echo "Production promotion complete."
+          echo "Verify at: https://insightreviews.com.au"

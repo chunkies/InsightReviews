@@ -6,11 +6,11 @@ export default [
   ...tseslint.configs.recommended,
   {
     rules: {
-      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
       '@typescript-eslint/no-explicit-any': 'warn',
     },
   },
   {
-    ignores: ['.next/**', 'node_modules/**', 'e2e/**', 'public/widget.js'],
+    ignores: ['.next/**', 'node_modules/**', 'e2e/**', 'public/widget.js', 'marketing/**', 'melbourne-leads.json'],
   },
 ];

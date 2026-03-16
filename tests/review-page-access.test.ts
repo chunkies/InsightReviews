@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { checkReviewPageAccess, type ReviewPageAccessInput } from '@/lib/utils/review-page-access';
 
 // Set admin email for tests

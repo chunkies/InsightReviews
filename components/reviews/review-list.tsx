@@ -428,7 +428,7 @@ export function ReviewList({
     );
   }
 
-  const internalCount = reviews.length;
+  const _internalCount = reviews.length;
   const positiveCount = reviews.filter(r => r.is_positive).length;
   const negativeCount = reviews.filter(r => !r.is_positive).length;
 

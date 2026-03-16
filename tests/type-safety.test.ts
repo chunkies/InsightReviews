@@ -25,6 +25,7 @@ describe('Type safety — no unsafe double casts (as unknown as)', () => {
 
   it('no source files in app/ or lib/ contain "as unknown as"', () => {
     // Broader sweep: check all key directories
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { execSync } = require('child_process');
     const rootDir = resolve(__dirname, '..');
     const result = execSync(

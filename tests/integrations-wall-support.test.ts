@@ -37,8 +37,7 @@ import { getGoogleAuthUrl, exchangeGoogleCode, refreshGoogleToken, listGoogleAcc
 import { getFacebookAuthUrl, exchangeFacebookCode, getLongLivedToken, listFacebookPages, fetchFacebookRatings, facebookRatingToNumber } from '@/lib/integrations/facebook';
 import { searchYelpBusiness, getYelpBusiness, getYelpReviews, getYelpBusinessSummary } from '@/lib/integrations/yelp';
 import { DEFAULT_WALL_CONFIG, mergeWallConfig } from '@/lib/types/wall-config';
-import type { WallConfig } from '@/lib/types/wall-config';
-import type { Organization, Review, ReviewRequest, SupportTicket, OrganizationIntegration, ExternalReview, OrganizationMember, ReviewPlatform, ActivityLogEntry } from '@/lib/types/database';
+import type { Organization, Review, ReviewRequest, SupportTicket, OrganizationIntegration } from '@/lib/types/database';
 import { PLATFORM_CONFIG } from '@/lib/types/database';
 import { sendNegativeReviewNotification, sendSupportTicketNotification } from '@/lib/email/client';
 

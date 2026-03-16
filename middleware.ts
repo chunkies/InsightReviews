@@ -141,6 +141,9 @@ export async function middleware(request: NextRequest) {
     }
   }
 
+  // Pass pathname to server components for route-level permission enforcement
+  supabaseResponse.headers.set('x-pathname', pathname);
+
   return supabaseResponse;
 }
 

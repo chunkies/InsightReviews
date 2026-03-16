@@ -97,6 +97,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: memberError.message }, { status: 500 });
     }
 
+    // Create default "Staff" role
+    await supabase.from('roles').insert({
+      organization_id: org.id,
+      name: 'Staff',
+      permissions: ['dashboard', 'collect', 'reviews', 'support'],
+    });
+
     // Add platforms
     const platforms = [
       { platform: 'google', url: googleUrl },

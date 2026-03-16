@@ -11,10 +11,12 @@ interface DashboardShellProps {
   billingPlan?: string | null;
   trialEndsAt?: string | null;
   subscriptionEndsAt?: string | null;
+  permissions?: string[] | null;
+  memberRole?: 'owner' | 'staff';
   children: React.ReactNode;
 }
 
-export function DashboardShell({ orgName, billingPlan, trialEndsAt, subscriptionEndsAt, children }: DashboardShellProps) {
+export function DashboardShell({ orgName, billingPlan, trialEndsAt, subscriptionEndsAt, permissions, memberRole, children }: DashboardShellProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
@@ -24,6 +26,8 @@ export function DashboardShell({ orgName, billingPlan, trialEndsAt, subscription
         billingPlan={billingPlan}
         trialEndsAt={trialEndsAt}
         subscriptionEndsAt={subscriptionEndsAt}
+        permissions={permissions}
+        memberRole={memberRole}
         mobileOpen={mobileOpen}
         onMobileClose={() => setMobileOpen(false)}
       />

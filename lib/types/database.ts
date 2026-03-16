@@ -41,6 +41,18 @@ export interface OrganizationMember {
   organization_id: string;
   user_id: string;
   role: 'owner' | 'staff';
+  role_id: string | null;
+  status: 'pending' | 'active';
+  email: string | null;
+  display_name: string | null;
+  created_at: string;
+}
+
+export interface Role {
+  id: string;
+  organization_id: string;
+  name: string;
+  permissions: string[];
   created_at: string;
 }
 

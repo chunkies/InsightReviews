@@ -15,15 +15,15 @@ import { useTheme } from '@mui/material/styles';
 const DRAWER_WIDTH = 260;
 
 const navItems = [
-  { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-  { label: 'Reviews', href: '/dashboard/reviews', icon: Star },
-  { label: 'Collect Reviews', href: '/dashboard/collect', icon: Send },
-  { label: 'Integrations', href: '/dashboard/integrations', icon: Link2 },
-  { label: 'Staff', href: '/dashboard/staff', icon: Users },
-  { label: 'Customization', href: '/dashboard/testimonials', icon: Palette },
-  { label: 'Billing', href: '/dashboard/billing', icon: CreditCard },
-  { label: 'Settings', href: '/dashboard/settings', icon: Settings },
-  { label: 'Support', href: '/dashboard/support', icon: HelpCircle },
+  { key: 'dashboard', label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+  { key: 'reviews', label: 'Reviews', href: '/dashboard/reviews', icon: Star },
+  { key: 'collect', label: 'Collect Reviews', href: '/dashboard/collect', icon: Send },
+  { key: 'integrations', label: 'Integrations', href: '/dashboard/integrations', icon: Link2 },
+  { key: 'staff', label: 'Staff', href: '/dashboard/staff', icon: Users },
+  { key: 'customization', label: 'Customization', href: '/dashboard/testimonials', icon: Palette },
+  { key: 'billing', label: 'Billing', href: '/dashboard/billing', icon: CreditCard },
+  { key: 'settings', label: 'Settings', href: '/dashboard/settings', icon: Settings },
+  { key: 'support', label: 'Support', href: '/dashboard/support', icon: HelpCircle },
 ];
 
 interface SidebarProps {
@@ -31,6 +31,8 @@ interface SidebarProps {
   billingPlan?: string | null;
   trialEndsAt?: string | null;
   subscriptionEndsAt?: string | null;
+  permissions?: string[] | null;
+  memberRole?: 'owner' | 'staff';
   mobileOpen: boolean;
   onMobileClose: () => void;
 }
@@ -50,11 +52,16 @@ function getPlanDisplay(billingPlan?: string | null, trialEndsAt?: string | null
   return { label: 'Trial', gradient: 'linear-gradient(135deg, #f59e0b 0%, #f97316 100%)' };
 }
 
-export function Sidebar({ orgName, billingPlan, trialEndsAt, subscriptionEndsAt, mobileOpen, onMobileClose }: SidebarProps) {
+export function Sidebar({ orgName, billingPlan, trialEndsAt, subscriptionEndsAt, permissions, memberRole, mobileOpen, onMobileClose }: SidebarProps) {
   const pathname = usePathname();
   const muiTheme = useTheme();
   const isDark = muiTheme.palette.mode === 'dark';
   const isMobile = useMediaQuery(muiTheme.breakpoints.down('md'));
+
+  // Owners see everything; staff see only permitted pages
+  const filteredNavItems = memberRole === 'owner' || !permissions
+    ? navItems
+    : navItems.filter((item) => permissions.includes(item.key));
 
   const drawerContent = (
     <>
@@ -93,7 +100,7 @@ export function Sidebar({ orgName, billingPlan, trialEndsAt, subscriptionEndsAt,
 
       {/* Navigation */}
       <List sx={{ px: 1.5, py: 1.5, flex: 1 }}>
-        {navItems.map((item) => {
+        {filteredNavItems.map((item) => {
           const isActive = pathname === item.href ||
             (item.href !== '/dashboard' && pathname.startsWith(item.href));
           const Icon = item.icon;
@@ -134,8 +141,8 @@ export function Sidebar({ orgName, billingPlan, trialEndsAt, subscriptionEndsAt,
         })}
       </List>
 
-      {/* Quick Send Shortcut */}
-      <Box sx={{ px: 2, mb: 1.5 }}>
+      {/* Quick Send Shortcut — only show if user has collect permission */}
+      {(memberRole === 'owner' || !permissions || permissions.includes('collect')) && <Box sx={{ px: 2, mb: 1.5 }}>
         <Box
           component={Link}
           href="/dashboard/collect"
@@ -178,7 +185,7 @@ export function Sidebar({ orgName, billingPlan, trialEndsAt, subscriptionEndsAt,
             </Typography>
           </Box>
         </Box>
-      </Box>
+      </Box>}
 
       <Divider sx={{ mx: 2, opacity: 0.6 }} />
 

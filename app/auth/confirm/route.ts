@@ -41,12 +41,32 @@ async function redirectAfterAuth(
   if (user) {
     const { data: member } = await supabase
       .from('organization_members')
-      .select('organization_id')
+      .select('id, organization_id, status, email, display_name')
       .eq('user_id', user.id)
       .maybeSingle();
 
     if (!member) {
       redirect('/onboarding');
+    }
+
+    // Activate pending members and backfill email/display_name
+    const updates: Record<string, string> = {};
+    if (member.status === 'pending') {
+      updates.status = 'active';
+    }
+    if (!member.email && user.email) {
+      updates.email = user.email;
+    }
+    if (!member.display_name) {
+      const name = user.user_metadata?.full_name || user.user_metadata?.name || null;
+      if (name) updates.display_name = name;
+    }
+
+    if (Object.keys(updates).length > 0) {
+      await supabase
+        .from('organization_members')
+        .update(updates)
+        .eq('id', member.id);
     }
   }
 

@@ -43,7 +43,6 @@ function getRankBgColor(rank: number) {
 
 export function StaffLeaderboard({ entries }: StaffLeaderboardProps) {
   const muiTheme = useTheme();
-  const isDark = muiTheme.palette.mode === 'dark';
 
   if (entries.length === 0) {
     return null;
@@ -74,7 +73,7 @@ export function StaffLeaderboard({ entries }: StaffLeaderboardProps) {
               py: 1.5,
               borderBottom: '1px solid',
               borderColor: 'divider',
-              backgroundColor: isDark ? '#1e293b' : '#f9fafb',
+              backgroundColor: 'action.hover',
             }}
           >
             <Typography variant="caption" color="text.secondary" fontWeight={600} sx={{ letterSpacing: 0.3 }}>
@@ -116,7 +115,7 @@ export function StaffLeaderboard({ entries }: StaffLeaderboardProps) {
                   borderColor: 'divider',
                   transition: 'background-color 0.15s',
                   '&:hover': {
-                    backgroundColor: rank <= 3 ? getRankBgColor(rank) : (isDark ? '#1e293b' : '#f9fafb'),
+                    backgroundColor: rank <= 3 ? getRankBgColor(rank) : 'action.hover',
                   },
                 }}
               >
@@ -140,7 +139,7 @@ export function StaffLeaderboard({ entries }: StaffLeaderboardProps) {
                 </Typography>
 
                 {/* Reviews Generated */}
-                <Typography variant="body2" fontWeight={600} sx={{ textAlign: 'center', color: '#16a34a' }}>
+                <Typography variant="body2" fontWeight={600} sx={{ textAlign: 'center', color: 'success.main' }}>
                   {entry.reviewsGenerated}
                 </Typography>
 
@@ -153,7 +152,7 @@ export function StaffLeaderboard({ entries }: StaffLeaderboardProps) {
                       flex: 1,
                       height: 8,
                       borderRadius: 4,
-                      backgroundColor: isDark ? '#334155' : '#e5e7eb',
+                      backgroundColor: muiTheme.palette.divider,
                       '& .MuiLinearProgress-bar': {
                         borderRadius: 4,
                         background: rank === 1

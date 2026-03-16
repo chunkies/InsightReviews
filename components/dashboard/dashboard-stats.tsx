@@ -125,9 +125,9 @@ export function DashboardStats({ stats, recentReviews, chartData, funnelData }: 
                   })}
                 >
                   {item.done ? (
-                    <CheckCircle2 size={18} color="#16a34a" />
+                    <CheckCircle2 size={18} color={muiTheme.palette.success.main} />
                   ) : (
-                    <Circle size={18} color="#d1d5db" />
+                    <Circle size={18} color={muiTheme.palette.divider} />
                   )}
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flex: 1 }}>
                     {item.icon}
@@ -220,7 +220,7 @@ export function DashboardStats({ stats, recentReviews, chartData, funnelData }: 
                       <Typography variant="caption" color="text.secondary" fontWeight={500} sx={{ letterSpacing: 0.3 }}>
                         AVG RATING
                       </Typography>
-                      <Typography variant="h4" fontWeight={800} sx={{ color: '#f59e0b', lineHeight: 1.2 }}>
+                      <Typography variant="h4" fontWeight={800} sx={{ color: 'secondary.main', lineHeight: 1.2 }}>
                         {stats.averageRating}<Typography component="span" variant="body1" sx={{ color: 'text.secondary' }}>/5</Typography>
                       </Typography>
                     </Box>
@@ -229,8 +229,8 @@ export function DashboardStats({ stats, recentReviews, chartData, funnelData }: 
                         <Star
                           key={s}
                           size={14}
-                          fill={s <= Math.round(stats.averageRating) ? '#f59e0b' : 'transparent'}
-                          color={s <= Math.round(stats.averageRating) ? '#f59e0b' : '#d1d5db'}
+                          fill={s <= Math.round(stats.averageRating) ? muiTheme.palette.secondary.main : 'transparent'}
+                          color={s <= Math.round(stats.averageRating) ? muiTheme.palette.secondary.main : muiTheme.palette.divider}
                         />
                       ))}
                     </Box>
@@ -255,11 +255,11 @@ export function DashboardStats({ stats, recentReviews, chartData, funnelData }: 
                       <Typography variant="caption" color="text.secondary" fontWeight={500} sx={{ letterSpacing: 0.3 }}>
                         POSITIVE
                       </Typography>
-                      <Typography variant="h4" fontWeight={800} sx={{ color: '#16a34a', lineHeight: 1.2 }}>
+                      <Typography variant="h4" fontWeight={800} sx={{ color: 'success.main', lineHeight: 1.2 }}>
                         {stats.positivePercentage}<Typography component="span" variant="body1" sx={{ color: 'text.secondary' }}>%</Typography>
                       </Typography>
                     </Box>
-                    <TrendingUp size={22} color="#16a34a" />
+                    <TrendingUp size={22} color={muiTheme.palette.success.main} />
                   </Box>
                 </CardContent>
               </Card>
@@ -280,8 +280,8 @@ export function DashboardStats({ stats, recentReviews, chartData, funnelData }: 
           >
             <CardContent sx={{ p: 2.5, '&:last-child': { pb: 2.5 } }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                <Box sx={{ width: 36, height: 36, borderRadius: 1.5, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#2563eb15' }}>
-                  <Star size={18} color="#2563eb" />
+                <Box sx={{ width: 36, height: 36, borderRadius: 1.5, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: isDark ? 'rgba(37,99,235,0.15)' : 'rgba(37,99,235,0.08)' }}>
+                  <Star size={18} color={muiTheme.palette.primary.main} />
                 </Box>
                 <Typography variant="body2" color="text.secondary" fontWeight={500}>Total Reviews</Typography>
               </Box>
@@ -346,24 +346,24 @@ export function DashboardStats({ stats, recentReviews, chartData, funnelData }: 
               <AreaChart data={chartData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
                 <defs>
                   <linearGradient id="reviewGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#2563eb" stopOpacity={0.2} />
-                    <stop offset="95%" stopColor="#2563eb" stopOpacity={0} />
+                    <stop offset="5%" stopColor={muiTheme.palette.primary.main} stopOpacity={0.2} />
+                    <stop offset="95%" stopColor={muiTheme.palette.primary.main} stopOpacity={0} />
                   </linearGradient>
                   <linearGradient id="requestGrad" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.2} />
                     <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#334155' : '#f0f0f0'} />
+                <CartesianGrid strokeDasharray="3 3" stroke={muiTheme.palette.divider} />
                 <XAxis
                   dataKey="date"
-                  tick={{ fontSize: 12, fill: isDark ? '#94a3b8' : '#9ca3af' }}
+                  tick={{ fontSize: 12, fill: muiTheme.palette.text.secondary }}
                   tickLine={false}
-                  axisLine={{ stroke: isDark ? '#334155' : '#e5e7eb' }}
+                  axisLine={{ stroke: muiTheme.palette.divider }}
                   interval="preserveStartEnd"
                 />
                 <YAxis
-                  tick={{ fontSize: 12, fill: isDark ? '#94a3b8' : '#9ca3af' }}
+                  tick={{ fontSize: 12, fill: muiTheme.palette.text.secondary }}
                   tickLine={false}
                   axisLine={false}
                   allowDecimals={false}
@@ -371,11 +371,11 @@ export function DashboardStats({ stats, recentReviews, chartData, funnelData }: 
                 <Tooltip
                   contentStyle={{
                     borderRadius: 8,
-                    border: `1px solid ${isDark ? '#334155' : '#e5e7eb'}`,
+                    border: `1px solid ${muiTheme.palette.divider}`,
                     boxShadow: isDark ? '0 4px 12px rgba(0,0,0,0.3)' : '0 4px 12px rgba(0,0,0,0.08)',
                     fontSize: 13,
-                    backgroundColor: isDark ? '#1e293b' : '#ffffff',
-                    color: isDark ? '#e2e8f0' : undefined,
+                    backgroundColor: muiTheme.palette.background.paper,
+                    color: muiTheme.palette.text.primary,
                   }}
                 />
                 <Legend
@@ -386,7 +386,7 @@ export function DashboardStats({ stats, recentReviews, chartData, funnelData }: 
                   type="monotone"
                   dataKey="reviews"
                   name="Reviews"
-                  stroke="#2563eb"
+                  stroke={muiTheme.palette.primary.main}
                   strokeWidth={2}
                   fill="url(#reviewGrad)"
                   dot={false}
@@ -448,7 +448,7 @@ export function DashboardStats({ stats, recentReviews, chartData, funnelData }: 
                     transition: 'transform 0.2s ease, box-shadow 0.2s ease',
                     '&:hover': {
                       transform: 'translateY(-2px)',
-                      boxShadow: '0 4px 20px rgba(0,0,0,0.06)',
+                      boxShadow: isDark ? '0 4px 20px rgba(0,0,0,0.3)' : '0 4px 20px rgba(0,0,0,0.06)',
                     },
                   }}
                 >
@@ -466,8 +466,8 @@ export function DashboardStats({ stats, recentReviews, chartData, funnelData }: 
                         <Star
                           key={s}
                           size={14}
-                          fill={s <= review.rating ? '#f59e0b' : 'transparent'}
-                          color={s <= review.rating ? '#f59e0b' : '#d1d5db'}
+                          fill={s <= review.rating ? muiTheme.palette.secondary.main : 'transparent'}
+                          color={s <= review.rating ? muiTheme.palette.secondary.main : muiTheme.palette.divider}
                         />
                       ))}
                     </Box>

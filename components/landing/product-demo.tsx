@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Box, Typography } from '@mui/material';
+import { Box, Typography, useTheme } from '@mui/material';
 import { Star, QrCode, ArrowRight } from 'lucide-react';
 
 const demoSteps = [
@@ -24,6 +24,8 @@ const demoSteps = [
 ];
 
 export function ProductDemo() {
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
   const [step, setStep] = useState(0);
 
   useEffect(() => {
@@ -43,21 +45,21 @@ export function ProductDemo() {
           width: { xs: 220, sm: 240, md: 260 },
           maxWidth: '85vw',
           borderRadius: '32px',
-          border: '3px solid #e2e8f0',
-          backgroundColor: 'white',
+          border: `3px solid ${theme.palette.divider}`,
+          backgroundColor: theme.palette.background.paper,
           p: 1.5,
-          boxShadow: '0 20px 50px rgba(0,0,0,0.1)',
+          boxShadow: isDark ? '0 20px 50px rgba(0,0,0,0.3)' : '0 20px 50px rgba(0,0,0,0.1)',
           transition: 'all 0.4s ease',
         }}
       >
         {/* Notch */}
-        <Box sx={{ width: 80, height: 18, borderRadius: '0 0 12px 12px', backgroundColor: '#f1f5f9', mx: 'auto', mb: 2 }} />
+        <Box sx={{ width: 80, height: 18, borderRadius: '0 0 12px 12px', backgroundColor: theme.palette.background.default, mx: 'auto', mb: 2 }} />
 
         {/* Screen */}
         <Box
           sx={{
             borderRadius: '18px',
-            backgroundColor: '#f8fafc',
+            backgroundColor: theme.palette.background.default,
             p: 2.5,
             minHeight: 280,
             display: 'flex',
@@ -71,30 +73,30 @@ export function ProductDemo() {
             <Box sx={{ textAlign: 'center', animation: 'fadeIn 0.4s ease' }}>
               <Box sx={{
                 width: 80, height: 80, borderRadius: '16px',
-                background: 'linear-gradient(135deg, #2563eb, #1d4ed8)',
+                background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 mx: 'auto', mb: 2,
               }}>
                 <QrCode size={40} color="white" />
               </Box>
-              <Typography sx={{ fontWeight: 700, fontSize: '0.9rem', color: '#0f172a', mb: 0.5 }}>
+              <Typography sx={{ fontWeight: 700, fontSize: '0.9rem', color: theme.palette.text.primary, mb: 0.5 }}>
                 Sage & Vine Cafe
               </Typography>
-              <Typography sx={{ fontSize: '0.7rem', color: '#64748b' }}>
+              <Typography sx={{ fontSize: '0.7rem', color: theme.palette.text.secondary }}>
                 Scanning QR code...
               </Typography>
-              <Box sx={{ mt: 2, width: 120, height: 3, borderRadius: 2, backgroundColor: '#e2e8f0', overflow: 'hidden' }}>
-                <Box sx={{ width: '60%', height: '100%', backgroundColor: '#2563eb', borderRadius: 2, animation: 'loadBar 2.5s ease infinite' }} />
+              <Box sx={{ mt: 2, width: 120, height: 3, borderRadius: 2, backgroundColor: theme.palette.divider, overflow: 'hidden' }}>
+                <Box sx={{ width: '60%', height: '100%', backgroundColor: theme.palette.primary.main, borderRadius: 2, animation: 'loadBar 2.5s ease infinite' }} />
               </Box>
             </Box>
           )}
 
           {current.phone === 'rating' && (
             <Box sx={{ textAlign: 'center', animation: 'fadeIn 0.4s ease' }}>
-              <Typography sx={{ fontWeight: 700, fontSize: '0.85rem', color: '#0f172a', mb: 0.5 }}>
+              <Typography sx={{ fontWeight: 700, fontSize: '0.85rem', color: theme.palette.text.primary, mb: 0.5 }}>
                 Sage & Vine Cafe
               </Typography>
-              <Typography sx={{ fontSize: '0.7rem', color: '#64748b', mb: 2 }}>
+              <Typography sx={{ fontSize: '0.7rem', color: theme.palette.text.secondary, mb: 2 }}>
                 How was your visit today?
               </Typography>
               <Box sx={{ display: 'flex', gap: 0.5, justifyContent: 'center', mb: 2 }}>
@@ -103,7 +105,7 @@ export function ProductDemo() {
                     key={s}
                     sx={{
                       width: 32, height: 32, borderRadius: '8px',
-                      backgroundColor: s <= 4 ? '#fbbf24' : '#e2e8f0',
+                      backgroundColor: s <= 4 ? '#fbbf24' : theme.palette.divider,
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       transition: 'all 0.2s ease',
                       transform: s === 4 ? 'scale(1.15)' : 'scale(1)',
@@ -113,12 +115,12 @@ export function ProductDemo() {
                   </Box>
                 ))}
               </Box>
-              <Box sx={{ backgroundColor: '#f1f5f9', borderRadius: '8px', p: 1.5, mb: 1.5 }}>
-                <Typography sx={{ fontSize: '0.65rem', color: '#94a3b8' }}>
+              <Box sx={{ backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : theme.palette.background.default, borderRadius: '8px', p: 1.5, mb: 1.5 }}>
+                <Typography sx={{ fontSize: '0.65rem', color: theme.palette.text.secondary }}>
                   Great coffee, lovely staff!
                 </Typography>
               </Box>
-              <Box sx={{ py: 0.8, borderRadius: '8px', backgroundColor: '#2563eb', textAlign: 'center' }}>
+              <Box sx={{ py: 0.8, borderRadius: '8px', backgroundColor: theme.palette.primary.main, textAlign: 'center' }}>
                 <Typography sx={{ color: 'white', fontWeight: 600, fontSize: '0.7rem' }}>
                   Submit Review
                 </Typography>
@@ -130,20 +132,20 @@ export function ProductDemo() {
             <Box sx={{ textAlign: 'center', animation: 'fadeIn 0.4s ease' }}>
               <Box sx={{
                 width: 56, height: 56, borderRadius: '50%',
-                backgroundColor: '#dcfce7', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                backgroundColor: isDark ? 'rgba(22,163,74,0.15)' : '#dcfce7', display: 'flex', alignItems: 'center', justifyContent: 'center',
                 mx: 'auto', mb: 2,
               }}>
                 <Typography sx={{ fontSize: '1.5rem' }}>✓</Typography>
               </Box>
-              <Typography sx={{ fontWeight: 700, fontSize: '0.85rem', color: '#16a34a', mb: 0.5 }}>
+              <Typography sx={{ fontWeight: 700, fontSize: '0.85rem', color: theme.palette.success.main, mb: 0.5 }}>
                 Thank you!
               </Typography>
-              <Typography sx={{ fontSize: '0.7rem', color: '#64748b', mb: 2 }}>
+              <Typography sx={{ fontSize: '0.7rem', color: theme.palette.text.secondary, mb: 2 }}>
                 Would you mind sharing on Google?
               </Typography>
               <Box sx={{
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.5,
-                py: 0.8, px: 2, borderRadius: '8px', backgroundColor: '#2563eb',
+                py: 0.8, px: 2, borderRadius: '8px', backgroundColor: theme.palette.primary.main,
               }}>
                 <Typography sx={{ color: 'white', fontWeight: 600, fontSize: '0.7rem' }}>
                   Leave a Google Review
@@ -157,22 +159,22 @@ export function ProductDemo() {
             <Box sx={{ textAlign: 'center', animation: 'fadeIn 0.4s ease' }}>
               <Box sx={{
                 width: 56, height: 56, borderRadius: '50%',
-                backgroundColor: '#fef3c7', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                backgroundColor: isDark ? 'rgba(245,158,11,0.15)' : '#fef3c7', display: 'flex', alignItems: 'center', justifyContent: 'center',
                 mx: 'auto', mb: 2,
               }}>
                 <Typography sx={{ fontSize: '1.5rem' }}>🔒</Typography>
               </Box>
-              <Typography sx={{ fontWeight: 700, fontSize: '0.85rem', color: '#0f172a', mb: 0.5 }}>
+              <Typography sx={{ fontWeight: 700, fontSize: '0.85rem', color: theme.palette.text.primary, mb: 0.5 }}>
                 Thank you for letting us know
               </Typography>
-              <Typography sx={{ fontSize: '0.7rem', color: '#64748b', mb: 2 }}>
+              <Typography sx={{ fontSize: '0.7rem', color: theme.palette.text.secondary, mb: 2 }}>
                 We&apos;ll follow up with you directly.
               </Typography>
               <Box sx={{
                 py: 0.8, px: 2, borderRadius: '8px',
-                border: '1px solid #e2e8f0', backgroundColor: '#f8fafc', textAlign: 'center',
+                border: `1px solid ${theme.palette.divider}`, backgroundColor: theme.palette.background.default, textAlign: 'center',
               }}>
-                <Typography sx={{ fontSize: '0.65rem', color: '#94a3b8' }}>
+                <Typography sx={{ fontSize: '0.65rem', color: theme.palette.text.secondary }}>
                   Feedback stays private — never posted publicly
                 </Typography>
               </Box>
@@ -191,7 +193,7 @@ export function ProductDemo() {
               width: step === i ? 24 : 8,
               height: 8,
               borderRadius: 4,
-              backgroundColor: step === i ? '#2563eb' : '#e2e8f0',
+              backgroundColor: step === i ? theme.palette.primary.main : theme.palette.divider,
               transition: 'all 0.3s ease',
               cursor: 'pointer',
             }}
@@ -204,7 +206,7 @@ export function ProductDemo() {
         sx={{
           fontWeight: 600,
           fontSize: '0.9rem',
-          color: '#0f172a',
+          color: theme.palette.text.primary,
           textAlign: 'center',
           minHeight: 24,
           transition: 'all 0.3s ease',

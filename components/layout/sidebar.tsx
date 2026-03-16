@@ -10,7 +10,7 @@ import {
   LayoutDashboard, Star, Send, Users, Palette, Link2,
   Settings, CreditCard, Phone, Sparkles, HelpCircle,
 } from 'lucide-react';
-import { useTheme } from '@mui/material/styles';
+import { useTheme, alpha } from '@mui/material/styles';
 
 const DRAWER_WIDTH = 260;
 
@@ -119,8 +119,8 @@ export function Sidebar({ orgName, billingPlan, trialEndsAt, subscriptionEndsAt,
                   backgroundColor: isActive ? 'primary.main' : 'transparent',
                   color: isActive ? 'white' : 'text.primary',
                   '&:hover': {
-                    backgroundColor: isActive ? 'primary.dark' : (isDark ? 'rgba(37, 99, 235, 0.15)' : 'rgba(37, 99, 235, 0.06)'),
-                    borderColor: isActive ? 'primary.dark' : 'rgba(37, 99, 235, 0.3)',
+                    backgroundColor: isActive ? 'primary.dark' : alpha(muiTheme.palette.primary.main, isDark ? 0.15 : 0.06),
+                    borderColor: isActive ? 'primary.dark' : alpha(muiTheme.palette.primary.main, 0.3),
                   },
                   '& .MuiListItemIcon-root': {
                     color: isActive ? 'white' : 'text.secondary',
@@ -192,7 +192,7 @@ export function Sidebar({ orgName, billingPlan, trialEndsAt, subscriptionEndsAt,
       {/* Subscription Status */}
       <Box sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Sparkles size={14} color="#f59e0b" />
+          <Sparkles size={14} color={muiTheme.palette.secondary.main} />
           <Typography variant="caption" color="text.secondary">
             Plan Status
           </Typography>
@@ -226,9 +226,9 @@ export function Sidebar({ orgName, billingPlan, trialEndsAt, subscriptionEndsAt,
     borderRight: '1px solid',
     borderColor: 'divider',
     background: isDark
-      ? 'linear-gradient(180deg, #0f172a 0%, #131c2e 100%)'
-      : 'background.paper',
-    backgroundColor: isDark ? '#0f172a' : '#ffffff',
+      ? `linear-gradient(180deg, ${muiTheme.palette.background.default} 0%, ${muiTheme.palette.background.paper} 100%)`
+      : undefined,
+    backgroundColor: muiTheme.palette.background.default,
     display: 'flex',
     flexDirection: 'column',
   } as const;

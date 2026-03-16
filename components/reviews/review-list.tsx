@@ -57,10 +57,10 @@ const PLATFORM_BADGE: Record<string, {
   bgColor: string;
   icon: string;
 }> = {
-  internal: { label: 'InsightReviews', color: '#7c3aed', bgColor: '#f3e8ff', icon: '\u2B50' },
-  google: { label: 'Google', color: '#4285F4', bgColor: '#E8F0FE', icon: '\uD83D\uDD0D' },
-  facebook: { label: 'Facebook', color: '#1877F2', bgColor: '#E7F3FF', icon: '\uD83D\uDCD8' },
-  yelp: { label: 'Yelp', color: '#D32323', bgColor: '#FDE8E8', icon: '\uD83D\uDD25' },
+  internal: { label: 'InsightReviews', color: '#7c3aed', bgColor: 'rgba(124, 58, 237, 0.12)', icon: '\u2B50' },
+  google: { label: 'Google', color: '#4285F4', bgColor: 'rgba(66, 133, 244, 0.12)', icon: '\uD83D\uDD0D' },
+  facebook: { label: 'Facebook', color: '#1877F2', bgColor: 'rgba(24, 119, 242, 0.12)', icon: '\uD83D\uDCD8' },
+  yelp: { label: 'Yelp', color: '#D32323', bgColor: 'rgba(211, 35, 35, 0.12)', icon: '\uD83D\uDD25' },
 };
 
 interface ConnectedPlatform {
@@ -461,7 +461,7 @@ export function ReviewList({
           </ToggleButton>
 
           {filterPlatforms.map(platform => {
-            const badge = PLATFORM_BADGE[platform] || { label: platform, color: '#666', bgColor: '#f5f5f5', icon: '\uD83D\uDCCB' };
+            const badge = PLATFORM_BADGE[platform] || { label: platform, color: '#666', bgColor: 'rgba(102, 102, 102, 0.12)', icon: '\uD83D\uDCCB' };
             const count = platformStats[platform] || 0;
             const isActive = platformFilter === platform;
             return (
@@ -583,7 +583,7 @@ export function ReviewList({
           </TableHead>
           <TableBody>
             {filtered.map((row) => {
-              const badge = PLATFORM_BADGE[row.source] || { label: row.source, color: '#666', bgColor: '#f5f5f5', icon: '\uD83D\uDCCB' };
+              const badge = PLATFORM_BADGE[row.source] || { label: row.source, color: '#666', bgColor: 'rgba(102, 102, 102, 0.12)', icon: '\uD83D\uDCCB' };
               const isInternal = row.source === 'internal';
 
               return (

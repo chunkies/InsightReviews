@@ -65,7 +65,7 @@ export function ReviewFunnel({ data }: { data: FunnelData }) {
                         sx={{
                           width: 2,
                           height: 16,
-                          backgroundColor: isDark ? '#334155' : '#e5e7eb',
+                          backgroundColor: muiTheme.palette.divider,
                           ml: 1.5,
                         }}
                       />
@@ -77,8 +77,8 @@ export function ReviewFunnel({ data }: { data: FunnelData }) {
                           fontSize: 11,
                           height: 20,
                           fontWeight: 600,
-                          backgroundColor: isDark ? '#1e3a5f' : '#f0f4ff',
-                          color: isDark ? '#60a5fa' : '#2563eb',
+                          backgroundColor: isDark ? `${muiTheme.palette.primary.dark}30` : `${muiTheme.palette.primary.light}25`,
+                          color: muiTheme.palette.primary[isDark ? 'light' : 'main'],
                         }}
                       />
                     </Box>
@@ -113,7 +113,7 @@ export function ReviewFunnel({ data }: { data: FunnelData }) {
                         sx={{
                           height: 24,
                           width: '100%',
-                          backgroundColor: isDark ? '#1e293b' : '#f3f4f6',
+                          backgroundColor: muiTheme.palette.action.hover,
                           borderRadius: 1.5,
                           overflow: 'hidden',
                         }}
@@ -154,7 +154,7 @@ export function ReviewFunnel({ data }: { data: FunnelData }) {
                 count={data.requestsSent}
                 sublabel={data.reviewsReceived > 0 ? `${data.reviewsReceived} converted` : 'No conversions yet'}
                 color="#3b82f6"
-                isDark={isDark}
+
               />
               <SourceCard
                 icon={<QrCode size={16} />}
@@ -162,7 +162,7 @@ export function ReviewFunnel({ data }: { data: FunnelData }) {
                 count={data.qrReviews}
                 sublabel="Scanned at counter"
                 color="#8b5cf6"
-                isDark={isDark}
+
               />
               <SourceCard
                 icon={<MessageSquare size={16} />}
@@ -170,7 +170,7 @@ export function ReviewFunnel({ data }: { data: FunnelData }) {
                 count={data.walkInReviews - data.qrReviews}
                 sublabel="Shared link / walk-in"
                 color="#6b7280"
-                isDark={isDark}
+
               />
             </Box>
           </Box>
@@ -194,24 +194,23 @@ function SourceCard({
   count,
   sublabel,
   color,
-  isDark,
 }: {
   icon: ReactNode;
   label: string;
   count: number;
   sublabel: string;
   color: string;
-  isDark: boolean;
 }) {
+  const theme = useTheme();
   return (
     <Box
       sx={{
         flex: 1,
         p: 2,
         borderRadius: 2,
-        backgroundColor: isDark ? '#0f172a' : '#f8fafc',
+        backgroundColor: theme.palette.background.default,
         border: '1px solid',
-        borderColor: isDark ? '#1e293b' : '#e2e8f0',
+        borderColor: theme.palette.divider,
       }}
     >
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>

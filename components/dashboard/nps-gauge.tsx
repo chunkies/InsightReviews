@@ -114,7 +114,7 @@ export function NpsGauge({
                   borderRadius: '50%',
                   backgroundColor: getNpsColor(npsScore),
                   border: '3px solid',
-                  borderColor: isDark ? '#1e293b' : '#fff',
+                  borderColor: muiTheme.palette.background.paper,
                   boxShadow: '0 1px 4px rgba(0,0,0,0.2)',
                   transition: 'left 0.6s ease',
                 }}

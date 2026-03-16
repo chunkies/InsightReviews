@@ -4,7 +4,7 @@ import { useState } from 'react';
 import {
   Paper, Table, TableHead, TableBody, TableRow, TableCell, TableContainer,
   Chip, IconButton, Button, TextField, Box, Dialog, DialogTitle,
-  DialogContent, DialogActions, Typography,
+  DialogContent, DialogActions, Typography, CircularProgress,
 } from '@mui/material';
 import { Trash2, UserPlus } from 'lucide-react';
 import { format } from 'date-fns';
@@ -21,10 +21,11 @@ interface StaffListProps {
   currentUserId: string;
 }
 
-export function StaffList({ members: initial, isOwner, orgId: _orgId, currentUserId }: StaffListProps) {
+export function StaffList({ members: initial, isOwner, orgId, currentUserId }: StaffListProps) {
   const [members, setMembers] = useState(initial);
   const [inviteOpen, setInviteOpen] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
+  const [inviteLoading, setInviteLoading] = useState(false);
   const [removeTarget, setRemoveTarget] = useState<string | null>(null);
   const { showSnackbar } = useSnackbar();
 
@@ -38,6 +39,39 @@ export function StaffList({ members: initial, isOwner, orgId: _orgId, currentUse
       showSnackbar('Failed to remove member', 'error');
     }
     setRemoveTarget(null);
+  }
+
+  async function handleInvite() {
+    if (!inviteEmail.trim()) return;
+    setInviteLoading(true);
+    try {
+      const res = await fetch('/api/staff/invite', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: inviteEmail.trim(), orgId }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        showSnackbar(data.error || 'Failed to send invite', 'error');
+        return;
+      }
+
+      setMembers((prev) => [...prev, {
+        id: data.member.id,
+        organization_id: orgId,
+        user_id: data.member.user_id,
+        role: data.member.role,
+        created_at: data.member.created_at,
+      }]);
+      showSnackbar(`Invite sent to ${inviteEmail}`);
+      setInviteEmail('');
+      setInviteOpen(false);
+    } catch {
+      showSnackbar('Failed to send invite', 'error');
+    } finally {
+      setInviteLoading(false);
+    }
   }
 
   return (
@@ -108,28 +142,33 @@ export function StaffList({ members: initial, isOwner, orgId: _orgId, currentUse
         onCancel={() => setRemoveTarget(null)}
       />
 
-      <Dialog open={inviteOpen} onClose={() => setInviteOpen(false)} maxWidth="xs" fullWidth>
+      <Dialog open={inviteOpen} onClose={() => !inviteLoading && setInviteOpen(false)} maxWidth="xs" fullWidth>
         <DialogTitle>Invite Staff Member</DialogTitle>
         <DialogContent>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            The staff member needs to sign up first, then share their user ID with you.
-            Staff can only use the Collect Reviews page.
+            Enter their email address. They&apos;ll receive a magic link to join your team.
+            Staff members can use the Collect Reviews page to send review requests.
           </Typography>
           <TextField
             fullWidth
-            label="User Email"
+            label="Email Address"
+            type="email"
             value={inviteEmail}
             onChange={(e) => setInviteEmail(e.target.value)}
             placeholder="staff@example.com"
+            disabled={inviteLoading}
+            onKeyDown={(e) => e.key === 'Enter' && handleInvite()}
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setInviteOpen(false)}>Cancel</Button>
-          <Button variant="contained" onClick={() => {
-            showSnackbar('Invite functionality coming soon', 'info');
-            setInviteOpen(false);
-          }}>
-            Send Invite
+          <Button onClick={() => setInviteOpen(false)} disabled={inviteLoading}>Cancel</Button>
+          <Button
+            variant="contained"
+            onClick={handleInvite}
+            disabled={!inviteEmail.trim() || inviteLoading}
+            startIcon={inviteLoading ? <CircularProgress size={16} color="inherit" /> : undefined}
+          >
+            {inviteLoading ? 'Sending...' : 'Send Invite'}
           </Button>
         </DialogActions>
       </Dialog>

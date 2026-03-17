@@ -44,6 +44,13 @@ export async function middleware(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser();
   const pathname = request.nextUrl.pathname;
 
+  // If root page receives a PKCE code param, redirect to /auth/confirm to exchange it
+  if (pathname === '/' && request.nextUrl.searchParams.has('code')) {
+    const url = request.nextUrl.clone();
+    url.pathname = '/auth/confirm';
+    return NextResponse.redirect(url);
+  }
+
   // Allow public routes and API routes
   if (isPublicRoute(pathname) || pathname.startsWith('/api/')) {
     return supabaseResponse;
@@ -57,7 +64,8 @@ export async function middleware(request: NextRequest) {
   }
 
   // Logged in but on auth pages → redirect to dashboard
-  if (pathname.startsWith('/auth/') && user) {
+  // Exclude /auth/confirm (needs to exchange PKCE code) and /auth/error
+  if (pathname.startsWith('/auth/') && user && !pathname.startsWith('/auth/confirm') && !pathname.startsWith('/auth/error')) {
     const url = request.nextUrl.clone();
     url.pathname = '/dashboard';
     return NextResponse.redirect(url);

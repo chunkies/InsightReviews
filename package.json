@@ -9,6 +9,8 @@
     "lint": "eslint . --max-warnings 0",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "test:e2e:staging": "E2E_BASE_URL=https://insightreviews-git-main-chunkies1s-projects.vercel.app playwright test",
     "db:push:dev": "npx supabase db push --linked --db-url $SUPABASE_DEV_DB_URL",
     "db:push:prod": "npx supabase db push --linked --db-url $SUPABASE_PROD_DB_URL"
   },
@@ -36,6 +38,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",
+    "@playwright/test": "^1.58.2",
     "@testing-library/jest-dom": "^6.6.0",
     "@testing-library/react": "^16.3.0",
     "@types/node": "^22.0.0",

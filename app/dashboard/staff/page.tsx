@@ -19,7 +19,7 @@ export default async function StaffPage() {
 
   const { data: members } = await supabase
     .from('organization_members')
-    .select('id, organization_id, user_id, role, role_id, status, email, display_name, created_at')
+    .select('*')
     .eq('organization_id', member.organization_id)
     .order('created_at');
 

@@ -49,12 +49,11 @@ test.describe('Settings — Page Display', () => {
   });
 });
 
-test.describe('Settings — Profile Form', () => {
-  test('shows profile section with display name', async ({ page }) => {
+test.describe('Settings — Business Settings Only', () => {
+  test('does not show profile form (moved to /dashboard/profile)', async ({ page }) => {
     await signInAsUser(page, TEST_EMAIL);
     await page.goto('/dashboard/settings');
-    // Profile form should have a display name field
-    await expect(page.getByText(/profile|display name/i).first()).toBeVisible();
+    await expect(page.getByText('Your Profile')).not.toBeVisible();
   });
 });
 

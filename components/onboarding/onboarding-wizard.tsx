@@ -32,6 +32,7 @@ export function OnboardingWizard({ userId: _userId, initialName = '' }: Onboardi
 
   // Step 1: Your info + Business info
   const [ownerName, setOwnerName] = useState(initialName);
+  const [jobTitle, setJobTitle] = useState('');
   const [businessName, setBusinessName] = useState('');
   const [phone, setPhone] = useState('');
 
@@ -56,6 +57,7 @@ export function OnboardingWizard({ userId: _userId, initialName = '' }: Onboardi
           slug,
           phone: phone || null,
           ownerName: ownerName.trim() || null,
+          jobTitle: jobTitle.trim() || null,
           googleUrl,
           yelpUrl,
           facebookUrl,
@@ -123,6 +125,14 @@ export function OnboardingWizard({ userId: _userId, initialName = '' }: Onboardi
             onChange={(e) => setOwnerName(e.target.value)}
             placeholder="e.g. John Smith"
             autoFocus
+            sx={{ mb: 2 }}
+          />
+          <TextField
+            fullWidth
+            label="Job Title (optional)"
+            value={jobTitle}
+            onChange={(e) => setJobTitle(e.target.value)}
+            placeholder="e.g. Owner, Manager"
             sx={{ mb: 2 }}
           />
           <TextField

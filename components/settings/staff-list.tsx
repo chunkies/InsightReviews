@@ -79,6 +79,10 @@ export function StaffList({ members: initial, roles: initialRoles, isOwner, canI
         status: data.member.status,
         email: data.member.email,
         display_name: data.member.display_name,
+        phone: data.member.phone ?? null,
+        job_title: data.member.job_title ?? null,
+        avatar_url: data.member.avatar_url ?? null,
+        timezone: data.member.timezone ?? null,
         created_at: data.member.created_at,
       }]);
       showSnackbar(`Invite sent to ${inviteEmail}`);

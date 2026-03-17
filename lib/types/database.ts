@@ -45,6 +45,10 @@ export interface OrganizationMember {
   status: 'pending' | 'active';
   email: string | null;
   display_name: string | null;
+  phone: string | null;
+  job_title: string | null;
+  avatar_url: string | null;
+  timezone: string | null;
   created_at: string;
 }
 

@@ -106,6 +106,13 @@ export async function POST(request: NextRequest) {
       permissions: ['dashboard', 'collect', 'reviews', 'support'],
     });
 
+    // Backfill full_name to user metadata if not already set
+    if (ownerName && !user.user_metadata?.full_name) {
+      await supabaseAuth.auth.updateUser({
+        data: { full_name: ownerName },
+      });
+    }
+
     // Add platforms
     const platforms = [
       { platform: 'google', url: googleUrl },

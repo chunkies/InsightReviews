@@ -8,6 +8,7 @@ import {
 import { ArrowRight, ArrowLeft, CreditCard } from 'lucide-react';
 interface OnboardingWizardProps {
   userId: string;
+  initialName?: string;
 }
 
 const steps = ['Business Info', 'Review Platforms'];
@@ -24,13 +25,13 @@ function generateSlug(name: string) {
   return `${base}-${suffix}`;
 }
 
-export function OnboardingWizard({ userId: _userId }: OnboardingWizardProps) {
+export function OnboardingWizard({ userId: _userId, initialName = '' }: OnboardingWizardProps) {
   const [activeStep, setActiveStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Step 1: Your info + Business info
-  const [ownerName, setOwnerName] = useState('');
+  const [ownerName, setOwnerName] = useState(initialName);
   const [businessName, setBusinessName] = useState('');
   const [phone, setPhone] = useState('');
 

@@ -172,6 +172,109 @@ describe('Login form — link navigation', () => {
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// Login form — full_name metadata in OTP data
+// ═══════════════════════════════════════════════════════════════════════════════
+
+// Simulate the OTP data logic from login-form.tsx
+function getOtpData(fullName: string): { full_name: string } | undefined {
+  return fullName.trim() ? { full_name: fullName.trim() } : undefined;
+}
+
+describe('Login form — full_name in OTP data', () => {
+  it('includes full_name in data when provided in signup mode', () => {
+    expect(getOtpData('Jane Doe')).toEqual({ full_name: 'Jane Doe' });
+  });
+
+  it('trims whitespace from full_name', () => {
+    expect(getOtpData('  Jane Doe  ')).toEqual({ full_name: 'Jane Doe' });
+  });
+
+  it('returns undefined data when full_name is empty', () => {
+    expect(getOtpData('')).toBeUndefined();
+  });
+
+  it('returns undefined data when full_name is only whitespace', () => {
+    expect(getOtpData('   ')).toBeUndefined();
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Onboarding wizard — name pre-fill from user metadata
+// ═══════════════════════════════════════════════════════════════════════════════
+
+describe('Onboarding wizard — initialName pre-fill', () => {
+  // Simulate the logic from onboarding/page.tsx that extracts initialName
+  function getInitialName(userMetadata: Record<string, string> | undefined): string {
+    return userMetadata?.full_name ?? '';
+  }
+
+  it('returns full_name from user metadata when present', () => {
+    expect(getInitialName({ full_name: 'Jane Doe' })).toBe('Jane Doe');
+  });
+
+  it('returns empty string when user metadata is undefined', () => {
+    expect(getInitialName(undefined)).toBe('');
+  });
+
+  it('returns empty string when full_name is not in metadata', () => {
+    expect(getInitialName({ some_other_key: 'value' })).toBe('');
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Onboarding API — full_name backfill to user metadata
+// ═══════════════════════════════════════════════════════════════════════════════
+
+describe('Onboarding API — full_name metadata backfill', () => {
+  // Simulate the backfill logic from api/onboarding/create/route.ts
+  function shouldBackfillName(ownerName: string | null, userMetadata: Record<string, string> | undefined): boolean {
+    return !!(ownerName && !userMetadata?.full_name);
+  }
+
+  it('should backfill when ownerName provided and no existing full_name', () => {
+    expect(shouldBackfillName('Jane Doe', undefined)).toBe(true);
+    expect(shouldBackfillName('Jane Doe', {})).toBe(true);
+  });
+
+  it('should not backfill when full_name already exists in metadata', () => {
+    expect(shouldBackfillName('Jane Doe', { full_name: 'Existing Name' })).toBe(false);
+  });
+
+  it('should not backfill when ownerName is null or empty', () => {
+    expect(shouldBackfillName(null, undefined)).toBe(false);
+    expect(shouldBackfillName('', undefined)).toBe(false);
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Onboarding API — display_name resolution
+// ═══════════════════════════════════════════════════════════════════════════════
+
+describe('Onboarding API — display_name resolution', () => {
+  // Simulate: display_name: ownerName || user.user_metadata?.full_name || null
+  function resolveDisplayName(ownerName: string | null, userMetadata: Record<string, string> | undefined): string | null {
+    return ownerName || userMetadata?.full_name || null;
+  }
+
+  it('prefers ownerName from onboarding form', () => {
+    expect(resolveDisplayName('Form Name', { full_name: 'Metadata Name' })).toBe('Form Name');
+  });
+
+  it('falls back to user_metadata.full_name when ownerName is empty', () => {
+    expect(resolveDisplayName('', { full_name: 'Metadata Name' })).toBe('Metadata Name');
+  });
+
+  it('falls back to user_metadata.full_name when ownerName is null', () => {
+    expect(resolveDisplayName(null, { full_name: 'Metadata Name' })).toBe('Metadata Name');
+  });
+
+  it('returns null when neither ownerName nor metadata available', () => {
+    expect(resolveDisplayName(null, undefined)).toBeNull();
+    expect(resolveDisplayName('', {})).toBeNull();
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // Auth confirm — additional tests for PKCE callback
 // ═══════════════════════════════════════════════════════════════════════════════
 

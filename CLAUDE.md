@@ -223,30 +223,59 @@ npx supabase db reset # Reset + apply migrations + seed
 
 1. `npm run build` — zero TypeScript errors
 2. `npm run lint` — zero ESLint warnings
-3. `npm run test` — all tests pass
+3. `npm run test` — all tests pass (969+ Vitest unit tests)
+4. `npm run test:e2e` — all Playwright E2E tests pass (83+ tests)
 
-## Development & Deployment Workflow
+## MANDATORY Testing Protocol
 
-Follow this process for every fix or feature:
+**You MUST follow this EVERY time. No exceptions. Both automated AND manual testing are required.**
 
-1. **Implement the fix/feature locally**
-2. **Write tests** covering the main flow and functionality — use Vitest for unit/integration tests
-3. **Test locally** — run the dev server, verify the fix manually, and run the full test suite (`npm run test`)
-4. **Verify build** — `npm run build` must pass with zero errors
-5. **Commit and push** — conventional commits (`feat:`, `fix:`, `test:`)
-6. **Wait for deploy and verify it succeeded** — after pushing, you MUST:
-   - Run `npx vercel ls` and check the latest deployment status
-   - Wait until the status changes from `Building` to `● Ready` or `● Error`
-   - If `● Error` with 0ms build time: the Vercel git integration's "Ignored Build Step" is rejecting the build. Run `npx vercel --prod` to deploy manually (this bypasses the git hook). The Vercel Dashboard > Settings > Git > Ignored Build Step may need to be set to "Don't ignore any builds"
-   - If `● Error` with a real build duration: check logs with `npx vercel inspect <url>` and fix the build error
-   - Do NOT proceed to Playwright testing until the deployment shows `● Ready`
-7. **After deploy completes** — use **Playwright MCP** to test the production site end-to-end:
-   - Navigate to the affected pages
-   - Take screenshots to visually verify
-   - Check `browser_console_messages` for errors (especially React hydration errors)
-   - Click through the user flow (forms, buttons, submissions)
-   - If any issues are found, go back to step 1 and repeat
-8. **Be mindful of build minutes and costs** — avoid unnecessary deploys. Batch related fixes into a single deploy where possible.
+### Step 1: Local Automated Tests
+```bash
+npm run build && npm run lint && npm run test && npm run test:e2e
+```
+ALL must pass before proceeding.
+
+### Step 2: Local Manual Testing (Playwright MCP)
+Before deploying, manually verify the affected flows using Playwright MCP against localhost:3000:
+- Navigate to affected pages with `browser_navigate`
+- Take screenshots with `browser_take_screenshot` for visual verification
+- Click through forms and interactive elements with `browser_click` / `browser_fill_form`
+- Check `browser_console_messages` for errors
+- Test BOTH happy path and error states
+
+### Step 3: Commit and Push
+- Conventional commits (`feat:`, `fix:`, `test:`)
+- Push to `main` to trigger staging deploy
+
+### Step 4: Wait for Staging Deploy
+- Run `npx vercel ls` or wait ~90 seconds
+- Do NOT proceed until deployment shows `● Ready`
+- If `● Error` with 0ms build time: Vercel "Ignored Build Step" is rejecting. Run `npx vercel --prod` or check Settings > Git
+- If `● Error` with real build duration: check logs with `npx vercel inspect <url>`
+
+### Step 5: Staging Manual Testing (Playwright MCP)
+After deploy, manually test the STAGING site (`insightreviews-git-main-chunkies1s-projects.vercel.app`) using Playwright MCP:
+- Navigate to affected pages
+- Take screenshots to visually verify
+- Click through the full user flow (login, dashboard, forms, billing)
+- Check `browser_console_messages` for errors (especially hydration errors)
+- If any issues found, go back to Step 1
+
+### Step 6: Production Promotion (only when ready)
+```bash
+git checkout __production && git merge main && git push origin __production
+```
+Then repeat Step 5 against `insightreviews.com.au`.
+
+### Test Accounts for Staging/Production
+| Account | Email | Role | Purpose |
+|---------|-------|------|---------|
+| Admin | `sly.tristan1@gmail.com` | Owner | Full dashboard, billing bypass if in ADMIN_EMAILS |
+| Test user | `slytristan727@gmail.com` | New user | Signup, onboarding, fresh user flows |
+
+**Magic link flow:** Send link → check Gmail → click "Sign In to InsightReviews" → verify redirect.
+Clean up test data from `slytristan727@gmail.com` after testing.
 
 ### Playwright MCP Testing
 
@@ -255,8 +284,10 @@ Use the Playwright MCP browser tools to verify deployed features:
 - `browser_snapshot` — check page structure and accessibility
 - `browser_take_screenshot` — visual verification
 - `browser_click` / `browser_fill_form` — test interactive flows
+- `browser_console_messages` — check for JS errors
 - Always test both the happy path and error states
-- Test on the production URL (`insightreviews.com.au`) after each deploy
+
+**Be mindful of build minutes and costs** — batch related fixes into a single deploy where possible.
 
 ### Database Migrations
 

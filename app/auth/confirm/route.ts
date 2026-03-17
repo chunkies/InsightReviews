@@ -1,15 +1,30 @@
 import { type EmailOtpType } from '@supabase/supabase-js';
-import { type NextRequest } from 'next/server';
+import { NextResponse, type NextRequest } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { redirect } from 'next/navigation';
 
 export async function GET(request: NextRequest) {
-  const { searchParams } = new URL(request.url);
+  const { searchParams, origin } = new URL(request.url);
   const token_hash = searchParams.get('token_hash');
   const type = searchParams.get('type') as EmailOtpType | null;
   const code = searchParams.get('code');
   const rawNext = searchParams.get('next') ?? '/dashboard';
   const next = rawNext.startsWith('/') && !rawNext.startsWith('//') ? rawNext : '/dashboard';
+
+  // Build redirect URL respecting load balancers (Vercel)
+  const forwardedHost = request.headers.get('x-forwarded-host');
+  const isLocalEnv = process.env.NODE_ENV === 'development';
+  let baseUrl: string;
+  if (isLocalEnv) {
+    baseUrl = origin;
+  } else if (forwardedHost) {
+    baseUrl = `https://${forwardedHost}`;
+  } else {
+    baseUrl = origin;
+  }
+
+  function buildRedirect(path: string) {
+    return NextResponse.redirect(`${baseUrl}${path}`);
+  }
 
   const supabase = await createClient();
 
@@ -17,25 +32,25 @@ export async function GET(request: NextRequest) {
   if (token_hash && type) {
     const { error } = await supabase.auth.verifyOtp({ type, token_hash });
     if (!error) {
-      return await redirectAfterAuth(supabase, request, next);
+      return await redirectAfterAuth(supabase, next, buildRedirect);
     }
   }
 
-  // Method 2: PKCE code exchange (fallback for OAuth / code-based flows)
+  // Method 2: PKCE code exchange (OAuth / code-based flows)
   if (code) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
-      return await redirectAfterAuth(supabase, request, next);
+      return await redirectAfterAuth(supabase, next, buildRedirect);
     }
   }
 
-  redirect('/auth/error');
+  return buildRedirect('/auth/error');
 }
 
 async function redirectAfterAuth(
   supabase: Awaited<ReturnType<typeof createClient>>,
-  request: NextRequest,
   next: string,
+  buildRedirect: (path: string) => NextResponse,
 ) {
   const { data: { user } } = await supabase.auth.getUser();
   if (user) {
@@ -46,7 +61,7 @@ async function redirectAfterAuth(
       .maybeSingle();
 
     if (!member) {
-      redirect('/onboarding');
+      return buildRedirect('/onboarding');
     }
 
     // Activate pending members and backfill email/display_name
@@ -70,5 +85,5 @@ async function redirectAfterAuth(
     }
   }
 
-  redirect(next);
+  return buildRedirect(next);
 }

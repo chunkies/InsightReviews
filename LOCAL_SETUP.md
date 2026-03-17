@@ -168,6 +168,19 @@ npx playwright show-report
 npm run test:e2e:staging
 ```
 
+### Manual Staging/Production Testing
+
+Use these accounts for manual testing via Playwright MCP or browser:
+
+| Account | Email | Role | Purpose |
+|---------|-------|------|---------|
+| Admin | `sly.tristan1@gmail.com` | Owner/Admin | Full dashboard access, billing bypass if in ADMIN_EMAILS |
+| Test user | `slytristan727@gmail.com` | New user | Test signup, onboarding, fresh user flows |
+
+**Workflow:** Send magic link → check Gmail inbox → click "Sign In to InsightReviews" → verify redirect to dashboard/onboarding.
+
+After testing new user flows with `slytristan727@gmail.com`, clean up the test org from Supabase to keep staging tidy.
+
 ## Quality Gates (run all before committing)
 
 ```bash

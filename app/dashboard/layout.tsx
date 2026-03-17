@@ -3,7 +3,7 @@ import { headers } from 'next/headers';
 import { DashboardShell } from '@/components/layout/dashboard-shell';
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
-import { hasValidBilling, isAdminEmail } from '@/lib/utils/admin';
+import { hasValidBilling } from '@/lib/utils/admin';
 import { BillingSuccessSync } from '@/components/dashboard/billing-success-sync';
 
 // Map URL paths to permission keys
@@ -81,11 +81,11 @@ export default async function DashboardLayout({ children }: { children: React.Re
     redirect(`/subscribe?org=${org?.id ?? ''}`);
   }
 
-  // Admin emails always show as "Active"
-  const isAdmin = isAdminEmail(user.email);
-  const displayPlan = isAdmin ? 'active' : org?.billing_plan;
-  const displayTrialEndsAt = isAdmin ? null : org?.trial_ends_at;
-  const displaySubEndsAt = isAdmin ? null : org?.subscription_ends_at;
+  // Show the real plan status in the sidebar (admins bypass billing checks
+  // but should still see the actual plan for awareness)
+  const displayPlan = org?.billing_plan;
+  const displayTrialEndsAt = org?.trial_ends_at;
+  const displaySubEndsAt = org?.subscription_ends_at;
 
   // Fetch member profile for header avatar
   const { data: memberProfile } = await supabase

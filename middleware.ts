@@ -29,7 +29,7 @@ export async function middleware(request: NextRequest) {
           return request.cookies.getAll();
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options: _options }) =>
+          cookiesToSet.forEach(({ name, value }) =>
             request.cookies.set(name, value)
           );
           supabaseResponse = NextResponse.next({ request });
@@ -41,14 +41,29 @@ export async function middleware(request: NextRequest) {
     }
   );
 
+  // IMPORTANT: createRedirect copies refreshed auth cookies from supabaseResponse
+  // onto the redirect response. Without this, token refreshes are lost and the
+  // session breaks on the next request — causing ERR_TOO_MANY_REDIRECTS.
+  function createRedirect(pathname: string, search?: string) {
+    const url = request.nextUrl.clone();
+    url.pathname = pathname;
+    if (search !== undefined) {
+      url.search = search;
+    }
+    const redirectResponse = NextResponse.redirect(url);
+    // Copy all cookies (including refreshed Supabase tokens) to the redirect
+    supabaseResponse.cookies.getAll().forEach((cookie) => {
+      redirectResponse.cookies.set(cookie.name, cookie.value);
+    });
+    return redirectResponse;
+  }
+
   const { data: { user } } = await supabase.auth.getUser();
   const pathname = request.nextUrl.pathname;
 
   // If root page receives a PKCE code param, redirect to /auth/confirm to exchange it
   if (pathname === '/' && request.nextUrl.searchParams.has('code')) {
-    const url = request.nextUrl.clone();
-    url.pathname = '/auth/confirm';
-    return NextResponse.redirect(url);
+    return createRedirect('/auth/confirm', request.nextUrl.search);
   }
 
   // Allow public routes and API routes
@@ -58,17 +73,7 @@ export async function middleware(request: NextRequest) {
 
   // Not logged in → redirect to login
   if (!user) {
-    const url = request.nextUrl.clone();
-    url.pathname = '/auth/login';
-    return NextResponse.redirect(url);
-  }
-
-  // Logged in but on auth pages → redirect to dashboard
-  // Exclude /auth/confirm (needs to exchange PKCE code) and /auth/error
-  if (pathname.startsWith('/auth/') && user && !pathname.startsWith('/auth/confirm') && !pathname.startsWith('/auth/error')) {
-    const url = request.nextUrl.clone();
-    url.pathname = '/dashboard';
-    return NextResponse.redirect(url);
+    return createRedirect('/auth/login');
   }
 
   // Auth-only routes (onboarding, subscribe) — no billing check needed
@@ -87,10 +92,7 @@ export async function middleware(request: NextRequest) {
         const cached = JSON.parse(billingCache) as { orgId: string; plan: string; trialEnds: string | null; subEnds: string | null; exp: number };
         if (cached.exp > Date.now()) {
           if (!hasValidBilling(cached.plan, cached.trialEnds, user.email, cached.subEnds)) {
-            const url = request.nextUrl.clone();
-            url.pathname = '/subscribe';
-            url.search = `?org=${cached.orgId}`;
-            return NextResponse.redirect(url);
+            return createRedirect('/subscribe', `?org=${cached.orgId}`);
           }
           return supabaseResponse;
         }
@@ -107,9 +109,7 @@ export async function middleware(request: NextRequest) {
 
     // No org yet → send to onboarding
     if (!member) {
-      const url = request.nextUrl.clone();
-      url.pathname = '/onboarding';
-      return NextResponse.redirect(url);
+      return createRedirect('/onboarding');
     }
 
     // Check billing status (org data is joined in the same query)
@@ -135,10 +135,7 @@ export async function middleware(request: NextRequest) {
     }
 
     if (org && !isBillingSuccess && !hasValidBilling(org.billing_plan, org.trial_ends_at, user.email, org.subscription_ends_at)) {
-      const url = request.nextUrl.clone();
-      url.pathname = '/subscribe';
-      url.search = `?org=${member.organization_id}`;
-      return NextResponse.redirect(url);
+      return createRedirect('/subscribe', `?org=${member.organization_id}`);
     }
 
     // Pass billing=success flag to server components via header

@@ -1,25 +1,39 @@
 'use client';
 
-import { AppBar, Toolbar, Button, Box, IconButton, Tooltip } from '@mui/material';
-import { LogOut, Sun, Moon, Menu } from 'lucide-react';
+import { useState } from 'react';
+import {
+  AppBar, Toolbar, Box, IconButton, Avatar, Menu as MuiMenu,
+  MenuItem, ListItemIcon, ListItemText, Divider, Typography,
+} from '@mui/material';
+import { LogOut, Sun, Moon, Menu, UserCircle } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { DRAWER_WIDTH } from './sidebar';
 import { useThemeMode } from '@/components/providers/theme-provider';
 
 interface HeaderProps {
   onMenuToggle?: () => void;
+  userDisplayName?: string | null;
+  userEmail?: string | null;
+  userAvatarUrl?: string | null;
 }
 
-export function Header({ onMenuToggle }: HeaderProps) {
+export function Header({ onMenuToggle, userDisplayName, userEmail, userAvatarUrl }: HeaderProps) {
   const router = useRouter();
   const { mode, toggleTheme } = useThemeMode();
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
   async function handleSignOut() {
+    setAnchorEl(null);
     const supabase = createClient();
     await supabase.auth.signOut();
     router.push('/auth/login');
   }
+
+  const initials = userDisplayName
+    ? userDisplayName.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2)
+    : userEmail?.[0]?.toUpperCase() ?? '?';
 
   return (
     <AppBar
@@ -45,23 +59,55 @@ export function Header({ onMenuToggle }: HeaderProps) {
           </IconButton>
         )}
         <Box sx={{ flexGrow: 1 }} />
-        <Tooltip title={mode === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}>
-          <IconButton
-            onClick={toggleTheme}
-            size="small"
-            sx={{ mr: 1, color: 'text.secondary' }}
-          >
-            {mode === 'light' ? <Moon size={18} /> : <Sun size={18} />}
-          </IconButton>
-        </Tooltip>
-        <Button
-          onClick={handleSignOut}
-          startIcon={<LogOut size={18} />}
+        <IconButton
+          onClick={(e) => setAnchorEl(e.currentTarget)}
           size="small"
-          sx={{ color: 'text.secondary' }}
+          sx={{ p: 0.5 }}
         >
-          Sign Out
-        </Button>
+          <Avatar
+            src={userAvatarUrl ?? undefined}
+            sx={{
+              width: 34,
+              height: 34,
+              fontSize: '0.85rem',
+              fontWeight: 600,
+              background: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)',
+            }}
+          >
+            {initials}
+          </Avatar>
+        </IconButton>
+        <MuiMenu
+          anchorEl={anchorEl}
+          open={!!anchorEl}
+          onClose={() => setAnchorEl(null)}
+          transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+          anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+          slotProps={{ paper: { sx: { minWidth: 220, mt: 1 } } }}
+        >
+          <Box sx={{ px: 2, py: 1.5 }}>
+            <Typography variant="subtitle2" fontWeight={600} noWrap>
+              {userDisplayName || 'User'}
+            </Typography>
+            <Typography variant="caption" color="text.secondary" noWrap>
+              {userEmail}
+            </Typography>
+          </Box>
+          <Divider />
+          <MenuItem component={Link} href="/dashboard/profile" onClick={() => setAnchorEl(null)}>
+            <ListItemIcon><UserCircle size={18} /></ListItemIcon>
+            <ListItemText>My Profile</ListItemText>
+          </MenuItem>
+          <MenuItem onClick={() => { toggleTheme(); setAnchorEl(null); }}>
+            <ListItemIcon>{mode === 'light' ? <Moon size={18} /> : <Sun size={18} />}</ListItemIcon>
+            <ListItemText>{mode === 'light' ? 'Dark Mode' : 'Light Mode'}</ListItemText>
+          </MenuItem>
+          <Divider />
+          <MenuItem onClick={handleSignOut}>
+            <ListItemIcon><LogOut size={18} /></ListItemIcon>
+            <ListItemText>Sign Out</ListItemText>
+          </MenuItem>
+        </MuiMenu>
       </Toolbar>
     </AppBar>
   );

@@ -1,22 +1,22 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import {
-  Paper, TextField, Button, Typography, Box, Chip,
-  FormControl, InputLabel, Select, MenuItem,
+  Paper, TextField, Button, Typography, Box, Chip, Avatar,
+  FormControl, InputLabel, Select, MenuItem, IconButton, Divider,
 } from '@mui/material';
-import { Save, User } from 'lucide-react';
+import { Save, Upload, Camera } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { useSnackbar } from '@/components/providers/snackbar-provider';
 
 const TIMEZONES = [
-  { value: 'Australia/Sydney', label: 'Australia/Sydney (AEST)' },
-  { value: 'Australia/Melbourne', label: 'Australia/Melbourne (AEST)' },
-  { value: 'Australia/Brisbane', label: 'Australia/Brisbane (AEST)' },
-  { value: 'Australia/Adelaide', label: 'Australia/Adelaide (ACST)' },
-  { value: 'Australia/Perth', label: 'Australia/Perth (AWST)' },
-  { value: 'Australia/Hobart', label: 'Australia/Hobart (AEST)' },
-  { value: 'Australia/Darwin', label: 'Australia/Darwin (ACST)' },
+  { value: 'Australia/Sydney', label: 'Sydney (AEST)' },
+  { value: 'Australia/Melbourne', label: 'Melbourne (AEST)' },
+  { value: 'Australia/Brisbane', label: 'Brisbane (AEST)' },
+  { value: 'Australia/Adelaide', label: 'Adelaide (ACST)' },
+  { value: 'Australia/Perth', label: 'Perth (AWST)' },
+  { value: 'Australia/Hobart', label: 'Hobart (AEST)' },
+  { value: 'Australia/Darwin', label: 'Darwin (ACST)' },
   { value: 'Pacific/Auckland', label: 'New Zealand (NZST)' },
   { value: 'Pacific/Fiji', label: 'Fiji (FJT)' },
   { value: 'Asia/Singapore', label: 'Singapore (SGT)' },
@@ -34,22 +34,26 @@ const TIMEZONES = [
 
 interface ProfilePageFormProps {
   memberId: string;
+  orgId: string;
   displayName: string;
   email: string;
   phone: string;
   jobTitle: string;
   timezone: string;
+  avatarUrl: string;
   role: 'owner' | 'staff';
   orgName: string;
 }
 
 export function ProfilePageForm({
   memberId,
+  orgId,
   displayName: initialName,
   email,
   phone: initialPhone,
   jobTitle: initialJobTitle,
   timezone: initialTimezone,
+  avatarUrl: initialAvatarUrl,
   role,
   orgName,
 }: ProfilePageFormProps) {
@@ -57,14 +61,53 @@ export function ProfilePageForm({
   const [phone, setPhone] = useState(initialPhone);
   const [jobTitle, setJobTitle] = useState(initialJobTitle);
   const [timezone, setTimezone] = useState(initialTimezone);
+  const [avatarUrl, setAvatarUrl] = useState(initialAvatarUrl);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
   const { showSnackbar } = useSnackbar();
 
   const hasChanges =
     displayName !== initialName ||
     phone !== initialPhone ||
     jobTitle !== initialJobTitle ||
-    timezone !== initialTimezone;
+    timezone !== initialTimezone ||
+    avatarUrl !== initialAvatarUrl;
+
+  const initials = displayName
+    ? displayName.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2)
+    : email?.[0]?.toUpperCase() ?? '?';
+
+  async function handleAvatarUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      showSnackbar('Please select an image file', 'error');
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      showSnackbar('Image must be under 2MB', 'error');
+      return;
+    }
+
+    setUploading(true);
+    const supabase = createClient();
+    const ext = file.name.split('.').pop() ?? 'jpg';
+    const path = `${orgId}/${memberId}.${ext}`;
+
+    const { error } = await supabase.storage.from('avatars').upload(path, file, { upsert: true });
+    if (error) {
+      showSnackbar('Failed to upload image', 'error');
+      setUploading(false);
+      return;
+    }
+
+    const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(path);
+    setAvatarUrl(`${publicUrl}?t=${Date.now()}`);
+    setUploading(false);
+    showSnackbar('Photo uploaded — click Save to apply');
+  }
 
   async function handleSave() {
     setSaving(true);
@@ -77,44 +120,95 @@ export function ProfilePageForm({
         phone: phone.trim() || null,
         job_title: jobTitle.trim() || null,
         timezone,
+        avatar_url: avatarUrl || null,
       })
       .eq('id', memberId);
 
     if (!error) {
-      showSnackbar('Profile updated');
+      showSnackbar('Profile saved');
     } else {
-      showSnackbar('Failed to update profile', 'error');
+      showSnackbar('Failed to save profile', 'error');
     }
     setSaving(false);
   }
 
   return (
-    <Paper sx={{ p: 3 }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-        <User size={20} />
-        <Typography variant="h6">Personal Details</Typography>
+    <Paper sx={{ p: { xs: 3, sm: 4 }, maxWidth: 800 }}>
+      {/* Avatar + Name Header */}
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, mb: 4 }}>
+        <Box sx={{ position: 'relative' }}>
+          <Avatar
+            src={avatarUrl || undefined}
+            sx={{
+              width: 80,
+              height: 80,
+              fontSize: '1.5rem',
+              fontWeight: 700,
+              background: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)',
+            }}
+          >
+            {initials}
+          </Avatar>
+          <IconButton
+            size="small"
+            onClick={() => fileRef.current?.click()}
+            disabled={uploading}
+            sx={{
+              position: 'absolute',
+              bottom: -4,
+              right: -4,
+              backgroundColor: 'background.paper',
+              border: '2px solid',
+              borderColor: 'divider',
+              width: 30,
+              height: 30,
+              '&:hover': { backgroundColor: 'action.hover' },
+            }}
+          >
+            {uploading ? <Upload size={14} /> : <Camera size={14} />}
+          </IconButton>
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            hidden
+            onChange={handleAvatarUpload}
+          />
+        </Box>
+        <Box>
+          <Typography variant="h5" fontWeight={700}>
+            {displayName || 'Your Profile'}
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            {email}
+          </Typography>
+          <Box sx={{ mt: 0.5, display: 'flex', gap: 1 }}>
+            <Chip
+              label={role === 'owner' ? 'Owner' : role.charAt(0).toUpperCase() + role.slice(1)}
+              size="small"
+              color={role === 'owner' ? 'primary' : 'default'}
+              variant="outlined"
+            />
+            {orgName && <Chip label={orgName} size="small" variant="outlined" />}
+          </Box>
+        </Box>
       </Box>
-      {orgName && (
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-          {orgName}
-        </Typography>
-      )}
 
-      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 3 }}>
+      <Divider sx={{ mb: 3 }} />
+
+      {/* Form Fields */}
+      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2.5, mb: 3 }}>
         <TextField
           label="Display Name"
           value={displayName}
           onChange={(e) => setDisplayName(e.target.value)}
           placeholder="Enter your name"
-          size="small"
-          sx={{ minWidth: 250, flex: 1 }}
         />
         <TextField
           label="Email"
           value={email}
           disabled
-          size="small"
-          sx={{ minWidth: 250, flex: 1 }}
+          helperText="Managed by your login method"
         />
         <TextField
           label="Phone"
@@ -122,18 +216,14 @@ export function ProfilePageForm({
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
           placeholder="e.g. +61 400 000 000"
-          size="small"
-          sx={{ minWidth: 250, flex: 1 }}
         />
         <TextField
           label="Job Title"
           value={jobTitle}
           onChange={(e) => setJobTitle(e.target.value)}
           placeholder="e.g. Owner, Manager, Front Desk"
-          size="small"
-          sx={{ minWidth: 250, flex: 1 }}
         />
-        <FormControl size="small" sx={{ minWidth: 250, flex: 1 }}>
+        <FormControl>
           <InputLabel>Timezone</InputLabel>
           <Select
             value={timezone}
@@ -147,26 +237,14 @@ export function ProfilePageForm({
             ))}
           </Select>
         </FormControl>
-        <Box sx={{ minWidth: 250, flex: 1, display: 'flex', alignItems: 'center' }}>
-          <Box>
-            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
-              Role
-            </Typography>
-            <Chip
-              label={role === 'owner' ? 'Owner' : role.charAt(0).toUpperCase() + role.slice(1)}
-              size="small"
-              color={role === 'owner' ? 'primary' : 'default'}
-              variant="outlined"
-            />
-          </Box>
-        </Box>
       </Box>
 
       <Button
         variant="contained"
-        startIcon={<Save size={16} />}
+        startIcon={<Save size={18} />}
         onClick={handleSave}
         disabled={saving || !hasChanges}
+        size="large"
       >
         {saving ? 'Saving...' : 'Save Changes'}
       </Button>

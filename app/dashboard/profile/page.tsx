@@ -28,11 +28,13 @@ export default async function ProfilePage() {
       <PageHeader title="My Profile" subtitle="Manage your personal details" />
       <ProfilePageForm
         memberId={member.id}
+        orgId={member.organization_id}
         displayName={member.display_name ?? ''}
         email={member.email ?? user.email ?? ''}
         phone={member.phone ?? ''}
         jobTitle={member.job_title ?? ''}
         timezone={member.timezone ?? 'Australia/Sydney'}
+        avatarUrl={member.avatar_url ?? ''}
         role={member.role}
         orgName={org?.name ?? ''}
       />

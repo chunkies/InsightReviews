@@ -87,6 +87,13 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const displayTrialEndsAt = isAdmin ? null : org?.trial_ends_at;
   const displaySubEndsAt = isAdmin ? null : org?.subscription_ends_at;
 
+  // Fetch member profile for header avatar
+  const { data: memberProfile } = await supabase
+    .from('organization_members')
+    .select('display_name, email, avatar_url')
+    .eq('user_id', user.id)
+    .single();
+
   return (
     <DashboardShell
       orgName={org?.name}
@@ -95,6 +102,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
       subscriptionEndsAt={displaySubEndsAt}
       permissions={permissions}
       memberRole={member.role as 'owner' | 'staff'}
+      userDisplayName={memberProfile?.display_name ?? user.user_metadata?.full_name ?? null}
+      userEmail={memberProfile?.email ?? user.email ?? null}
+      userAvatarUrl={memberProfile?.avatar_url ?? null}
     >
       <Suspense>
         <BillingSuccessSync />

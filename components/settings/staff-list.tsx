@@ -5,7 +5,7 @@ import {
   Paper, Table, TableHead, TableBody, TableRow, TableCell, TableContainer,
   Chip, IconButton, Button, TextField, Box, Dialog, DialogTitle,
   DialogContent, DialogActions, Typography, CircularProgress, MenuItem,
-  Select, FormControl, InputLabel, Tabs, Tab,
+  Select, FormControl, InputLabel, Tabs, Tab, Avatar,
 } from '@mui/material';
 import { Trash2, UserPlus, Shield, Edit2 } from 'lucide-react';
 import { format } from 'date-fns';
@@ -210,9 +210,17 @@ export function StaffList({ members: initial, roles: initialRoles, isOwner, canI
                     return (
                       <TableRow key={m.id}>
                         <TableCell>
-                          <Typography variant="body2" fontWeight={500}>
-                            {m.user_id === currentUserId ? (m.display_name || 'You') : (m.display_name || '—')}
-                          </Typography>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                            <Avatar
+                              src={m.avatar_url ?? undefined}
+                              sx={{ width: 32, height: 32, fontSize: '0.8rem', background: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)' }}
+                            >
+                              {(m.display_name ?? m.email ?? '?')[0]?.toUpperCase()}
+                            </Avatar>
+                            <Typography variant="body2" fontWeight={500}>
+                              {m.user_id === currentUserId ? (m.display_name || 'You') : (m.display_name || '—')}
+                            </Typography>
+                          </Box>
                         </TableCell>
                         <TableCell>
                           <Typography variant="body2" color="text.secondary">

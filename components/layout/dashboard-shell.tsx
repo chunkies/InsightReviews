@@ -13,10 +13,13 @@ interface DashboardShellProps {
   subscriptionEndsAt?: string | null;
   permissions?: string[] | null;
   memberRole?: 'owner' | 'staff';
+  userDisplayName?: string | null;
+  userEmail?: string | null;
+  userAvatarUrl?: string | null;
   children: React.ReactNode;
 }
 
-export function DashboardShell({ orgName, billingPlan, trialEndsAt, subscriptionEndsAt, permissions, memberRole, children }: DashboardShellProps) {
+export function DashboardShell({ orgName, billingPlan, trialEndsAt, subscriptionEndsAt, permissions, memberRole, userDisplayName, userEmail, userAvatarUrl, children }: DashboardShellProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
@@ -31,7 +34,12 @@ export function DashboardShell({ orgName, billingPlan, trialEndsAt, subscription
         mobileOpen={mobileOpen}
         onMobileClose={() => setMobileOpen(false)}
       />
-      <Header onMenuToggle={() => setMobileOpen((o) => !o)} />
+      <Header
+        onMenuToggle={() => setMobileOpen((o) => !o)}
+        userDisplayName={userDisplayName}
+        userEmail={userEmail}
+        userAvatarUrl={userAvatarUrl}
+      />
       <Box
         component="main"
         sx={{

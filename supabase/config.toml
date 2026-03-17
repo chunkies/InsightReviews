@@ -15,8 +15,8 @@ port = 54423
 
 [auth]
 enabled = true
-site_url = "https://insightreviews.com.au"
-additional_redirect_urls = ["https://insightreviews.com.au/auth/confirm", "https://insightreviews.com.au/**"]
+site_url = "http://localhost:3000"
+additional_redirect_urls = ["http://localhost:3000/**", "https://insightreviews.com.au/**", "https://*-chunkies1s-projects.vercel.app/**"]
 
 [auth.email]
 enable_signup = true

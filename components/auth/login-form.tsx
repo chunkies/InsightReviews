@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Button, TextField, Alert, Paper, Typography, Link as MuiLink } from '@mui/material';
 import { createClient } from '@/lib/supabase/client';
 import NextLink from 'next/link';
+import { buildAuthRedirectUrl } from '@/lib/utils/auth-redirect';
 
 export function LoginForm({ isSignup = false }: { isSignup?: boolean }) {
   const [email, setEmail] = useState('');
@@ -20,7 +21,7 @@ export function LoginForm({ isSignup = false }: { isSignup?: boolean }) {
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {
-        emailRedirectTo: `${window.location.origin}/auth/confirm`,
+        emailRedirectTo: buildAuthRedirectUrl(window.location.origin),
         data: fullName.trim() ? { full_name: fullName.trim() } : undefined,
       },
     });

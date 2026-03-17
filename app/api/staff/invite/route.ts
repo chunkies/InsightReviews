@@ -89,9 +89,10 @@ export async function POST(request: NextRequest) {
 
     // Use inviteUserByEmail — handles both new and existing auth users
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+    const { buildAuthRedirectUrl } = await import('@/lib/utils/auth-redirect');
     const { data: inviteData, error: inviteError } = await supabase.auth.admin.inviteUserByEmail(
       email,
-      { redirectTo: `${siteUrl}/auth/confirm?next=/dashboard` }
+      { redirectTo: buildAuthRedirectUrl(siteUrl, '/dashboard') }
     );
 
     if (inviteError || !inviteData.user) {

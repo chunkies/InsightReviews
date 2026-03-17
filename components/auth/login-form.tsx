@@ -7,6 +7,7 @@ import NextLink from 'next/link';
 
 export function LoginForm({ isSignup = false }: { isSignup?: boolean }) {
   const [email, setEmail] = useState('');
+  const [fullName, setFullName] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
@@ -20,6 +21,7 @@ export function LoginForm({ isSignup = false }: { isSignup?: boolean }) {
       email,
       options: {
         emailRedirectTo: `${window.location.origin}/auth/confirm`,
+        data: fullName.trim() ? { full_name: fullName.trim() } : undefined,
       },
     });
 
@@ -35,6 +37,16 @@ export function LoginForm({ isSignup = false }: { isSignup?: boolean }) {
   return (
     <Paper sx={{ p: 4, width: '100%', maxWidth: 400 }}>
       <form onSubmit={handleSubmit}>
+        {isSignup && (
+          <TextField
+            fullWidth
+            label="Full Name"
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
+            autoFocus
+            sx={{ mb: 2 }}
+          />
+        )}
         <TextField
           fullWidth
           label="Email address"
@@ -42,7 +54,7 @@ export function LoginForm({ isSignup = false }: { isSignup?: boolean }) {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
-          autoFocus
+          autoFocus={!isSignup}
           sx={{ mb: 2 }}
         />
         {message && (

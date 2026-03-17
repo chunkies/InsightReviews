@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { businessName, slug, phone, googleUrl, yelpUrl, facebookUrl } = body;
+    const { businessName, slug, phone, ownerName, googleUrl, yelpUrl, facebookUrl } = body;
 
     if (!businessName || !slug) {
       return NextResponse.json({ error: 'Business name and slug are required' }, { status: 400 });
@@ -89,6 +89,8 @@ export async function POST(request: NextRequest) {
       organization_id: org.id,
       user_id: user.id,
       role: 'owner',
+      email: user.email || null,
+      display_name: ownerName || user.user_metadata?.full_name || null,
     });
 
     if (memberError) {

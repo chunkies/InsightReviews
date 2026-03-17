@@ -29,7 +29,8 @@ export function OnboardingWizard({ userId: _userId }: OnboardingWizardProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Step 1: Business info
+  // Step 1: Your info + Business info
+  const [ownerName, setOwnerName] = useState('');
   const [businessName, setBusinessName] = useState('');
   const [phone, setPhone] = useState('');
 
@@ -53,6 +54,7 @@ export function OnboardingWizard({ userId: _userId }: OnboardingWizardProps) {
           businessName,
           slug,
           phone: phone || null,
+          ownerName: ownerName.trim() || null,
           googleUrl,
           yelpUrl,
           facebookUrl,
@@ -115,11 +117,19 @@ export function OnboardingWizard({ userId: _userId }: OnboardingWizardProps) {
         <Box>
           <TextField
             fullWidth
+            label="Your Name"
+            value={ownerName}
+            onChange={(e) => setOwnerName(e.target.value)}
+            placeholder="e.g. John Smith"
+            autoFocus
+            sx={{ mb: 2 }}
+          />
+          <TextField
+            fullWidth
             label="Business Name"
             value={businessName}
             onChange={(e) => setBusinessName(e.target.value)}
             required
-            autoFocus
             sx={{ mb: 2 }}
           />
           <TextField

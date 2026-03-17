@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { PageHeader } from '@/components/shared/page-header';
 import { SettingsForm } from '@/components/settings/settings-form';
+import { ProfileForm } from '@/components/settings/profile-form';
 
 export default async function SettingsPage() {
   const supabase = await createClient();
@@ -11,7 +12,7 @@ export default async function SettingsPage() {
 
   const { data: member } = await supabase
     .from('organization_members')
-    .select('organization_id, role')
+    .select('id, organization_id, role, display_name, email')
     .eq('user_id', user.id)
     .single();
 
@@ -36,13 +37,20 @@ export default async function SettingsPage() {
 
   return (
     <Box>
-      <PageHeader title="Settings" subtitle="Manage your business profile and review platforms" />
-      <SettingsForm
-        org={org!}
-        platforms={platforms ?? []}
-        integrations={integrations ?? []}
-        isOwner={member.role === 'owner'}
+      <PageHeader title="Settings" subtitle="Manage your profile and business settings" />
+      <ProfileForm
+        memberId={member.id}
+        displayName={member.display_name ?? ''}
+        email={member.email ?? user.email ?? ''}
       />
+      <Box sx={{ mt: 4 }}>
+        <SettingsForm
+          org={org!}
+          platforms={platforms ?? []}
+          integrations={integrations ?? []}
+          isOwner={member.role === 'owner'}
+        />
+      </Box>
     </Box>
   );
 }

@@ -155,12 +155,6 @@ export function StaffList({ members: initial, roles: initialRoles, isOwner, canI
     setDeleteRoleTarget(null);
   }
 
-  function getMemberDisplay(m: OrganizationMember) {
-    const name = m.display_name || m.email || (m.user_id === currentUserId ? 'You' : m.user_id.slice(0, 8) + '...');
-    const email = m.email && m.display_name ? m.email : null;
-    return { name, email };
-  }
-
   function getRoleName(roleId: string | null) {
     if (!roleId) return 'No role';
     return roles.find((r) => r.id === roleId)?.name ?? 'Unknown';
@@ -199,7 +193,8 @@ export function StaffList({ members: initial, roles: initialRoles, isOwner, canI
               <Table>
                 <TableHead>
                   <TableRow>
-                    <TableCell>Name / Email</TableCell>
+                    <TableCell>Name</TableCell>
+                    <TableCell>Email</TableCell>
                     <TableCell>Role</TableCell>
                     <TableCell>Status</TableCell>
                     <TableCell>Joined</TableCell>
@@ -208,18 +203,17 @@ export function StaffList({ members: initial, roles: initialRoles, isOwner, canI
                 </TableHead>
                 <TableBody>
                   {members.map((m) => {
-                    const display = getMemberDisplay(m);
                     return (
                       <TableRow key={m.id}>
                         <TableCell>
                           <Typography variant="body2" fontWeight={500}>
-                            {m.user_id === currentUserId ? 'You' : display.name}
+                            {m.user_id === currentUserId ? (m.display_name || 'You') : (m.display_name || '—')}
                           </Typography>
-                          {display.email && (
-                            <Typography variant="caption" color="text.secondary">
-                              {display.email}
-                            </Typography>
-                          )}
+                        </TableCell>
+                        <TableCell>
+                          <Typography variant="body2" color="text.secondary">
+                            {m.email || '—'}
+                          </Typography>
                         </TableCell>
                         <TableCell>
                           {m.role === 'owner' ? (

@@ -8,7 +8,7 @@ import {
 } from '@mui/material';
 import {
   LayoutDashboard, Star, Send, Users, Palette, Link2,
-  Settings, CreditCard, Phone, Sparkles, HelpCircle, UserCircle,
+  Settings, CreditCard, Phone, Sparkles, HelpCircle,
 } from 'lucide-react';
 import { useTheme, alpha } from '@mui/material/styles';
 
@@ -23,7 +23,6 @@ const navItems = [
   { key: 'customization', label: 'Customization', href: '/dashboard/testimonials', icon: Palette },
   { key: 'billing', label: 'Billing', href: '/dashboard/billing', icon: CreditCard },
   { key: 'settings', label: 'Settings', href: '/dashboard/settings', icon: Settings },
-  { key: 'profile', label: 'My Profile', href: '/dashboard/profile', icon: UserCircle },
   { key: 'support', label: 'Support', href: '/dashboard/support', icon: HelpCircle },
 ];
 
@@ -62,7 +61,7 @@ export function Sidebar({ orgName, billingPlan, trialEndsAt, subscriptionEndsAt,
   // Owners see everything; staff see only permitted pages
   const filteredNavItems = memberRole === 'owner' || !permissions
     ? navItems
-    : navItems.filter((item) => permissions.includes(item.key) || item.key === 'profile');
+    : navItems.filter((item) => permissions.includes(item.key));
 
   const drawerContent = (
     <>

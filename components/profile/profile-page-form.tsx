@@ -113,21 +113,26 @@ export function ProfilePageForm({
     setSaving(true);
     const supabase = createClient();
 
-    const { error } = await supabase
+    const updates = {
+      display_name: displayName.trim() || null,
+      phone: phone.trim() || null,
+      job_title: jobTitle.trim() || null,
+      timezone,
+      avatar_url: avatarUrl || null,
+    };
+
+    const { error, count } = await supabase
       .from('organization_members')
-      .update({
-        display_name: displayName.trim() || null,
-        phone: phone.trim() || null,
-        job_title: jobTitle.trim() || null,
-        timezone,
-        avatar_url: avatarUrl || null,
-      })
+      .update(updates, { count: 'exact' })
       .eq('id', memberId);
 
-    if (!error) {
-      showSnackbar('Profile saved');
+    if (error) {
+      console.error('Profile save error:', error);
+      showSnackbar(`Failed to save: ${error.message}`, 'error');
+    } else if (count === 0) {
+      showSnackbar('No changes saved — please try signing out and back in', 'error');
     } else {
-      showSnackbar('Failed to save profile', 'error');
+      showSnackbar('Profile saved');
     }
     setSaving(false);
   }

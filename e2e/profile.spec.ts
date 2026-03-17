@@ -95,19 +95,11 @@ test.describe('Profile — Save Changes', () => {
   });
 });
 
-test.describe('Profile — Sidebar Navigation', () => {
-  test('sidebar contains My Profile link', async ({ page }) => {
+test.describe('Profile — Header Navigation', () => {
+  test('profile is accessible via direct URL', async ({ page }) => {
     await signInAsUser(page, TEST_EMAIL);
-    await page.goto('/dashboard');
-    await expect(page.getByRole('link', { name: 'My Profile' })).toBeVisible();
-  });
-
-  test('clicking My Profile navigates to /dashboard/profile', async ({ page }) => {
-    await signInAsUser(page, TEST_EMAIL);
-    await page.goto('/dashboard');
-    await page.getByRole('link', { name: 'My Profile' }).click();
-    await page.waitForLoadState('networkidle');
-    expect(page.url()).toContain('/dashboard/profile');
+    await page.goto('/dashboard/profile');
+    await expect(page.locator('h5').getByText('My Profile')).toBeVisible();
   });
 });
 

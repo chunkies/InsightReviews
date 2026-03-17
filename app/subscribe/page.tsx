@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { SubscribeButton } from './subscribe-button';
 import { CheckCircle2 } from 'lucide-react';
+import { hasValidBilling } from '@/lib/utils/admin';
 
 const features = [
   'Smart review routing to Google, Yelp & more',
@@ -40,17 +41,15 @@ export default async function SubscribePage({ searchParams }: PageProps) {
   // Get org details
   const { data: org } = await supabase
     .from('organizations')
-    .select('id, name, billing_plan, stripe_subscription_id, trial_ends_at')
+    .select('id, name, billing_plan, stripe_subscription_id, trial_ends_at, subscription_ends_at')
     .eq('id', organizationId)
     .single();
 
   if (!org) redirect('/onboarding');
 
-  // If they have a valid trial or active sub, send them to dashboard
-  const trialStillActive = org.trial_ends_at && new Date(org.trial_ends_at) > new Date();
-  const hasActiveTrial = (org.billing_plan === 'trial' || org.billing_plan === 'cancelling') && trialStillActive;
-  const hasActiveSub = org.billing_plan === 'active' && org.stripe_subscription_id;
-  if (hasActiveTrial || hasActiveSub) {
+  // If they have valid billing (same check as middleware), send them to dashboard
+  // This must use the exact same logic as the middleware to prevent redirect loops
+  if (hasValidBilling(org.billing_plan, org.trial_ends_at, user.email, org.subscription_ends_at)) {
     redirect('/dashboard');
   }
 

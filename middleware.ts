@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 
 import { hasValidBilling } from '@/lib/utils/admin';
 
-const publicPrefixes = ['/auth/', '/r/', '/wall/'];
+const publicPrefixes = ['/auth/', '/r/', '/wall/', '/blog/'];
 
 function isPublicRoute(pathname: string): boolean {
   if (pathname === '/') return true;

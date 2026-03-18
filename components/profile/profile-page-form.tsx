@@ -48,6 +48,7 @@ interface ProfilePageFormProps {
 
 export function ProfilePageForm({
   memberId,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   orgId,
   displayName: initialName,
   email,
@@ -94,20 +95,20 @@ export function ProfilePageForm({
     }
 
     setUploading(true);
-    const supabase = createClient();
-    const ext = file.name.split('.').pop() ?? 'jpg';
-    const path = `${orgId}/${memberId}.${ext}`;
 
-    const { error } = await supabase.storage.from('avatars').upload(path, file, { upsert: true });
-    if (error) {
-      console.error('Avatar upload error:', error);
-      showSnackbar(`Upload failed: ${error.message}`, 'error');
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const res = await fetch('/api/upload-avatar', { method: 'POST', body: formData });
+    const data = await res.json();
+
+    if (!res.ok) {
+      showSnackbar(`Upload failed: ${data.error}`, 'error');
       setUploading(false);
       return;
     }
 
-    const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(path);
-    setAvatarUrl(`${publicUrl}?t=${Date.now()}`);
+    setAvatarUrl(`${data.publicUrl}?t=${Date.now()}`);
     setUploading(false);
     showSnackbar('Photo uploaded — click Save to apply');
   }

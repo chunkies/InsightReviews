@@ -8,6 +8,7 @@ import {
 import { Save, Upload, Camera } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { useSnackbar } from '@/components/providers/snackbar-provider';
+import { useRouter } from 'next/navigation';
 
 const TIMEZONES = [
   { value: 'Australia/Sydney', label: 'Sydney (AEST)' },
@@ -66,6 +67,7 @@ export function ProfilePageForm({
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const { showSnackbar } = useSnackbar();
+  const router = useRouter();
 
   const hasChanges =
     displayName !== initialName ||
@@ -134,6 +136,7 @@ export function ProfilePageForm({
       showSnackbar('No changes saved — please try signing out and back in', 'error');
     } else {
       showSnackbar('Profile saved');
+      router.refresh();
     }
     setSaving(false);
   }

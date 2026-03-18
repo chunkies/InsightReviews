@@ -1,6 +1,11 @@
 name: E2E Tests
 
 on:
+  # Run automatically after CI passes on main
+  workflow_run:
+    workflows: ['CI']
+    types: [completed]
+    branches: [main]
   # Run manually against any URL
   workflow_dispatch:
     inputs:
@@ -18,17 +23,17 @@ jobs:
   e2e:
     name: Playwright E2E
     runs-on: ubuntu-latest
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
     timeout-minutes: 15
     env:
-      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.E2E_SUPABASE_URL || 'http://localhost:54321' }}
-      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.E2E_SUPABASE_ANON_KEY || 'dummy' }}
-      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.E2E_SUPABASE_SERVICE_ROLE_KEY || 'dummy' }}
-      NEXT_PUBLIC_SITE_URL: ${{ inputs.base_url || 'http://localhost:3000' }}
-      NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || 'pk_test_dummy' }}
-      STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY || 'sk_test_dummy' }}
-      STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET || 'whsec_dummy' }}
-      STRIPE_PRICE_ID: ${{ secrets.STRIPE_PRICE_ID || 'price_dummy' }}
-      E2E_BASE_URL: ${{ inputs.base_url || '' }}
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.E2E_SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.E2E_SUPABASE_ANON_KEY }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.E2E_SUPABASE_SERVICE_ROLE_KEY }}
+      NEXT_PUBLIC_SITE_URL: http://localhost:3000
+      NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: pk_test_dummy
+      STRIPE_SECRET_KEY: sk_test_dummy
+      STRIPE_WEBHOOK_SECRET: whsec_dummy
+      STRIPE_PRICE_ID: price_dummy
     steps:
       - uses: actions/checkout@v4
 
@@ -42,8 +47,7 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
 
-      - name: Build app (local only)
-        if: ${{ !env.E2E_BASE_URL }}
+      - name: Build app
         run: npm run build
 
       - name: Run E2E tests

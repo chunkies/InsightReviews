@@ -98,7 +98,8 @@ export function ProfilePageForm({
 
     const { error } = await supabase.storage.from('avatars').upload(path, file, { upsert: true });
     if (error) {
-      showSnackbar('Failed to upload image', 'error');
+      console.error('Avatar upload error:', error);
+      showSnackbar(`Upload failed: ${error.message}`, 'error');
       setUploading(false);
       return;
     }

@@ -14,7 +14,6 @@ jobs:
   migrate:
     name: Push Migrations to Production
     runs-on: ubuntu-latest
-    environment: production
     steps:
       - uses: actions/checkout@v4
 

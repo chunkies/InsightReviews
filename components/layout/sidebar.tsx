@@ -214,7 +214,7 @@ export function Sidebar({ orgName, billingPlan, trialEndsAt, subscriptionEndsAt,
       {/* Build Version */}
       <Box sx={{ px: 2, pb: 1.5 }}>
         <Typography variant="caption" color="text.disabled" sx={{ fontSize: '0.65rem' }}>
-          {process.env.NEXT_PUBLIC_BUILD_ID} {process.env.NEXT_PUBLIC_BUILD_ENV === 'preview' ? '(staging)' : process.env.NEXT_PUBLIC_BUILD_ENV === 'production' ? '' : '(dev)'}
+          {process.env.NEXT_PUBLIC_BUILD_ID} {process.env.NEXT_PUBLIC_BUILD_ENV === 'preview' ? '(preview)' : process.env.NEXT_PUBLIC_BUILD_ENV === 'production' ? '' : '(dev)'}
         </Typography>
       </Box>
     </>

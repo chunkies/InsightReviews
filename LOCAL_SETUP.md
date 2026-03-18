@@ -245,16 +245,8 @@ The `npx supabase status` display shows short keys, but the app needs JWT tokens
 ## Environment Architecture
 
 ```
-main branch ──→ Vercel Preview (staging)
-                 URL: insightreviews-git-main-chunkies1s-projects.vercel.app
-
-__production branch ──→ Vercel Production
-                         URL: insightreviews.com.au
+main branch ──→ Vercel Production (insightreviews.com.au)
+feature branches / PRs ──→ Vercel Preview (auto-generated URLs)
 ```
 
-To promote staging to production:
-```bash
-git checkout __production
-git merge main
-git push origin __production
-```
+Merging to `main` auto-deploys to production. Database migrations in `supabase/migrations/` are auto-pushed via GitHub Actions.

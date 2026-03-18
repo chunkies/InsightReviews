@@ -10,9 +10,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "test:e2e:staging": "E2E_BASE_URL=https://insightreviews-git-main-chunkies1s-projects.vercel.app playwright test",
-    "db:push:dev": "npx supabase db push --linked --db-url $SUPABASE_DEV_DB_URL",
-    "db:push:prod": "npx supabase db push --linked --db-url $SUPABASE_PROD_DB_URL"
+    "test:e2e:prod": "E2E_BASE_URL=https://insightreviews.com.au playwright test",
+    "db:push": "npx supabase db push --linked"
   },
   "dependencies": {
     "@emotion/cache": "^11.14.0",

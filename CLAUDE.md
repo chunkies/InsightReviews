@@ -246,27 +246,27 @@ Before deploying, manually verify the affected flows using Playwright MCP agains
 
 ### Step 3: Commit and Push
 - Conventional commits (`feat:`, `fix:`, `test:`)
-- Push to `main` to trigger staging deploy
+- Push to `main` → triggers **production deploy** to insightreviews.com.au
+- Migrations in `supabase/migrations/` are auto-pushed via GitHub Actions
 
-### Step 4: Wait for Staging Deploy
-- Run `npx vercel ls` or wait ~90 seconds
-- Do NOT proceed until deployment shows `● Ready`
-- If `● Error` with 0ms build time: Vercel "Ignored Build Step" is rejecting. Run `npx vercel --prod` or check Settings > Git
-- If `● Error` with real build duration: check logs with `npx vercel inspect <url>`
+### Step 4: Wait for Production Deploy
+- Wait ~90 seconds for Vercel to build
+- Do NOT proceed until deployment is live
+- If build fails: check Vercel dashboard or `npx vercel inspect <url>`
 
-### Step 5: Staging Manual Testing (Playwright MCP)
-After deploy, manually test the STAGING site (`insightreviews-git-main-chunkies1s-projects.vercel.app`) using Playwright MCP:
+### Step 5: Production Manual Testing (Playwright MCP)
+After deploy, manually test `insightreviews.com.au` using Playwright MCP:
 - Navigate to affected pages
 - Take screenshots to visually verify
 - Click through the full user flow (login, dashboard, forms, billing)
 - Check `browser_console_messages` for errors (especially hydration errors)
 - If any issues found, go back to Step 1
 
-### Step 6: Production Promotion (only when ready)
-```bash
-git checkout __production && git merge main && git push origin __production
-```
-Then repeat Step 5 against `insightreviews.com.au`.
+### Feature Branch Previews
+- Create a feature branch for larger changes
+- Push → Vercel automatically creates a Preview deployment
+- Test on the preview URL before merging to main
+- PR → CI checks → merge → production auto-deploy
 
 ### Test Accounts for Staging/Production
 | Account | Email | Role | Purpose |
@@ -291,8 +291,9 @@ Use the Playwright MCP browser tools to verify deployed features:
 
 ### Database Migrations
 
-- Always check that all local migrations have been applied to production: `npx supabase db push --linked`
-- Missing migrations are a common source of production bugs (queries fail silently when columns don't exist)
+- Migrations in `supabase/migrations/` are auto-pushed to production via GitHub Actions on merge to main
+- For manual push: `SUPABASE_ACCESS_TOKEN=<token> npx supabase db push --linked`
+- Always test migrations locally first with `npx supabase db reset`
 
 ## Design & UX Standards
 

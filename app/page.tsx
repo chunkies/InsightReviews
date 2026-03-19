@@ -12,6 +12,7 @@ import {
   XCircle, AlertTriangle, ThumbsUp,
 } from 'lucide-react';
 import { ProductDemo } from '@/components/landing/product-demo';
+import { LandingThemeProvider } from '@/components/landing/landing-theme-provider';
 
 export const metadata: Metadata = {
   title: 'InsightReviews — Get More 5-Star Google Reviews for Your Local Business',
@@ -272,6 +273,7 @@ const jsonLd = {
 
 export default function LandingPage() {
   return (
+    <LandingThemeProvider>
     <Box sx={{ overflowX: 'hidden' }}>
       <script
         type="application/ld+json"
@@ -1310,5 +1312,6 @@ export default function LandingPage() {
         </Container>
       </Box>
     </Box>
+    </LandingThemeProvider>
   );
 }

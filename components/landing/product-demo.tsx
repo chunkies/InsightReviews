@@ -25,7 +25,6 @@ const demoSteps = [
 
 export function ProductDemo() {
   const theme = useTheme();
-  const isDark = theme.palette.mode === 'dark';
   const [step, setStep] = useState(0);
 
   useEffect(() => {
@@ -48,7 +47,7 @@ export function ProductDemo() {
           border: `3px solid ${theme.palette.divider}`,
           backgroundColor: theme.palette.background.paper,
           p: 1.5,
-          boxShadow: isDark ? '0 20px 50px rgba(0,0,0,0.3)' : '0 20px 50px rgba(0,0,0,0.1)',
+          boxShadow: '0 20px 50px rgba(0,0,0,0.1)',
           transition: 'all 0.4s ease',
         }}
       >
@@ -115,7 +114,7 @@ export function ProductDemo() {
                   </Box>
                 ))}
               </Box>
-              <Box sx={{ backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : theme.palette.background.default, borderRadius: '8px', p: 1.5, mb: 1.5 }}>
+              <Box sx={{ backgroundColor: theme.palette.background.default, borderRadius: '8px', p: 1.5, mb: 1.5 }}>
                 <Typography sx={{ fontSize: '0.65rem', color: theme.palette.text.secondary }}>
                   Great coffee, lovely staff!
                 </Typography>
@@ -132,7 +131,7 @@ export function ProductDemo() {
             <Box sx={{ textAlign: 'center', animation: 'fadeIn 0.4s ease' }}>
               <Box sx={{
                 width: 56, height: 56, borderRadius: '50%',
-                backgroundColor: isDark ? 'rgba(22,163,74,0.15)' : '#dcfce7', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                backgroundColor: '#dcfce7', display: 'flex', alignItems: 'center', justifyContent: 'center',
                 mx: 'auto', mb: 2,
               }}>
                 <Typography sx={{ fontSize: '1.5rem' }}>✓</Typography>
@@ -159,7 +158,7 @@ export function ProductDemo() {
             <Box sx={{ textAlign: 'center', animation: 'fadeIn 0.4s ease' }}>
               <Box sx={{
                 width: 56, height: 56, borderRadius: '50%',
-                backgroundColor: isDark ? 'rgba(245,158,11,0.15)' : '#fef3c7', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                backgroundColor: '#fef3c7', display: 'flex', alignItems: 'center', justifyContent: 'center',
                 mx: 'auto', mb: 2,
               }}>
                 <Typography sx={{ fontSize: '1.5rem' }}>🔒</Typography>

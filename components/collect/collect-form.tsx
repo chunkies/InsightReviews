@@ -85,37 +85,115 @@ export function CollectForm({ orgId, orgName, orgSlug, reviewUrl, qrUrl, recentR
         <html>
         <head>
           <title>Review Card — ${orgName}</title>
+          <link rel="preconnect" href="https://fonts.googleapis.com">
+          <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+          <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
           <style>
-            @page { size: A6 landscape; margin: 0; }
+            @page { size: 148mm 210mm; margin: 0; }
             * { margin: 0; padding: 0; box-sizing: border-box; }
-            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+            body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
             .card {
-              width: 148mm; height: 105mm;
-              border: 2px dashed #ccc;
+              width: 148mm; height: 210mm;
               display: flex;
+              flex-direction: column;
               align-items: center;
-              justify-content: center;
-              padding: 16mm;
-              gap: 12mm;
+              justify-content: space-between;
+              padding: 14mm 12mm 10mm;
+              background: white;
+              border: 1px dashed #ddd;
+              position: relative;
             }
-            .left { text-align: center; flex-shrink: 0; }
-            .left img { width: 40mm; height: 40mm; }
-            .right { text-align: left; }
-            .right h1 { font-size: 16pt; margin-bottom: 4mm; color: #111; }
-            .right p { font-size: 11pt; color: #555; line-height: 1.5; margin-bottom: 3mm; }
-            .right .url { font-size: 8pt; color: #999; word-break: break-all; }
+            .header { text-align: center; }
+            .business-name {
+              font-size: 22pt;
+              font-weight: 900;
+              color: #0f172a;
+              letter-spacing: -0.02em;
+              line-height: 1.1;
+              margin-bottom: 3mm;
+            }
+            .tagline {
+              font-size: 11pt;
+              font-weight: 500;
+              color: #64748b;
+              margin-bottom: 6mm;
+            }
+            .divider {
+              width: 32mm;
+              height: 1mm;
+              border-radius: 1mm;
+              background: linear-gradient(135deg, #2563eb, #7c3aed);
+              margin: 0 auto;
+            }
+            .body { text-align: center; }
+            .cta {
+              font-size: 15pt;
+              font-weight: 800;
+              color: #0f172a;
+              margin-bottom: 3mm;
+              letter-spacing: -0.01em;
+            }
+            .subtitle {
+              font-size: 10pt;
+              color: #64748b;
+              font-weight: 400;
+              margin-bottom: 6mm;
+              line-height: 1.5;
+            }
+            .qr-wrapper {
+              background: white;
+              border: 2px solid #e2e8f0;
+              border-radius: 5mm;
+              padding: 4mm;
+              display: inline-block;
+              margin-bottom: 5mm;
+            }
+            .qr-wrapper img { width: 48mm; height: 48mm; display: block; }
+            .stars {
+              font-size: 20pt;
+              margin-bottom: 3mm;
+              letter-spacing: 2px;
+            }
+            .instruction {
+              font-size: 9pt;
+              color: #94a3b8;
+              font-weight: 400;
+              line-height: 1.6;
+            }
+            .footer {
+              text-align: center;
+              border-top: 1px solid #e2e8f0;
+              padding-top: 4mm;
+              width: 100%;
+            }
+            .powered {
+              font-size: 7pt;
+              color: #94a3b8;
+              font-weight: 500;
+              letter-spacing: 0.08em;
+              text-transform: uppercase;
+            }
             @media print { .card { border: none; } }
           </style>
         </head>
         <body>
           <div class="card">
-            <div class="left">
-              <img src="${dataUrl}" alt="QR Code" />
+            <div class="header">
+              <div class="business-name">${orgName}</div>
+              <div class="tagline">We value your feedback</div>
+              <div class="divider"></div>
             </div>
-            <div class="right">
-              <h1>${orgName}</h1>
-              <p>We'd love your feedback!<br/>Scan this code to leave us a quick review.</p>
-              <div class="url">${reviewUrl}</div>
+            <div class="body">
+              <div class="cta">How was your experience?</div>
+              <div class="subtitle">Scan the QR code below to leave us<br/>a quick review — it only takes 30 seconds.</div>
+              <div class="qr-wrapper">
+                <img src="${dataUrl}" alt="QR Code" />
+              </div>
+              <div class="stars">★ ★ ★ ★ ★</div>
+              <div class="instruction">Open your phone camera &middot; Point at the code &middot; Tap the link</div>
+            </div>
+            <div class="footer">
+              <div class="powered">Powered by InsightReviews</div>
             </div>
           </div>
         </body>
@@ -123,7 +201,7 @@ export function CollectForm({ orgId, orgName, orgSlug, reviewUrl, qrUrl, recentR
       `);
       printWindow.document.close();
       printWindow.focus();
-      printWindow.print();
+      setTimeout(() => printWindow.print(), 500);
     } catch {
       showSnackbar('Failed to open print dialog', 'error');
     }

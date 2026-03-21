@@ -6,6 +6,7 @@ import {
   Alert,
 } from '@mui/material';
 import { ArrowRight, ArrowLeft, CreditCard } from 'lucide-react';
+import { trackConversion } from '@/lib/analytics/tracking';
 interface OnboardingWizardProps {
   userId: string;
   initialName?: string;
@@ -71,6 +72,8 @@ export function OnboardingWizard({ userId: _userId, initialName = '' }: Onboardi
         setLoading(false);
         return;
       }
+
+      trackConversion('onboarding_complete');
 
       // Step 2: Create Stripe Checkout session and redirect
       const checkoutRes = await fetch('/api/stripe/create-checkout', {

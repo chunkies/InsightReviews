@@ -2,6 +2,7 @@ import { Box, Container, Typography } from '@mui/material';
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { OnboardingWizard } from '@/components/onboarding/onboarding-wizard';
+import { TrackSignup } from '@/components/analytics/track-signup';
 
 export default async function OnboardingPage() {
   const supabase = await createClient();
@@ -27,6 +28,7 @@ export default async function OnboardingPage() {
           Let&apos;s get your review collection up and running in 2 minutes.
         </Typography>
         <OnboardingWizard userId={user.id} initialName={user.user_metadata?.full_name ?? ''} />
+        <TrackSignup />
       </Box>
     </Container>
   );

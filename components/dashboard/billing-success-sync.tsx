@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { trackConversion } from '@/lib/analytics/tracking';
 
 export function BillingSuccessSync() {
   const searchParams = useSearchParams();
@@ -10,6 +11,9 @@ export function BillingSuccessSync() {
   useEffect(() => {
     if (searchParams.get('billing') !== 'success' || synced.current) return;
     synced.current = true;
+
+    // Fire conversion events for trial start / purchase
+    trackConversion('trial_started', { value: 0, currency: 'AUD' });
 
     fetch('/api/stripe/sync', { method: 'POST' })
       .then((res) => res.json())

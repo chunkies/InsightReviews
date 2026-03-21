@@ -3,6 +3,7 @@ import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter';
 import { AppThemeProvider } from '@/components/providers/theme-provider';
 import { SnackbarProvider } from '@/components/providers/snackbar-provider';
 import { Analytics } from '@vercel/analytics/next';
+import { AnalyticsScripts } from '@/components/analytics/analytics-scripts';
 
 export const metadata: Metadata = {
   title: {
@@ -45,6 +46,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               {children}
             </SnackbarProvider>
             <Analytics />
+            <AnalyticsScripts />
           </AppThemeProvider>
         </AppRouterCacheProvider>
       </body>

@@ -84,7 +84,8 @@ export function CollectForm({ orgId, orgName, orgSlug, reviewUrl, qrUrl, recentR
         <!DOCTYPE html>
         <html>
         <head>
-          <title>Review Card — ${orgName}</title>
+          <meta charset="UTF-8">
+          <title>Review Card &mdash; ${orgName}</title>
           <link rel="preconnect" href="https://fonts.googleapis.com">
           <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
           <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -185,12 +186,12 @@ export function CollectForm({ orgId, orgName, orgSlug, reviewUrl, qrUrl, recentR
             </div>
             <div class="body">
               <div class="cta">How was your experience?</div>
-              <div class="subtitle">Scan the QR code below to leave us<br/>a quick review — it only takes 30 seconds.</div>
+              <div class="subtitle">Scan the QR code below to leave us<br/>a quick review &mdash; it only takes 30 seconds.</div>
               <div class="qr-wrapper">
                 <img src="${dataUrl}" alt="QR Code" />
               </div>
-              <div class="stars">★ ★ ★ ★ ★</div>
-              <div class="instruction">Open your phone camera &middot; Point at the code &middot; Tap the link</div>
+              <div class="stars">&#9733; &#9733; &#9733; &#9733; &#9733;</div>
+              <div class="instruction">Open your phone camera &#183; Point at the code &#183; Tap the link</div>
             </div>
             <div class="footer">
               <div class="powered">Powered by InsightReviews</div>

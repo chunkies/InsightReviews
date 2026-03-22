@@ -49,7 +49,11 @@ export async function POST(request: NextRequest) {
     let customerIsNew = false;
     if (customerId) {
       try {
-        await stripe.customers.retrieve(customerId);
+        const existing = await stripe.customers.retrieve(customerId);
+        // Stripe returns { deleted: true } for deleted customers instead of throwing
+        if (existing.deleted) {
+          throw new Error('Customer was deleted');
+        }
       } catch {
         // Customer doesn't exist in Stripe (deleted or wrong environment) — clear it
         customerId = null;

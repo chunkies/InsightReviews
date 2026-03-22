@@ -38,6 +38,25 @@ export async function POST(request: NextRequest) {
     const stripe = createStripeClient();
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL!.trim();
 
+    // Verify customer still exists in Stripe (not deleted)
+    try {
+      const customer = await stripe.customers.retrieve(org.stripe_customer_id);
+      if (customer.deleted) {
+        // Clear stale customer ID — user needs to re-subscribe
+        await supabase
+          .from('organizations')
+          .update({ stripe_customer_id: null, stripe_subscription_id: null, billing_plan: 'cancelled' })
+          .eq('id', organizationId);
+        return NextResponse.json({ error: 'Billing account no longer exists. Please resubscribe.' }, { status: 400 });
+      }
+    } catch {
+      await supabase
+        .from('organizations')
+        .update({ stripe_customer_id: null, stripe_subscription_id: null, billing_plan: 'cancelled' })
+        .eq('id', organizationId);
+      return NextResponse.json({ error: 'Billing account not found. Please resubscribe.' }, { status: 400 });
+    }
+
     const session = await stripe.billingPortal.sessions.create({
       customer: org.stripe_customer_id,
       return_url: `${siteUrl}/dashboard/billing`,

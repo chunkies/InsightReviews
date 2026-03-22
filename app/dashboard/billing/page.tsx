@@ -54,10 +54,26 @@ export default async function BillingPage() {
   if (org.stripe_customer_id) {
     try {
       const stripe = createStripeClient();
-      const subscriptions = await stripe.subscriptions.list({
-        customer: org.stripe_customer_id,
-        limit: 1,
-      });
+
+      // Verify customer still exists (not deleted) before querying subscriptions
+      const customer = await stripe.customers.retrieve(org.stripe_customer_id);
+      if (customer.deleted) {
+        // Clear stale customer — will fall through to show cancelled/resubscribe state
+        await supabase
+          .from('organizations')
+          .update({ stripe_customer_id: null, stripe_subscription_id: null, billing_plan: 'cancelled' })
+          .eq('id', org.id);
+        org.stripe_customer_id = null;
+        org.stripe_subscription_id = null;
+        org.billing_plan = 'cancelled';
+      }
+
+      const subscriptions = org.stripe_customer_id
+        ? await stripe.subscriptions.list({
+            customer: org.stripe_customer_id,
+            limit: 1,
+          })
+        : { data: [] };
 
       const stripeSub = subscriptions.data[0];
 

@@ -9,10 +9,12 @@
  * No OAuth needed — just an API key.
  */
 
+import { envRequired } from '@/lib/utils/env';
+
 const YELP_API_BASE = 'https://api.yelp.com/v3';
 
 function getApiKey(): string {
-  return process.env.YELP_API_KEY!;
+  return envRequired('YELP_API_KEY');
 }
 
 export interface YelpBusiness {

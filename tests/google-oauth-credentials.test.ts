@@ -16,9 +16,8 @@ describe('Google OAuth credentials validation', () => {
     delete process.env.GOOGLE_CLIENT_ID;
     delete process.env.GOOGLE_CLIENT_SECRET;
 
-    // Dynamic import to pick up fresh env
     const { getCredentials } = await import('@/lib/integrations/google');
-    expect(() => getCredentials()).toThrow('Google OAuth not configured');
+    expect(() => getCredentials()).toThrow('GOOGLE_CLIENT_ID');
   });
 
   it('throws when GOOGLE_CLIENT_SECRET is missing', async () => {
@@ -26,7 +25,7 @@ describe('Google OAuth credentials validation', () => {
     delete process.env.GOOGLE_CLIENT_SECRET;
 
     const { getCredentials } = await import('@/lib/integrations/google');
-    expect(() => getCredentials()).toThrow('Google OAuth not configured');
+    expect(() => getCredentials()).toThrow('GOOGLE_CLIENT_SECRET');
   });
 
   it('throws when NEXT_PUBLIC_SITE_URL is missing', async () => {
@@ -35,7 +34,7 @@ describe('Google OAuth credentials validation', () => {
     delete process.env.NEXT_PUBLIC_SITE_URL;
 
     const { getCredentials } = await import('@/lib/integrations/google');
-    expect(() => getCredentials()).toThrow('NEXT_PUBLIC_SITE_URL must be set');
+    expect(() => getCredentials()).toThrow('NEXT_PUBLIC_SITE_URL');
   });
 
   it('returns credentials when all env vars are set', async () => {
@@ -51,10 +50,10 @@ describe('Google OAuth credentials validation', () => {
     expect(creds.redirectUri).toBe('https://insightreviews.com.au/api/integrations/google/callback');
   });
 
-  it('trims whitespace from NEXT_PUBLIC_SITE_URL', async () => {
+  it('trims whitespace from NEXT_PUBLIC_SITE_URL via envRequired', async () => {
     process.env.GOOGLE_CLIENT_ID = 'test-client-id';
     process.env.GOOGLE_CLIENT_SECRET = 'test-client-secret';
-    process.env.NEXT_PUBLIC_SITE_URL = '  https://insightreviews.com.au  ';
+    process.env.NEXT_PUBLIC_SITE_URL = 'https://insightreviews.com.au\n';
 
     const { getCredentials } = await import('@/lib/integrations/google');
     const creds = getCredentials();
@@ -82,6 +81,6 @@ describe('Google OAuth credentials validation', () => {
     delete process.env.GOOGLE_CLIENT_SECRET;
 
     const { getGoogleAuthUrl } = await import('@/lib/integrations/google');
-    expect(() => getGoogleAuthUrl('test-state')).toThrow('Google OAuth not configured');
+    expect(() => getGoogleAuthUrl('test-state')).toThrow('GOOGLE_CLIENT_ID');
   });
 });

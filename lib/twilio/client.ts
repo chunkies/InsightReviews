@@ -1,16 +1,19 @@
 import twilio from 'twilio';
+import { envRequired } from '@/lib/utils/env';
 
-const accountSid = process.env.TWILIO_ACCOUNT_SID!;
-const authToken = process.env.TWILIO_AUTH_TOKEN!;
-const fromNumber = process.env.TWILIO_PHONE_NUMBER!;
+function getTwilioClient() {
+  return twilio(envRequired('TWILIO_ACCOUNT_SID'), envRequired('TWILIO_AUTH_TOKEN'));
+}
 
-const twilioClient = twilio(accountSid, authToken);
+function getFromNumber() {
+  return envRequired('TWILIO_PHONE_NUMBER');
+}
 
 export async function sendSms(to: string, body: string): Promise<string | null> {
   try {
-    const message = await twilioClient.messages.create({
+    const message = await getTwilioClient().messages.create({
       body,
-      from: fromNumber,
+      from: getFromNumber(),
       to,
     });
     return message.sid;
@@ -21,7 +24,7 @@ export async function sendSms(to: string, body: string): Promise<string | null> 
       message: twilioErr.message,
       moreInfo: twilioErr.moreInfo,
       to,
-      from: fromNumber,
+      from: getFromNumber(),
     });
     return null;
   }

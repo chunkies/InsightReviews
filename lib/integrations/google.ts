@@ -17,27 +17,18 @@
  * - https://www.googleapis.com/auth/business.manage (read reviews + reply)
  */
 
+import { envRequired } from '@/lib/utils/env';
+
 const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token';
 const GOOGLE_AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth';
 const GBP_API_BASE = 'https://mybusinessaccountmanagement.googleapis.com/v1';
 const GBP_INFO_BASE = 'https://mybusinessbusinessinformation.googleapis.com/v1';
 
 export function getCredentials() {
-  const clientId = process.env.GOOGLE_CLIENT_ID;
-  const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
-
-  if (!clientId || !clientSecret) {
-    throw new Error('Google OAuth not configured: GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET must be set');
-  }
-  if (!siteUrl) {
-    throw new Error('NEXT_PUBLIC_SITE_URL must be set for Google OAuth redirect');
-  }
-
   return {
-    clientId,
-    clientSecret,
-    redirectUri: `${siteUrl.trim()}/api/integrations/google/callback`,
+    clientId: envRequired('GOOGLE_CLIENT_ID'),
+    clientSecret: envRequired('GOOGLE_CLIENT_SECRET'),
+    redirectUri: `${envRequired('NEXT_PUBLIC_SITE_URL')}/api/integrations/google/callback`,
   };
 }
 

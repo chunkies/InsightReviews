@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
     // Create authenticated client to get user
     const supabaseAuth = createServerClient(
       envRequired('NEXT_PUBLIC_SUPABASE_URL'),
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      envRequired('NEXT_PUBLIC_SUPABASE_ANON_KEY'),
       {
         cookies: {
           getAll() {

@@ -34,6 +34,10 @@ yarn-error.log*
 .env.production
 .env.vercel-prod
 
+# temp files
+bookmarks-*.html
+.bitwarden-import.csv
+
 # vercel
 .vercel
 

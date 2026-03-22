@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
+import { envRequired } from '@/lib/utils/env';
 
 export async function POST(request: NextRequest) {
   try {
@@ -8,7 +9,7 @@ export async function POST(request: NextRequest) {
 
     // Create authenticated client to get user
     const supabaseAuth = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      envRequired('NEXT_PUBLIC_SUPABASE_URL'),
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
       {
         cookies: {
@@ -41,8 +42,8 @@ export async function POST(request: NextRequest) {
 
     // Use service role client to bypass RLS for onboarding
     const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      envRequired('NEXT_PUBLIC_SUPABASE_URL'),
+      envRequired('SUPABASE_SERVICE_ROLE_KEY'),
       {
         cookies: {
           getAll() { return []; },

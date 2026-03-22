@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { buildDigestEmailHtml, buildDigestEmailText } from '@/lib/email/templates/weekly-digest';
 import type { DigestData } from '@/lib/email/templates/weekly-digest';
+import { envRequired } from '@/lib/utils/env';
 
 export async function GET(request: NextRequest) {
   // Verify cron secret
@@ -13,8 +14,8 @@ export async function GET(request: NextRequest) {
   }
 
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!.trim(),
-    process.env.SUPABASE_SERVICE_ROLE_KEY!.trim(),
+    envRequired('NEXT_PUBLIC_SUPABASE_URL'),
+    envRequired('SUPABASE_SERVICE_ROLE_KEY'),
     {
       cookies: {
         getAll() { return []; },
@@ -93,8 +94,8 @@ export async function GET(request: NextRequest) {
       const subject = `Weekly Review Digest - ${org.name}`;
 
       // Send via same email mechanism as the rest of the app
-      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-      const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+      const supabaseUrl = envRequired('NEXT_PUBLIC_SUPABASE_URL');
+      const serviceRoleKey = envRequired('SUPABASE_SERVICE_ROLE_KEY');
 
       const res = await fetch(`${supabaseUrl}/functions/v1/send-email`, {
         method: 'POST',

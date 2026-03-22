@@ -2,6 +2,7 @@ import { createServerClient } from '@supabase/ssr';
 import { NextRequest, NextResponse } from 'next/server';
 import { sendFollowupEmail } from '@/lib/email/client';
 import { sendSms } from '@/lib/twilio/client';
+import { envRequired } from '@/lib/utils/env';
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,8 +15,8 @@ export async function POST(request: NextRequest) {
     }
 
     const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      envRequired('NEXT_PUBLIC_SUPABASE_URL'),
+      envRequired('SUPABASE_SERVICE_ROLE_KEY'),
       {
         cookies: {
           getAll() { return []; },

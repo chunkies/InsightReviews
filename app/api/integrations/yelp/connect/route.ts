@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { createServerClient } from '@supabase/ssr';
 import { searchYelpBusiness } from '@/lib/integrations/yelp';
 import { requireBilling } from '@/lib/utils/admin';
+import { envRequired } from '@/lib/utils/env';
 
 export async function POST(request: NextRequest) {
   try {
@@ -71,8 +72,8 @@ export async function PUT(request: NextRequest) {
       : `https://www.yelp.com/writeareview/biz/${yelpBusinessId}`;
 
     const serviceSupabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      envRequired('NEXT_PUBLIC_SUPABASE_URL'),
+      envRequired('SUPABASE_SERVICE_ROLE_KEY'),
       { cookies: { getAll() { return []; }, setAll() {} } }
     );
 

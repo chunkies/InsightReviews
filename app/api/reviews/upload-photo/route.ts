@@ -1,6 +1,7 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextRequest, NextResponse } from 'next/server';
 import { randomUUID } from 'crypto';
+import { envRequired } from '@/lib/utils/env';
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
@@ -40,8 +41,8 @@ export async function POST(request: NextRequest) {
 
     // Service role client — this is a public endpoint (anonymous photo uploads)
     const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      envRequired('NEXT_PUBLIC_SUPABASE_URL'),
+      envRequired('SUPABASE_SERVICE_ROLE_KEY'),
       {
         cookies: {
           getAll() { return []; },

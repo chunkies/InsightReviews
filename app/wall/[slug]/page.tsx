@@ -5,6 +5,7 @@ import { TestimonialWall } from '@/components/testimonials/testimonial-wall';
 import { mergeWallConfig } from '@/lib/types/wall-config';
 import { checkReviewPageAccess } from '@/lib/utils/review-page-access';
 import type { Metadata } from 'next';
+import { envRequired } from '@/lib/utils/env';
 
 export const revalidate = 300; // Cache for 5 minutes
 
@@ -14,8 +15,8 @@ interface PageProps {
 
 function getSupabaseClient() {
   return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    envRequired('NEXT_PUBLIC_SUPABASE_URL'),
+    envRequired('SUPABASE_SERVICE_ROLE_KEY'),
     {
       cookies: {
         getAll() { return []; },

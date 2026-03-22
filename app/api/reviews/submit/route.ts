@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { fireWebhook } from '@/lib/utils/webhook';
 import { sendNegativeReviewNotification } from '@/lib/email/client';
 import { checkReviewPageAccess } from '@/lib/utils/review-page-access';
+import { envRequired } from '@/lib/utils/env';
 
 const RATE_LIMIT_MAX = 10;
 const RATE_LIMIT_WINDOW_SECONDS = 3600; // 1 hour
@@ -28,8 +29,8 @@ export async function POST(request: NextRequest) {
 
     // Service role client — this is a public endpoint
     const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!.trim(),
-      process.env.SUPABASE_SERVICE_ROLE_KEY!.trim(),
+      envRequired('NEXT_PUBLIC_SUPABASE_URL'),
+      envRequired('SUPABASE_SERVICE_ROLE_KEY'),
       {
         cookies: {
           getAll() { return []; },

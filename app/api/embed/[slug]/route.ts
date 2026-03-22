@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextRequest, NextResponse } from 'next/server';
+import { envRequired } from '@/lib/utils/env';
 
 export async function GET(
   request: NextRequest,
@@ -8,8 +9,8 @@ export async function GET(
   const { slug } = await params;
 
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    envRequired('NEXT_PUBLIC_SUPABASE_URL'),
+    envRequired('SUPABASE_SERVICE_ROLE_KEY'),
     {
       cookies: {
         getAll() { return []; },

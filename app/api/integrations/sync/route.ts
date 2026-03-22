@@ -5,11 +5,12 @@ import { refreshGoogleToken, fetchGoogleReviews, starRatingToNumber } from '@/li
 import { fetchFacebookRatings, facebookRatingToNumber } from '@/lib/integrations/facebook';
 import { getYelpReviews, getYelpBusinessSummary } from '@/lib/integrations/yelp';
 import type { OrganizationIntegration } from '@/lib/types/database';
+import { envRequired } from '@/lib/utils/env';
 
 function getServiceClient() {
   return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    envRequired('NEXT_PUBLIC_SUPABASE_URL'),
+    envRequired('SUPABASE_SERVICE_ROLE_KEY'),
     { cookies: { getAll() { return []; }, setAll() {} } }
   );
 }

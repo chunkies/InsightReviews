@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { exchangeGoogleCode, listGoogleAccounts, listGoogleLocations } from '@/lib/integrations/google';
+import { envRequired } from '@/lib/utils/env';
 
 export async function GET(request: NextRequest) {
   try {
@@ -61,8 +62,8 @@ export async function GET(request: NextRequest) {
 
         const { createServerClient } = await import('@supabase/ssr');
         const serviceSupabase = createServerClient(
-          process.env.NEXT_PUBLIC_SUPABASE_URL!,
-          process.env.SUPABASE_SERVICE_ROLE_KEY!,
+          envRequired('NEXT_PUBLIC_SUPABASE_URL'),
+          envRequired('SUPABASE_SERVICE_ROLE_KEY'),
           { cookies: { getAll() { return []; }, setAll() {} } }
         );
 
@@ -90,8 +91,8 @@ export async function GET(request: NextRequest) {
       // Use service role to bypass RLS for insert (server-side operation)
       const { createServerClient } = await import('@supabase/ssr');
       const serviceSupabase = createServerClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY!,
+        envRequired('NEXT_PUBLIC_SUPABASE_URL'),
+        envRequired('SUPABASE_SERVICE_ROLE_KEY'),
         { cookies: { getAll() { return []; }, setAll() {} } }
       );
 

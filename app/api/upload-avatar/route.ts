@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createClient as createServiceClient } from '@supabase/supabase-js';
+import { envRequired } from '@/lib/utils/env';
 
 export async function POST(request: NextRequest) {
   // Verify the user is authenticated
@@ -40,8 +41,8 @@ export async function POST(request: NextRequest) {
 
   // Use service role to bypass storage RLS
   const serviceClient = createServiceClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    envRequired('NEXT_PUBLIC_SUPABASE_URL'),
+    envRequired('SUPABASE_SERVICE_ROLE_KEY'),
   );
 
   const buffer = Buffer.from(await file.arrayBuffer());

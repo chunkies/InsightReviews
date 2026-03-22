@@ -1,5 +1,6 @@
 import type { MetadataRoute } from 'next';
 import { createServerClient } from '@supabase/ssr';
+import { envRequired } from '@/lib/utils/env';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://insightreviews.com.au';
@@ -53,8 +54,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Dynamic routes — fetch public org slugs for wall pages
   try {
     const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      envRequired('NEXT_PUBLIC_SUPABASE_URL'),
+      envRequired('SUPABASE_SERVICE_ROLE_KEY'),
       {
         cookies: {
           getAll() { return []; },

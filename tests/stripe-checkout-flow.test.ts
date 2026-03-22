@@ -271,8 +271,8 @@ describe('Stripe create-portal endpoint', () => {
     expect(source).toMatch(/dashboard\/billing/);
   });
 
-  it('trims site URL', () => {
-    expect(source).toMatch(/NEXT_PUBLIC_SITE_URL.*\.trim\(\)/);
+  it('uses envRequired for site URL (trims automatically)', () => {
+    expect(source).toMatch(/envRequired\(['"]NEXT_PUBLIC_SITE_URL['"]\)/);
   });
 });
 

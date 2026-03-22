@@ -4,6 +4,7 @@ import { sendSms, buildReviewLink, buildSmsBody } from '@/lib/twilio/client';
 import { sendReviewEmail } from '@/lib/email/client';
 import { logActivity } from '@/lib/utils/activity-logger';
 import { requireBilling } from '@/lib/utils/admin';
+import { envRequired } from '@/lib/utils/env';
 
 export async function POST(request: NextRequest) {
   try {
@@ -108,7 +109,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to create request' }, { status: 500 });
     }
 
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL!.trim();
+    const siteUrl = envRequired('NEXT_PUBLIC_SITE_URL');
     const baseLink = buildReviewLink(siteUrl, org.slug);
     const link = `${baseLink}?rid=${reviewRequest.id}`;
     const messageBody = buildSmsBody(org.sms_template, org.name, link);

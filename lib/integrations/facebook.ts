@@ -20,14 +20,16 @@
  * The API returns both old ratings and new recommendations depending on the Page.
  */
 
+import { envRequired } from '@/lib/utils/env';
+
 const FB_GRAPH_BASE = 'https://graph.facebook.com/v19.0';
 const FB_AUTH_URL = 'https://www.facebook.com/v19.0/dialog/oauth';
 
 function getCredentials() {
   return {
-    appId: process.env.FACEBOOK_APP_ID!,
-    appSecret: process.env.FACEBOOK_APP_SECRET!,
-    redirectUri: `${process.env.NEXT_PUBLIC_SITE_URL!.trim()}/api/integrations/facebook/callback`,
+    appId: envRequired('FACEBOOK_APP_ID'),
+    appSecret: envRequired('FACEBOOK_APP_SECRET'),
+    redirectUri: `${envRequired('NEXT_PUBLIC_SITE_URL')}/api/integrations/facebook/callback`,
   };
 }
 

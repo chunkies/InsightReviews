@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { createStripeClient } from '@/lib/stripe/server';
 import { PLAN } from '@/lib/utils/constants';
+import { envRequired } from '@/lib/utils/env';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
@@ -41,7 +42,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Organization not found' }, { status: 404 });
     }
 
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL!.trim();
+    const siteUrl = envRequired('NEXT_PUBLIC_SITE_URL');
     const stripe = createStripeClient();
 
     // Create or reuse Stripe customer (verify it still exists in Stripe)

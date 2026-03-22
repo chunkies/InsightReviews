@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { createStripeClient } from '@/lib/stripe/server';
+import { envRequired } from '@/lib/utils/env';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
@@ -36,7 +37,7 @@ export async function POST(request: NextRequest) {
     }
 
     const stripe = createStripeClient();
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL!.trim();
+    const siteUrl = envRequired('NEXT_PUBLIC_SITE_URL');
 
     // Verify customer still exists in Stripe (not deleted)
     try {

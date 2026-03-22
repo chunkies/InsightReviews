@@ -34,6 +34,9 @@ export const metadata: Metadata = {
   verification: {
     google: 'm4IpEgczxr-EE9dSEq8o45oUbe-yLl-WbnkqbKkn7bo',
   },
+  other: {
+    'facebook-domain-verification': 'tn69p9saf7rk7i9jtu4px2eje9kowu',
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

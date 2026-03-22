@@ -316,11 +316,12 @@ export default function LandingPage() {
           <Button
             href="/auth/login?mode=signup"
             variant="contained"
+            size="small"
             sx={{
-              display: { xs: 'none', md: 'inline-flex' },
               background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
               boxShadow: '0 2px 8px rgba(37,99,235,0.3)',
-              px: 2,
+              px: { xs: 1.5, md: 2 },
+              fontSize: { xs: '0.75rem', md: '0.875rem' },
             }}
           >
             Start Free Trial

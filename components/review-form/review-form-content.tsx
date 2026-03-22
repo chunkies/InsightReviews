@@ -837,6 +837,7 @@ export function ReviewFormContent({ org, platforms, reviewRequestId, source, con
 
   /* ─── Main Rating Form ──────────────────────────────────── */
   return (
+    <>
     <Paper sx={{
       ...cardSx,
       animation: 'rf-fade-in 0.5s ease forwards',
@@ -1130,5 +1131,16 @@ export function ReviewFormContent({ org, platforms, reviewRequestId, source, con
         )}
       </Box>
     </Paper>
+    <Box sx={{ textAlign: 'center', mt: 2, opacity: 0.5 }}>
+      <a
+        href="https://insightreviews.com.au?utm_source=review_form&utm_medium=badge"
+        target="_blank"
+        rel="noopener"
+        style={{ color: 'inherit', textDecoration: 'none', fontSize: '0.7rem' }}
+      >
+        Powered by InsightReviews
+      </a>
+    </Box>
+    </>
   );
 }

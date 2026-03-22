@@ -1273,6 +1273,45 @@ export default function LandingPage() {
         }}
       >
         <Container maxWidth="lg">
+          {/* Directory backlinks — required for SEO dofollow links */}
+          <Box sx={{ textAlign: 'center', mb: 3 }}>
+            <Typography variant="caption" sx={{ color: '#94a3b8', letterSpacing: 1, textTransform: 'uppercase', fontWeight: 600, fontSize: '0.65rem' }}>
+              Featured On
+            </Typography>
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: { xs: 1.5, md: 2 }, mt: 1 }}>
+              {[
+                { name: 'Startup Fame', url: 'https://startupfa.me/s/insightreviews?utm_source=insightreviews.com.au' },
+                { name: 'Fazier', url: 'https://fazier.com/launches/insightreviews' },
+                { name: 'Findly.tools', url: 'https://findly.tools' },
+                { name: 'NewTool.site', url: 'https://newtool.site' },
+                { name: 'Turbo0', url: 'https://turbo0.com/item/insightreviews' },
+                { name: 'Dofollow.Tools', url: 'https://dofollow.tools' },
+                { name: 'FrogDR', url: 'https://frogdr.com' },
+                { name: 'Stack Directory', url: 'https://stackdirectory.com' },
+                { name: 'Startup Fast', url: 'https://startupfa.st' },
+                { name: 'LaunchVoid', url: 'https://launchvoid.com' },
+                { name: 'SaaSBison', url: 'https://saasbison.com' },
+                { name: 'Startup Vessel', url: 'https://startupvessel.com' },
+                { name: 'ToolPilot.ai', url: 'https://www.toolpilot.ai' },
+                { name: 'Web Review', url: 'https://web-review.com' },
+                { name: 'Twelve Tools', url: 'https://twelve.tools' },
+                { name: 'Wired Business', url: 'https://wired.business' },
+                { name: 'DeepLaunch', url: 'https://deeplaunch.io' },
+              ].map((d) => (
+                <Typography
+                  key={d.name}
+                  component="a"
+                  href={d.url}
+                  target="_blank"
+                  rel="noopener"
+                  variant="caption"
+                  sx={{ color: '#94a3b8', textDecoration: 'none', fontSize: '0.7rem', '&:hover': { color: '#64748b' } }}
+                >
+                  {d.name}
+                </Typography>
+              ))}
+            </Box>
+          </Box>
           <Box
             sx={{
               display: 'flex',

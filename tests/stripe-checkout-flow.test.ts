@@ -290,8 +290,8 @@ describe('Stripe client configuration', () => {
     'utf-8',
   );
 
-  it('trims STRIPE_SECRET_KEY to handle env var whitespace', () => {
-    expect(source).toMatch(/STRIPE_SECRET_KEY.*\.trim\(\)/);
+  it('sanitizes STRIPE_SECRET_KEY via envRequired to handle env var whitespace', () => {
+    expect(source).toMatch(/envRequired\(['"]STRIPE_SECRET_KEY['"]\)/);
   });
 
   it('sets API version', () => {

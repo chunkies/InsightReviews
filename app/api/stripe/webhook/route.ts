@@ -2,6 +2,7 @@ import { createStripeClient } from '@/lib/stripe/server';
 import { createServerClient } from '@supabase/ssr';
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
+import { envRequired } from '@/lib/utils/env';
 
 export async function POST(request: NextRequest) {
   const body = await request.text();
@@ -15,7 +16,7 @@ export async function POST(request: NextRequest) {
 
   let event: Stripe.Event;
   try {
-    event = stripe.webhooks.constructEvent(body, sig, process.env.STRIPE_WEBHOOK_SECRET!);
+    event = stripe.webhooks.constructEvent(body, sig, envRequired('STRIPE_WEBHOOK_SECRET'));
   } catch (err) {
     console.error('Webhook signature verification failed:', err);
     return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
@@ -23,8 +24,8 @@ export async function POST(request: NextRequest) {
 
   // Service role client for webhook processing (bypasses RLS)
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    envRequired('NEXT_PUBLIC_SUPABASE_URL'),
+    envRequired('SUPABASE_SERVICE_ROLE_KEY'),
     {
       cookies: {
         getAll() { return []; },

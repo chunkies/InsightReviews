@@ -1062,6 +1062,7 @@ export default function LandingPage() {
                     'Unlimited staff accounts + leaderboard',
                     'Public testimonial wall',
                     'Fully branded — your logo, your colours',
+                    '100% compliant with Google review policies',
                     'Setup in 2 minutes, no contract',
                   ].map((item) => (
                     <Box key={item} sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 0.5 }}>

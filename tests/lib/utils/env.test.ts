@@ -143,8 +143,8 @@ describe('env var sanitization prevents real-world bugs', () => {
 
   it('Stripe webhook secret with trailing newline would fail signature verification', () => {
     // Stripe constructEvent throws "No signatures found" if secret has \n
-    process.env.STRIPE_WEBHOOK_SECRET = 'whsec_AtkNsQzvc1DWFc4pXTChXkXJVJHlNkPn\n';
-    expect(env('STRIPE_WEBHOOK_SECRET')).toBe('whsec_AtkNsQzvc1DWFc4pXTChXkXJVJHlNkPn');
+    process.env.STRIPE_WEBHOOK_SECRET = 'whsec_test_placeholder_secret_value\n';
+    expect(env('STRIPE_WEBHOOK_SECRET')).toBe('whsec_test_placeholder_secret_value');
   });
 
   it('GA4 Measurement ID with trailing newline would produce invalid JavaScript', () => {

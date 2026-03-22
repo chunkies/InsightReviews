@@ -54,8 +54,10 @@ export default async function SubscribePage({ searchParams }: PageProps) {
   }
 
   const isPending = org.billing_plan === 'pending';
-  // Anyone who's had a trial or subscription before is a returning user — no new trial
-  const isReturning = !isPending && org.billing_plan !== 'trial';
+  // Anyone who's had a trial/subscription before is a returning user — no new trial.
+  // Also treat expired trials as returning (trial_ends_at in the past).
+  const trialExpired = org.billing_plan === 'trial' && org.trial_ends_at && new Date(org.trial_ends_at) < new Date();
+  const isReturning = !isPending && (org.billing_plan !== 'trial' || trialExpired);
 
   return (
     <Box

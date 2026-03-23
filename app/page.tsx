@@ -54,7 +54,7 @@ const painPoints = [
   {
     icon: AlertTriangle,
     problem: 'One bad review tanks your rating',
-    detail: 'It takes roughly 20 five-star reviews to offset a single 1-star. Most businesses never recover their rating.',
+    detail: 'It takes roughly 20 five-star reviews to offset a single 1-star. Without a system to collect positive reviews, the math never works in your favour.',
   },
   {
     icon: ThumbsUp,
@@ -101,7 +101,7 @@ const extraFeatures = [
   'Unlimited staff accounts — no per-seat charges',
   'Auto follow-up reminders for missed reviews',
   'Weekly email digest with your best and worst reviews',
-  'Public testimonial wall with embed code',
+  'Public testimonial page to showcase your best reviews',
   'Custom SMS templates',
   'Works with Google, Yelp, Facebook, TripAdvisor & any custom URL',
 ];
@@ -173,17 +173,17 @@ const faqs = [
 const proofStats = [
   {
     stat: '<30 sec',
-    label: 'Scan to review',
-    detail: 'Customer scans your QR code, taps a star rating, leaves a comment if they want. No app download, no login, no friction.',
+    label: 'For your customer to leave a review',
+    detail: 'They scan your QR code, tap a star rating, and optionally leave a comment. No app download, no login, no friction.',
   },
   {
-    stat: '5-9%',
-    label: 'More revenue per 0.5-star boost',
-    detail: 'Harvard Business School found that a half-star increase on review platforms drives measurably more revenue for local businesses.',
+    stat: '$1,500+',
+    label: 'Extra monthly revenue from a half-star boost',
+    detail: 'Harvard Business School found that a 0.5-star increase drives 5-9% more revenue. For a local business, that means real money walking through your door.',
   },
   {
     stat: '95%',
-    label: 'SMS open rate',
+    label: 'Of SMS review requests get opened',
     detail: 'Compared to 20% for email. When you send a review request via SMS, it actually gets seen and acted on.',
   },
 ];
@@ -463,7 +463,7 @@ export default function LandingPage() {
                     },
                   }}
                 >
-                  See How It Works
+                  Watch the 30-Second Demo
                 </Button>
               </Box>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.5, sm: 1 }, opacity: 0.6, flexWrap: 'wrap' }}>
@@ -818,7 +818,7 @@ export default function LandingPage() {
             textAlign="center"
             sx={{ mb: 2, fontSize: { xs: '1.8rem', md: '2.4rem' } }}
           >
-            Why It Works
+            The Numbers Behind More Reviews
           </Typography>
           <Typography
             variant="body1"
@@ -826,7 +826,7 @@ export default function LandingPage() {
             textAlign="center"
             sx={{ mb: 6, maxWidth: 550, mx: 'auto' }}
           >
-            QR code on the counter or SMS after the visit. Two simple ways to collect reviews that actually get results.
+            Every stat that matters for your bottom line.
           </Typography>
           <Grid container spacing={3}>
             {proofStats.map((s) => (
@@ -913,7 +913,7 @@ export default function LandingPage() {
           >
             <img
               src="/screenshots/dashboard-hero.png"
-              alt="InsightReviews dashboard showing review stats, rating trends, and review funnel analytics"
+              alt="InsightReviews dashboard showing review stats, rating trends, and performance analytics"
               style={{ width: '100%', display: 'block' }}
               loading="lazy"
             />
@@ -1065,17 +1065,18 @@ export default function LandingPage() {
 
                 <Box sx={{ mb: 3 }}>
                   {[
+                    'Setup in 2 minutes — no training needed',
                     'QR code + SMS review collection',
+                    '100% compliant with Google review policies',
                     'Good reviews go to Google — bad ones stay private',
-                    'Auto-sync reviews from all platforms',
                     'Instant email alerts on negative reviews',
+                    'Auto-sync reviews from all platforms',
                     'Weekly performance digest',
                     'Auto follow-up reminders',
-                    'Unlimited staff accounts + leaderboard',
+                    'Unlimited staff accounts — no per-seat charges',
                     'Public testimonial wall',
                     'Fully branded — your logo, your colours',
-                    '100% compliant with Google review policies',
-                    'Setup in 2 minutes, no contract',
+                    'No contracts. Cancel anytime.',
                   ].map((item) => (
                     <Box key={item} sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 0.5 }}>
                       <CheckCircle2 size={14} color="#16a34a" />
@@ -1099,8 +1100,11 @@ export default function LandingPage() {
                     '&:hover': { boxShadow: '0 6px 20px rgba(37,99,235,0.4)' },
                   }}
                 >
-                  Try It Free for 14 Days
+                  Get Your First 5-Star Review This Week
                 </Button>
+                <Typography variant="caption" sx={{ display: 'block', mt: 1.5, color: 'text.secondary', textAlign: 'center' }}>
+                  14-day free trial. Cancel before it ends and you pay nothing.
+                </Typography>
               </CardContent>
             </Card>
           </Box>
@@ -1200,10 +1204,13 @@ export default function LandingPage() {
               Built in Melbourne by Tristan
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.8, mb: 2 }}>
-              I kept seeing great local businesses — cafes, dentists, salons — stuck with 3-star ratings
-              because their happy customers never thought to leave a review. The unhappy ones always did.
-              I built InsightReviews to fix that imbalance. It&apos;s simple, it works, and it&apos;s priced
-              for businesses that don&apos;t have enterprise budgets.
+              I kept watching great Melbourne businesses — my local cafe, my dentist, the salon
+              down the road — stuck with 3-star Google ratings despite doing brilliant work. The
+              problem was always the same: happy customers walked out without leaving a review.
+              The unhappy ones didn&apos;t. I built InsightReviews to fix that. It takes 2 minutes
+              to set up, your staff can use it with zero training, and if it doesn&apos;t improve
+              your rating, cancel anytime. Got questions? Email me directly
+              at tristan@insightreviews.com.au — I reply personally.
             </Typography>
             <Box sx={{ display: 'flex', justifyContent: 'center', gap: 3, flexWrap: 'wrap' }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>

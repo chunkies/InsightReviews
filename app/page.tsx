@@ -71,8 +71,8 @@ const coreFeatures = [
   },
   {
     icon: TrendingUp,
-    title: 'Smart Review Routing',
-    description: 'Happy customers (4-5 stars) get directed to Google, Yelp & Facebook. Unhappy ones (1-3 stars) stay private so you can follow up.',
+    title: 'Good Reviews Go Public. Bad Ones Stay Private.',
+    description: 'When someone gives you 4-5 stars, they get sent to Google to post publicly. 1-3 stars? The feedback stays between you and them — so you can make it right.',
   },
   {
     icon: Shield,
@@ -121,8 +121,8 @@ const steps = [
   },
   {
     step: '3',
-    title: 'Reviews go where they help most',
-    desc: '4-5 stars? Directed straight to your Google or Yelp page. 1-3 stars? Stays private so you can follow up first.',
+    title: 'Happy reviews go to Google. Unhappy ones come to you.',
+    desc: '4-5 stars? They get sent to your Google page to post publicly. 1-3 stars? The feedback stays private so you can reach out first.',
     icon: TrendingUp,
   },
 ];
@@ -316,12 +316,23 @@ export default function LandingPage() {
           <Button
             href="/auth/login?mode=signup"
             variant="contained"
-            size="small"
             sx={{
-              background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
-              boxShadow: '0 2px 8px rgba(37,99,235,0.3)',
-              px: { xs: 1.5, md: 2 },
-              fontSize: { xs: '0.75rem', md: '0.875rem' },
+              background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+              color: '#000',
+              fontWeight: 700,
+              boxShadow: '0 2px 12px rgba(245,158,11,0.4)',
+              px: { xs: 2, md: 3 },
+              py: { xs: 0.75, md: 1 },
+              fontSize: { xs: '0.8rem', md: '0.9rem' },
+              borderRadius: '50px',
+              textTransform: 'none',
+              letterSpacing: '0.01em',
+              '&:hover': {
+                background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
+                boxShadow: '0 4px 16px rgba(245,158,11,0.5)',
+                transform: 'translateY(-1px)',
+              },
+              transition: 'all 0.2s ease',
             }}
           >
             Start Free Trial
@@ -388,7 +399,7 @@ export default function LandingPage() {
                   letterSpacing: '-0.02em',
                 }}
               >
-                Your Happy Customers Don&apos;t Leave Reviews.{' '}
+                Your Google Rating Is Costing You Customers.{' '}
                 <Box
                   component="span"
                   sx={{
@@ -411,9 +422,9 @@ export default function LandingPage() {
                   fontSize: { xs: '1rem', md: '1.15rem' },
                 }}
               >
-                QR code on the counter. Customer scans, rates, done. Happy customers get
-                directed to Google. Unhappy ones stay private so you can follow up.
-                More 5-star reviews, fewer public complaints.
+                Collect feedback at the counter with a simple QR code. Happy customers
+                get sent straight to Google to leave a 5-star review. Unhappy ones come
+                to you privately — so you can fix it before it ends up online.
               </Typography>
               <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', mb: 3 }}>
                 <Button
@@ -887,8 +898,8 @@ export default function LandingPage() {
             textAlign="center"
             sx={{ mb: 5, maxWidth: 560, mx: 'auto' }}
           >
-            Google, Facebook, and Yelp reviews auto-synced into one place. See your rating trend, review funnel,
-            staff leaderboard, and weekly performance — without logging into three different platforms.
+            See all your Google, Facebook, and Yelp reviews in one place. Track your rating over time,
+            see which staff are collecting the most reviews, and get a weekly summary — no need to check three different apps.
           </Typography>
           <Box
             sx={{
@@ -1032,8 +1043,8 @@ export default function LandingPage() {
             textAlign="center"
             sx={{ mb: 1, maxWidth: 520, mx: 'auto' }}
           >
-            A 0.5-star rating boost drives 5-9% more revenue. For a business doing $30K/month,
-            that&apos;s $1,500-2,700/month — from a $79 investment.
+            Going from 3.8 to 4.3 stars on Google means more people walk through your door.
+            Even two extra customers a week pays for itself — and most businesses see results within the first month.
           </Typography>
           <Box sx={{ textAlign: 'center', mb: 5 }}>
             <Chip
@@ -1055,7 +1066,7 @@ export default function LandingPage() {
                 <Box sx={{ mb: 3 }}>
                   {[
                     'QR code + SMS review collection',
-                    'Smart routing to Google, Yelp, Facebook & more',
+                    'Good reviews go to Google — bad ones stay private',
                     'Auto-sync reviews from all platforms',
                     'Instant email alerts on negative reviews',
                     'Weekly performance digest',
@@ -1113,7 +1124,7 @@ export default function LandingPage() {
             textAlign="center"
             sx={{ mb: 2, fontSize: { xs: '1.8rem', md: '2.4rem' } }}
           >
-            Common Questions
+            Got Questions? We&apos;ve Got Answers.
           </Typography>
           <Typography
             variant="body1"
@@ -1121,7 +1132,7 @@ export default function LandingPage() {
             textAlign="center"
             sx={{ mb: 5, maxWidth: 500, mx: 'auto' }}
           >
-            Everything you need to know before getting started.
+            If yours isn&apos;t here, email tristan@insightreviews.com.au — I reply personally.
           </Typography>
 
           <Box>
@@ -1235,8 +1246,8 @@ export default function LandingPage() {
             Stop Losing Customers to a Low Rating
           </Typography>
           <Typography variant="body1" sx={{ mb: 4, opacity: 0.85, maxWidth: 440, mx: 'auto' }}>
-            Every day without review collection is another day your happy customers leave silently
-            while the unhappy ones post publicly. Fix that in the next 2 minutes.
+            Every day you don&apos;t ask, your happy customers walk out without posting a review —
+            while the unhappy ones go straight to Google. You can change that in the next 2 minutes.
           </Typography>
           <Button
             href="/auth/login?mode=signup"

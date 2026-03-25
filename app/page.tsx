@@ -449,7 +449,7 @@ export default function LandingPage() {
                   Start Free 14-Day Trial
                 </Button>
                 <Button
-                  href="#how-it-works"
+                  href="/demo"
                   variant="outlined"
                   size="large"
                   sx={{
@@ -463,7 +463,7 @@ export default function LandingPage() {
                     },
                   }}
                 >
-                  Watch the 30-Second Demo
+                  Try the Interactive Demo
                 </Button>
               </Box>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.5, sm: 1 }, opacity: 0.6, flexWrap: 'wrap' }}>

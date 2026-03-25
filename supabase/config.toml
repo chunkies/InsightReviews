@@ -36,7 +36,22 @@ subject = "You've Been Invited to InsightReviews"
 content_path = "./supabase/templates/invite.html"
 
 [auth.external.google]
-enabled = false
+enabled = true
+client_id = "env(GOOGLE_CLIENT_ID)"
+secret = "env(GOOGLE_CLIENT_SECRET)"
+redirect_uri = "http://localhost:54421/auth/v1/callback"
+
+[auth.external.facebook]
+enabled = true
+client_id = "env(FACEBOOK_APP_ID)"
+secret = "env(FACEBOOK_APP_SECRET)"
+redirect_uri = "http://localhost:54421/auth/v1/callback"
+
+[auth.external.apple]
+enabled = true
+client_id = "env(APPLE_CLIENT_ID)"
+secret = "env(APPLE_CLIENT_SECRET)"
+redirect_uri = "http://localhost:54421/auth/v1/callback"
 
 [storage]
 enabled = true

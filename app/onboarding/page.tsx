@@ -27,7 +27,7 @@ export default async function OnboardingPage() {
         <Typography variant="body1" color="text.secondary" textAlign="center" sx={{ mb: 4 }}>
           Let&apos;s get your review collection up and running in 2 minutes.
         </Typography>
-        <OnboardingWizard userId={user.id} initialName={user.user_metadata?.full_name ?? ''} />
+        <OnboardingWizard userId={user.id} initialName={user.user_metadata?.full_name ?? user.user_metadata?.name ?? ''} />
         <TrackSignup />
       </Box>
     </Container>

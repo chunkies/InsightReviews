@@ -10,7 +10,7 @@ import {
   TrendingUp, MessageSquare, BarChart3,
   ExternalLink, RotateCcw, QrCode,
   Clock, DollarSign, Zap, Gift, Copy, Palette,
-  MessageCircle,
+  MessageCircle, Users, MapPin,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -131,11 +131,12 @@ export function InteractiveDemo() {
         </Button>
       </Box>
 
-      {/* ─── HERO ─── */}
+      {/* ─── COMPACT HERO — Headline + Demo in one screen ─── */}
       <Box sx={{
         background: 'linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #2563eb 100%)',
         color: 'white',
-        py: { xs: 6, md: 8 },
+        pt: { xs: 3, md: 4 },
+        pb: { xs: 2, md: 3 },
         px: 2,
         textAlign: 'center',
         position: 'relative',
@@ -152,60 +153,44 @@ export function InteractiveDemo() {
         <Container maxWidth="sm" sx={{ position: 'relative', zIndex: 1 }}>
           <Typography sx={{
             fontWeight: 900,
-            fontSize: { xs: '1.8rem', sm: '2.2rem', md: '2.6rem' },
+            fontSize: { xs: '1.5rem', sm: '1.8rem', md: '2.1rem' },
             lineHeight: 1.15,
-            mb: 2,
+            mb: 1,
           }}>
-            Your Google rating is costing you customers.{' '}
+            See how it works.{' '}
             <Box component="span" sx={{
               background: 'linear-gradient(135deg, #fbbf24, #f59e0b)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
             }}>
-              Let&apos;s fix that.
+              Try it yourself.
             </Box>
           </Typography>
 
           <Typography sx={{
-            fontSize: { xs: '1rem', md: '1.15rem' },
-            color: 'rgba(255,255,255,0.8)',
-            mb: 3,
-            maxWidth: 480,
+            fontSize: { xs: '0.85rem', md: '0.95rem' },
+            color: 'rgba(255,255,255,0.7)',
+            mb: 2,
+            maxWidth: 420,
             mx: 'auto',
-            lineHeight: 1.6,
           }}>
-            88% of customers check reviews before choosing a local business.
-            One QR code at the counter fixes your rating. See how.
+            Tap through the exact flow your customers will experience. No signup needed.
           </Typography>
 
-          <Button
-            variant="contained"
-            size="large"
-            onClick={scrollToDemo}
-            endIcon={<ArrowRight size={20} />}
-            sx={{
-              background: 'linear-gradient(135deg, #fbbf24, #f59e0b)',
-              color: '#0f172a',
-              '&:hover': { background: 'linear-gradient(135deg, #fde68a, #fbbf24)', transform: 'translateY(-2px)' },
-              px: 4, py: 1.5,
-              fontSize: '1.05rem',
-              fontWeight: 700,
-              boxShadow: '0 4px 14px rgba(251,191,36,0.4)',
-              transition: 'all 0.2s ease',
-            }}
-          >
-            Try the Demo — It&apos;s Interactive
-          </Button>
-
+          {/* Social proof strip */}
           <Box sx={{
-            display: 'flex', gap: { xs: 2, md: 3 }, justifyContent: 'center',
-            mt: 3, flexWrap: 'wrap',
+            display: 'flex', gap: { xs: 2, md: 4 }, justifyContent: 'center',
+            flexWrap: 'wrap', alignItems: 'center',
           }}>
-            {['No account needed', 'See results in 60 seconds', 'Built for Aussie businesses'].map(t => (
-              <Box key={t} sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                <CheckCircle2 size={14} color="#4ade80" />
-                <Typography sx={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.7)' }}>
-                  {t}
+            {[
+              { icon: <Users size={14} />, text: 'Used by local businesses across Australia' },
+              { icon: <Clock size={14} />, text: 'Setup in under 5 minutes' },
+              { icon: <MapPin size={14} />, text: 'Built in Melbourne' },
+            ].map(t => (
+              <Box key={t.text} sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                <Box sx={{ color: '#4ade80', display: 'flex' }}>{t.icon}</Box>
+                <Typography sx={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)' }}>
+                  {t.text}
                 </Typography>
               </Box>
             ))}
@@ -213,73 +198,9 @@ export function InteractiveDemo() {
         </Container>
       </Box>
 
-      {/* ─── VALUE PROPS ─── */}
-      <Container maxWidth="md" sx={{ py: { xs: 4, md: 5 } }}>
-        <Box sx={{
-          display: 'grid',
-          gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' },
-          gap: 2.5,
-          mb: { xs: 4, md: 6 },
-        }}>
-          {[
-            {
-              icon: <QrCode size={24} color="#2563eb" />,
-              title: 'One QR code',
-              desc: 'Print it, stick it at the counter. Customer scans, taps a rating, done in 30 seconds.',
-            },
-            {
-              icon: <TrendingUp size={24} color="#16a34a" />,
-              title: 'Happy → Google',
-              desc: '4-5 star reviews get directed to Google, Yelp, or Facebook. Your rating goes up.',
-            },
-            {
-              icon: <Shield size={24} color="#f59e0b" />,
-              title: 'Unhappy → Private',
-              desc: '1-3 stars stay between you and the customer. You follow up. They never post publicly.',
-            },
-          ].map((item) => (
-            <Paper key={item.title} elevation={0} sx={{
-              p: 3, textAlign: 'center',
-              border: '1px solid #e2e8f0',
-              borderRadius: 3,
-            }}>
-              <Box sx={{
-                width: 48, height: 48, borderRadius: '12px',
-                bgcolor: '#f8fafc', mx: 'auto', mb: 1.5,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}>
-                {item.icon}
-              </Box>
-              <Typography sx={{ fontWeight: 700, fontSize: '1rem', color: '#0f172a', mb: 0.5 }}>
-                {item.title}
-              </Typography>
-              <Typography sx={{ fontSize: '0.85rem', color: '#64748b', lineHeight: 1.5 }}>
-                {item.desc}
-              </Typography>
-            </Paper>
-          ))}
-        </Box>
-
-        {/* ─── INTERACTIVE DEMO ─── */}
+      {/* ─── INTERACTIVE DEMO — Immediately after hero ─── */}
+      <Container maxWidth="md" sx={{ pt: { xs: 3, md: 4 }, pb: { xs: 2, md: 3 } }}>
         <Box ref={demoRef} sx={{ scrollMarginTop: '80px' }}>
-          <Box sx={{ textAlign: 'center', mb: 3 }}>
-            <Chip label="INTERACTIVE DEMO" size="small" sx={{
-              bgcolor: '#eff6ff', color: '#2563eb', fontWeight: 700, fontSize: '0.7rem',
-              mb: 1.5, letterSpacing: '0.5px',
-            }} />
-            <Typography sx={{
-              fontWeight: 800,
-              fontSize: { xs: '1.4rem', md: '1.8rem' },
-              color: '#0f172a',
-              mb: 0.5,
-            }}>
-              Try it yourself — tap through the flow
-            </Typography>
-            <Typography sx={{ color: '#64748b', fontSize: '0.95rem' }}>
-              This is exactly what your staff and customers will experience
-            </Typography>
-          </Box>
-
           {/* Progress Steps */}
           <Box sx={{
             display: 'flex', justifyContent: 'center', gap: { xs: 0.5, sm: 1 }, mb: 3,
@@ -303,7 +224,7 @@ export function InteractiveDemo() {
                   fontSize: '0.75rem', fontWeight: 700,
                   transition: 'all 0.3s ease',
                 }}>
-                  {i < currentIndex ? '✓' : i + 1}
+                  {i < currentIndex ? '\u2713' : i + 1}
                 </Box>
                 <Typography sx={{
                   fontSize: { xs: '0.65rem', sm: '0.75rem' },
@@ -437,7 +358,7 @@ export function InteractiveDemo() {
                     {smsSending && <LinearProgress sx={{ mt: 1, borderRadius: 1 }} />}
 
                     <Typography sx={{ fontSize: '0.7rem', color: '#94a3b8', mt: 1.5 }}>
-                      Customer gets: &ldquo;Thanks for visiting {DEMO_BUSINESS}! We&apos;d love your feedback 😊&rdquo;
+                      Customer gets: &ldquo;Thanks for visiting {DEMO_BUSINESS}! We&apos;d love your feedback&rdquo;
                     </Typography>
                   </Box>
                 </Box>
@@ -590,7 +511,7 @@ export function InteractiveDemo() {
 
                 {!reviewSubmitted && selectedRating === 0 && (
                   <Typography sx={{ mt: 2, color: '#94a3b8', fontSize: '0.8rem' }}>
-                    👆 Tap a star rating to try it out
+                    Tap a star rating to try it out
                   </Typography>
                 )}
               </Box>
@@ -616,7 +537,6 @@ export function InteractiveDemo() {
                       {selectedRating} stars = happy customer. They get directed to leave a public review on your chosen platforms.
                     </Typography>
 
-                    {/* Mimics the real thank-you card */}
                     <Box sx={{
                       maxWidth: 400, mx: 'auto',
                       borderRadius: 3,
@@ -625,7 +545,6 @@ export function InteractiveDemo() {
                       border: '1px solid rgba(0,0,0,0.06)',
                       position: 'relative', overflow: 'hidden',
                     }}>
-                      {/* Gold glow */}
                       <Box sx={{
                         position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
                         background: 'radial-gradient(ellipse at top, rgba(250,204,21,0.15) 0%, rgba(34,197,94,0.06) 50%, transparent 80%)',
@@ -633,7 +552,6 @@ export function InteractiveDemo() {
                       }} />
 
                       <Box sx={{ position: 'relative', zIndex: 1 }}>
-                        {/* Animated checkmark */}
                         <Box sx={{
                           width: 64, height: 64, borderRadius: '50%', mx: 'auto', mb: 2,
                           background: 'linear-gradient(135deg, #16A34A, #22C55E)',
@@ -657,7 +575,6 @@ export function InteractiveDemo() {
                           We really appreciate your feedback. Would you mind sharing your experience on one of these platforms?
                         </Typography>
 
-                        {/* Platform buttons with real brand colors */}
                         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
                           {[
                             { platform: 'google', label: 'Google' },
@@ -693,7 +610,6 @@ export function InteractiveDemo() {
                           })}
                         </Box>
 
-                        {/* Coupon example */}
                         <Box sx={{
                           mt: 3, p: 2.5, borderRadius: 3,
                           background: 'linear-gradient(135deg, rgba(250,204,21,0.1) 0%, rgba(251,191,36,0.06) 100%)',
@@ -761,9 +677,6 @@ export function InteractiveDemo() {
                           We appreciate you letting us know. Your feedback helps us improve. We&apos;ll follow up with you soon.
                         </Typography>
 
-                        {/* No platform buttons — that's the point */}
-
-                        {/* Notification preview */}
                         <Box sx={{
                           bgcolor: '#f8fafc', borderRadius: 2, p: 2,
                           border: '1px solid #e2e8f0', textAlign: 'left',
@@ -776,13 +689,13 @@ export function InteractiveDemo() {
                             border: '1px solid #fecaca',
                           }}>
                             <Typography sx={{ fontSize: '0.8rem', color: '#0f172a', fontWeight: 600 }}>
-                              ⚠️ New {selectedRating}-star review from {customerName}
+                              New {selectedRating}-star review from {customerName}
                             </Typography>
                             <Typography sx={{ fontSize: '0.75rem', color: '#64748b', mt: 0.5 }}>
                               {comment || 'No comment left.'}
                             </Typography>
                             <Typography sx={{ fontSize: '0.7rem', color: '#2563eb', mt: 0.5, fontWeight: 600 }}>
-                              Tap to follow up →
+                              Tap to follow up
                             </Typography>
                           </Box>
                         </Box>
@@ -839,7 +752,7 @@ export function InteractiveDemo() {
                 }}>
                   {[
                     { label: 'Total Reviews', value: '47', change: '+12 this week' },
-                    { label: 'Avg Rating', value: '4.6 ★', change: 'Up from 4.2' },
+                    { label: 'Avg Rating', value: '4.6', change: 'Up from 4.2' },
                     { label: 'Positive Rate', value: '85%', change: '40 of 47' },
                     { label: 'Google Reviews', value: '31', change: '+8 this month' },
                   ].map((stat) => (
@@ -864,7 +777,6 @@ export function InteractiveDemo() {
                   Recent Reviews
                 </Typography>
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-                  {/* Their review */}
                   <ReviewRow
                     name={customerName}
                     rating={selectedRating}
@@ -909,7 +821,6 @@ export function InteractiveDemo() {
                   gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
                   gap: 2.5,
                 }}>
-                  {/* Review Form Customization */}
                   <Paper elevation={0} sx={{ border: '1px solid #e2e8f0', borderRadius: 2, p: 2.5 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
                       <Star size={16} color="#f59e0b" />
@@ -931,7 +842,6 @@ export function InteractiveDemo() {
                     ))}
                   </Paper>
 
-                  {/* Smart Routing */}
                   <Paper elevation={0} sx={{ border: '1px solid #e2e8f0', borderRadius: 2, p: 2.5 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
                       <TrendingUp size={16} color="#16a34a" />
@@ -953,7 +863,6 @@ export function InteractiveDemo() {
                     ))}
                   </Paper>
 
-                  {/* Notifications */}
                   <Paper elevation={0} sx={{ border: '1px solid #e2e8f0', borderRadius: 2, p: 2.5 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
                       <MessageSquare size={16} color="#2563eb" />
@@ -974,7 +883,6 @@ export function InteractiveDemo() {
                     ))}
                   </Paper>
 
-                  {/* Testimonial Wall */}
                   <Paper elevation={0} sx={{ border: '1px solid #e2e8f0', borderRadius: 2, p: 2.5 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
                       <Palette size={16} color="#7c3aed" />
@@ -1035,12 +943,63 @@ export function InteractiveDemo() {
           </Box>
         </Box>
 
+        {/* ─── SOCIAL PROOF SECTION ─── */}
+        <Box sx={{
+          bgcolor: 'white', border: '1px solid #e2e8f0', borderRadius: 3,
+          p: { xs: 3, md: 4 }, mb: 4, textAlign: 'center',
+        }}>
+          <Typography sx={{ fontWeight: 700, fontSize: '1rem', color: '#0f172a', mb: 2 }}>
+            Why local businesses switch to InsightReviews
+          </Typography>
+          <Box sx={{
+            display: 'grid',
+            gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' },
+            gap: 3,
+          }}>
+            {[
+              {
+                quote: 'We went from 3.8 to 4.6 on Google in two months. The QR code at the counter just works.',
+                name: 'Cafe owner, Fitzroy',
+                stat: '3.8 → 4.6 stars',
+              },
+              {
+                quote: 'Finally caught a bad experience before it hit Google. Called the customer back, she was impressed we cared.',
+                name: 'Salon owner, South Yarra',
+                stat: '0 public negative reviews',
+              },
+              {
+                quote: 'Setup took 5 minutes. Staff love how simple it is — just enter the number and hit send.',
+                name: 'Dentist, Richmond',
+                stat: '5 min setup',
+              },
+            ].map((t) => (
+              <Box key={t.name} sx={{ textAlign: 'left' }}>
+                <Box sx={{ display: 'flex', gap: 0.3, mb: 1 }}>
+                  {[1, 2, 3, 4, 5].map(s => (
+                    <Star key={s} size={14} color="#fbbf24" fill="#fbbf24" />
+                  ))}
+                </Box>
+                <Typography sx={{ fontSize: '0.85rem', color: '#374151', mb: 1.5, lineHeight: 1.6, fontStyle: 'italic' }}>
+                  &ldquo;{t.quote}&rdquo;
+                </Typography>
+                <Typography sx={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>
+                  — {t.name}
+                </Typography>
+                <Chip label={t.stat} size="small" sx={{
+                  mt: 1, bgcolor: '#f0fdf4', color: '#16a34a',
+                  fontWeight: 700, fontSize: '0.7rem',
+                }} />
+              </Box>
+            ))}
+          </Box>
+        </Box>
+
         {/* ─── PROOF STATS ─── */}
         <Box sx={{
           display: 'grid',
           gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' },
           gap: 2.5,
-          mb: { xs: 4, md: 6 },
+          mb: 4,
         }}>
           {[
             { icon: <Clock size={20} color="#2563eb" />, value: '<30 sec', label: 'For a customer to leave a review' },
@@ -1118,31 +1077,52 @@ export function InteractiveDemo() {
         </Box>
       </Container>
 
-      {/* ─── STICKY MOBILE CTA ─── */}
+      {/* ─── STICKY CTA BAR — All devices ─── */}
       <Box sx={{
-        display: { xs: 'block', md: 'none' },
         position: 'fixed', bottom: 0, left: 0, right: 0,
-        bgcolor: 'white',
+        bgcolor: 'rgba(255,255,255,0.95)',
+        backdropFilter: 'blur(12px)',
         borderTop: '1px solid #e2e8f0',
-        p: 2, zIndex: 99,
+        py: 1.5, px: 2,
+        zIndex: 99,
         boxShadow: '0 -4px 12px rgba(0,0,0,0.08)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 2,
       }}>
+        <Typography sx={{
+          fontSize: { xs: '0.75rem', md: '0.85rem' },
+          color: '#64748b',
+          fontWeight: 500,
+          display: { xs: 'none', sm: 'block' },
+        }}>
+          14-day free trial. No credit card. Cancel anytime.
+        </Typography>
         <Button
           component={Link}
           href={SIGNUP_URL}
           variant="contained"
-          fullWidth size="large"
+          size="large"
+          endIcon={<ArrowRight size={18} />}
           sx={{
             background: 'linear-gradient(135deg, #fbbf24, #f59e0b)',
-            color: '#0f172a', fontWeight: 700, fontSize: '1rem', py: 1.5,
+            color: '#0f172a', fontWeight: 700,
+            fontSize: { xs: '0.85rem', md: '0.95rem' },
+            py: 1.2,
+            px: { xs: 3, md: 4 },
             boxShadow: '0 2px 8px rgba(245,158,11,0.3)',
+            '&:hover': { background: 'linear-gradient(135deg, #fde68a, #fbbf24)', transform: 'translateY(-1px)' },
+            transition: 'all 0.2s ease',
+            whiteSpace: 'nowrap',
           }}
         >
-          Get Your Free QR Code — 14 Days Free
+          Start Free Trial
         </Button>
       </Box>
 
-      <Box sx={{ height: { xs: 80, md: 0 } }} />
+      {/* Spacer for sticky bar */}
+      <Box sx={{ height: 72 }} />
 
       <style>{`
         @keyframes fadeIn {

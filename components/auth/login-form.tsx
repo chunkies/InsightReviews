@@ -8,8 +8,6 @@ import {
 import { createClient } from '@/lib/supabase/client';
 import NextLink from 'next/link';
 import { buildAuthRedirectUrl } from '@/lib/utils/auth-redirect';
-import type { Provider } from '@supabase/supabase-js';
-
 type AuthMethod = 'password' | 'magic-link';
 
 /* ── SVG icons for OAuth providers ── */
@@ -25,22 +23,6 @@ function GoogleIcon() {
   );
 }
 
-function FacebookIcon() {
-  return (
-    <svg viewBox="0 0 24 24" width="20" height="20">
-      <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" fill="#1877F2" />
-    </svg>
-  );
-}
-
-function AppleIcon() {
-  return (
-    <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
-      <path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z" />
-    </svg>
-  );
-}
-
 export function LoginForm({ isSignup = false }: { isSignup?: boolean }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -50,16 +32,16 @@ export function LoginForm({ isSignup = false }: { isSignup?: boolean }) {
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [authMethod, setAuthMethod] = useState<AuthMethod>('password');
 
-  async function handleOAuthLogin(provider: Provider) {
-    setOauthLoading(provider);
+  async function handleGoogleLogin() {
+    setOauthLoading('google');
     setMessage(null);
 
     const supabase = createClient();
     const { error } = await supabase.auth.signInWithOAuth({
-      provider,
+      provider: 'google',
       options: {
         redirectTo: buildAuthRedirectUrl(window.location.origin),
-        queryParams: provider === 'google' ? { prompt: 'select_account' } : undefined,
+        queryParams: { prompt: 'select_account' },
       },
     });
 
@@ -67,7 +49,6 @@ export function LoginForm({ isSignup = false }: { isSignup?: boolean }) {
       setMessage({ type: 'error', text: error.message });
       setOauthLoading(null);
     }
-    // On success, browser redirects to provider — no need to reset state
   }
 
   async function handlePasswordSubmit(e: React.FormEvent) {
@@ -153,44 +134,18 @@ export function LoginForm({ isSignup = false }: { isSignup?: boolean }) {
 
   return (
     <Paper sx={{ p: { xs: 3, sm: 4 }, width: '100%', maxWidth: 400 }}>
-      {/* OAuth providers */}
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-        <Button
-          fullWidth
-          variant="outlined"
-          size="large"
-          onClick={() => handleOAuthLogin('google')}
-          disabled={anyLoading}
-          sx={oauthButtonSx}
-        >
-          <Box sx={{ mr: 1.5, display: 'flex', alignItems: 'center' }}><GoogleIcon /></Box>
-          {oauthLoading === 'google' ? 'Redirecting...' : 'Continue with Google'}
-        </Button>
-
-        <Button
-          fullWidth
-          variant="outlined"
-          size="large"
-          onClick={() => handleOAuthLogin('facebook')}
-          disabled={anyLoading}
-          sx={oauthButtonSx}
-        >
-          <Box sx={{ mr: 1.5, display: 'flex', alignItems: 'center' }}><FacebookIcon /></Box>
-          {oauthLoading === 'facebook' ? 'Redirecting...' : 'Continue with Facebook'}
-        </Button>
-
-        <Button
-          fullWidth
-          variant="outlined"
-          size="large"
-          onClick={() => handleOAuthLogin('apple')}
-          disabled={anyLoading}
-          sx={oauthButtonSx}
-        >
-          <Box sx={{ mr: 1.5, display: 'flex', alignItems: 'center' }}><AppleIcon /></Box>
-          {oauthLoading === 'apple' ? 'Redirecting...' : 'Continue with Apple'}
-        </Button>
-      </Box>
+      {/* Google OAuth */}
+      <Button
+        fullWidth
+        variant="outlined"
+        size="large"
+        onClick={handleGoogleLogin}
+        disabled={anyLoading}
+        sx={oauthButtonSx}
+      >
+        <Box sx={{ mr: 1.5, display: 'flex', alignItems: 'center' }}><GoogleIcon /></Box>
+        {oauthLoading === 'google' ? 'Redirecting...' : 'Continue with Google'}
+      </Button>
 
       <Divider sx={{ my: 2.5, fontSize: '0.8rem', color: 'text.secondary' }}>or</Divider>
 

@@ -11,7 +11,7 @@ export const metadata: Metadata = {
     default: 'InsightReviews — Get More 5-Star Reviews for Your Local Business',
     template: '%s | InsightReviews',
   },
-  description: 'Turn happy customers into 5-star Google reviews. Smart review routing for Australian local businesses. $79/mo, 14-day free trial.',
+  description: 'Turn happy customers into 5-star Google reviews. Smart review routing for Australian local businesses. $49/mo founding rate, 14-day free trial.',
   metadataBase: new URL('https://insightreviews.com.au'),
   icons: {
     icon: '/icon.svg',

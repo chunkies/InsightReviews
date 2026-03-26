@@ -123,7 +123,7 @@ ${featureHighlight}
 
 The result: more genuine 5-star reviews from your actual happy customers, and you catch problems before they go public.
 
-It's $79/mo with a 14-day free trial. Takes about 2 minutes to set up and your staff can start using it immediately — no training needed.
+It's $49/mo with a 14-day free trial. Takes about 2 minutes to set up and your staff can start using it immediately — no training needed.
 
 Worth a look? https://insightreviews.com.au
 

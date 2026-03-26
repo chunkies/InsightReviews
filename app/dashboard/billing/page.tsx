@@ -331,7 +331,7 @@ export default async function BillingPage() {
 
                 <Box sx={{ mt: 2, p: 2, borderRadius: 2, backgroundColor: 'action.hover', textAlign: 'center' }}>
                   <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
-                    After trial: <strong>$79/mo</strong>
+                    After trial: <strong>$49/mo</strong>
                   </Typography>
                   <Typography variant="caption" color="text.secondary">
                     Cancel anytime — no lock-in, no questions asked
@@ -445,7 +445,7 @@ export default async function BillingPage() {
             <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
               <Typography variant="body2" color="text.secondary">Plan</Typography>
               <Typography variant="body2" fontWeight={600}>
-                {isTrialing || isCancellingTrial ? '14-Day Free Trial' : 'InsightReviews — $79/mo'}
+                {isTrialing || isCancellingTrial ? '14-Day Free Trial' : 'InsightReviews — $49/mo'}
               </Typography>
             </Box>
             {(isTrialing || isCancellingTrial) && trialEndDate && (

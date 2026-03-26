@@ -61,7 +61,7 @@ YELP_API_KEY=xxx node marketing/find-targets.js
 | `find-targets.js` | **Yelp API target finder** — searches Melbourne suburbs for businesses under 4 stars | When you need more targets |
 | `target-businesses.csv` | **365 raw targets from Yelp** (no emails) — used as a starting pool | Reference only — master list is the real tracker |
 | `COLD-EMAIL-SEQUENCE.md` | **3-email sequence templates** (Day 0, Day 3, Day 8) | Reference for email copy |
-| `COMPETITORS.md` | **Competitor analysis** (Birdeye, Podium, NiceJob, ReviewGain) | Sales prep — know what they charge ($300+) vs your $79 |
+| `COMPETITORS.md` | **Competitor analysis** (Birdeye, Podium, NiceJob, ReviewGain) | Sales prep — know what they charge ($300+) vs your $49 |
 | `READY-TO-POST.md` | **Social media posts ready to go** — Reddit, LinkedIn, Facebook, cold DMs | Copy-paste when posting |
 | `REDDIT-THREADS.md` | **5 Reddit posts already live** across r/smallbusiness, r/sweatystartup, etc | Reference — don't repost |
 | `QUORA-THREADS.md` | **10 Quora answers live** as Tristan Sly | Reference — don't re-answer |

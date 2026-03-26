@@ -8,7 +8,7 @@
 
 | Rank | Industry | Why | Best Prospects |
 |------|----------|-----|---------------|
-| 1 | Dental Practices | 73% of patients check reviews. Single patient worth $500+. $79/mo is nothing. | Oral Health Victoria (3.9), No GAP Dentists (4.4) |
+| 1 | Dental Practices | 73% of patients check reviews. Single patient worth $500+. $49/mo is nothing. | Oral Health Victoria (3.9), No GAP Dentists (4.4) |
 | 2 | Cafes & Restaurants | QR code on table = perfect fit. Melbourne has thousands. | Norman (3.4), Ceres Cafe (3.6), Bagel House (3.0) |
 | 3 | Hair Salons & Barbers | "I look great" moment = perfect review trigger. Personal relationships. | Oxygen Barber (4.9/49 reviews), Glory of Hair (4.7/37) |
 | 4 | Auto Mechanics | Trust industry. People terrified of being ripped off. Reviews = everything. | A.P. Motors (3.7/6 reviews), Vicquote (3.8/24) |

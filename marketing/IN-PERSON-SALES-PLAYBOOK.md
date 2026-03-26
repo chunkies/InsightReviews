@@ -87,7 +87,7 @@ If they ARE there, move to Step 2.
 
 ### Step 4: The Close
 
-> "It's $79 a month, but the first 2 weeks are free. I can set you up right now — literally takes 2 minutes. Want to try it?"
+> "It's $49 a month, but the first 2 weeks are free. I can set you up right now — literally takes 2 minutes. Want to try it?"
 
 **If yes:**
 - Sign them up on your phone right there
@@ -103,7 +103,7 @@ Leave the QR code card AND the leave-behind. Follow up in 2 days.
 **If "we already use something":**
 > "Oh yeah? Who are you with?" (They'll say Podium, Birdeye, etc.)
 > "How much do you pay?" (They'll say $200-400/mo)
-> "I do the same thing for $79. Happy to show you side-by-side if you're ever up for a switch."
+> "I do the same thing for $49. Happy to show you side-by-side if you're ever up for a switch."
 
 **If hard no:**
 > "No worries, thanks for your time!" (leave immediately, don't be pushy)
@@ -134,7 +134,7 @@ Leave the QR code card AND the leave-behind. Follow up in 2 days.
 |----------|---------|
 | "We don't need more reviews" | "How many Google reviews do you have? [competitor] down the road has [more]. Customers compare." |
 | "We already ask customers to review us" | "How many actually do it? With this, they scan a QR code and it takes 20 seconds. Way easier than 'please go to Google and search for us and click review.'" |
-| "$79 is too much" | "One new customer from a Google review is worth way more than $79. And you can cancel anytime." |
+| "$49 is too much" | "One new customer from a Google review is worth way more than $49. And you can cancel anytime." |
 | "We tried something like this before" | "What didn't work? This is dead simple — QR code on the counter, customer scans, done. No app to download, no account to create." |
 | "Can I try it free?" | "Yep, 14 days free. I'll set you up right now." |
 | "Send me an email" | "Sure, but let me just show you the QR code real quick — 30 seconds." (Then demo it. Email follow-ups get ignored.) |

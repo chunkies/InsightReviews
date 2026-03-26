@@ -49,7 +49,7 @@ Next.js 16, React 19, TypeScript, Supabase (PostgreSQL), Stripe, Twilio, MUI v7,
 | ReviewGain | From $49/mo | Better UX, Australia-first |
 
 **Our positioning:**
-- Price advantage vs enterprise tools ($79 vs $300+)
+- Price advantage vs enterprise tools ($49 vs $300+)
 - Simplicity advantage vs all — staff can use in 5 seconds
 - Australia-first — local support, AU phone numbers
 - Smart routing as core differentiator — not just collection, but interception

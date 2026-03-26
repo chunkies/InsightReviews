@@ -1,7 +1,7 @@
 # Advertising & Growth Plan — Path to $6K MRR
 *Last updated: 2026-03-15*
 
-**Goal:** $6,320 MRR = 80 customers × $79/mo
+**Goal:** $6,320 MRR = 80 customers × $49/mo
 **Current:** $0 MRR, 0 paying customers, 117 cold emails sent (72 sent Mar 15)
 **Realistic timeline:** 9-14 months (5-7 months if in-person sales go hard)
 
@@ -132,7 +132,7 @@ Walk in with your phone. Pull up their Google reviews. Say:
 ### Google Ads (When Ready)
 - [ ] **Budget:** $500-1,000/month to start
 - [ ] **Keywords:** "get more google reviews Melbourne", "review management software Australia", "how to get 5 star reviews"
-- [ ] **Expected:** $5-6 CPC, ~$200-400 cost per acquisition. At $79/mo LTV of ~$948, this is profitable.
+- [ ] **Expected:** $5-6 CPC, ~$200-400 cost per acquisition. At $49/mo LTV of ~$948, this is profitable.
 - [ ] **Prerequisite:** Landing page with testimonials, case study, clear CTA
 
 ### Facebook/Instagram Ads (Lower Priority)
@@ -180,7 +180,7 @@ Walk in with your phone. Pull up their Google reviews. Say:
 
 | Milestone | Target | How | Estimated Date |
 |-----------|--------|-----|----------------|
-| First paying customer | $79 MRR | In-person sale or cold email conversion | Mar-Apr 2026 |
+| First paying customer | $49 MRR | In-person sale or cold email conversion | Mar-Apr 2026 |
 | 10 customers | $790 MRR | In-person + cold email + first referrals | May-Jun 2026 |
 | 25 customers | $1,975 MRR | Referrals kicking in + 1 agency partner | Jul-Aug 2026 |
 | 50 customers | $3,950 MRR | Agency partners + Google Ads started | Oct-Nov 2026 |
@@ -207,7 +207,7 @@ Walk in with your phone. Pull up their Google reviews. Say:
 - [x] SendGrid domain authentication verified
 - [x] LinkedIn/Facebook posts drafted (not posted — personal branding concern)
 - [x] **Billing flow redesigned** — Stripe as single source of truth, card collected on signup
-- [x] **Stripe price fixed** — $79 AUD/month (was $29 USD), both test and live
+- [x] **Stripe price fixed** — $49 AUD/month (founding rate) (was $29 USD), both test and live
 - [x] **SEO overhaul** — JSON-LD structured data, meta tags, canonical URLs, keywords
 - [x] **510 tests passing** across 18 test files — all major features covered
 - [x] **Dark mode fixed** — Getting Started section

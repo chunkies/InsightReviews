@@ -76,7 +76,8 @@ export function OnboardingWizard({ userId: _userId, initialName = '' }: Onboardi
       trackConversion('onboarding_complete');
 
       // Go straight to dashboard — trial is activated server-side, no Stripe needed
-      window.location.href = '/dashboard';
+      // Use billing=success to invalidate any stale billing cache from previous requests
+      window.location.href = '/dashboard?billing=success';
     } catch {
       setError('Something went wrong. Please try again.');
     } finally {

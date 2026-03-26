@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
     // Get org (include stripe_customer_id to detect returning users)
     const { data: org } = await supabase
       .from('organizations')
-      .select('id, name, stripe_customer_id, billing_plan')
+      .select('id, name, stripe_customer_id, billing_plan, trial_ends_at')
       .eq('id', organizationId)
       .single();
 
@@ -78,13 +78,27 @@ export async function POST(request: NextRequest) {
         .eq('id', org.id);
     }
 
-    // No Stripe-side trial — the app-level 14-day trial (set during onboarding) IS the trial.
-    // When users subscribe here, they start paying immediately. This prevents double-trialing.
+    // If user is on an active app-level trial, carry remaining days to Stripe
+    // so they aren't charged immediately when subscribing early.
+    let subscriptionData: Record<string, unknown> = {};
+    if (org.billing_plan === 'trial' && org.trial_ends_at) {
+      const trialEnd = new Date(org.trial_ends_at);
+      const now = new Date();
+      if (trialEnd > now) {
+        // Carry remaining trial to Stripe (minimum 1 day)
+        const remainingSeconds = Math.floor((trialEnd.getTime() - now.getTime()) / 1000);
+        if (remainingSeconds > 86400) { // more than 1 day remaining
+          subscriptionData = { trial_end: Math.floor(trialEnd.getTime() / 1000) };
+        }
+      }
+    }
+
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       mode: 'subscription',
       payment_method_collection: 'always',
       line_items: [{ price: PLAN.priceId, quantity: 1 }],
+      ...(Object.keys(subscriptionData).length > 0 ? { subscription_data: subscriptionData } : {}),
       success_url: `${siteUrl}/dashboard?billing=success`,
       cancel_url: `${siteUrl}/subscribe?org=${org.id}`,
       metadata: { organizationId: org.id },

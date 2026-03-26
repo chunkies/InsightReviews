@@ -205,8 +205,9 @@ describe('3.5 — Trial gaming prevention in create-checkout', () => {
     // Must select stripe_customer_id from org
     expect(source).toMatch(/stripe_customer_id/);
 
-    // No Stripe-side trials — app-level trial prevents double-trialing
-    expect(source).toMatch(/No Stripe-side trial/);
+    // App-level trial with carry-over to Stripe when user subscribes early
+    expect(source).toMatch(/trial_end/);
+    expect(source).toMatch(/billing_plan === 'trial'/);
 
     // Must verify customer exists before reusing (handles stale IDs)
     expect(source).toMatch(/customers\.retrieve/);

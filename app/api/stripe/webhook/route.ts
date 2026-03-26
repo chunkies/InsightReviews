@@ -56,13 +56,23 @@ export async function POST(request: NextRequest) {
         ? session.subscription
         : null;
 
-      // No Stripe-side trial — checkout means they're paying. Set to 'active'.
-      // The app-level trial (set during onboarding) was the trial period.
+      // Check if subscription has remaining trial (carried over from app-level trial)
+      let billingPlan = 'active';
+      let trialEndsAt: string | null = null;
+      if (subscriptionId) {
+        const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+        if (subscription.trial_end && subscription.trial_end * 1000 > Date.now()) {
+          billingPlan = 'trial';
+          trialEndsAt = new Date(subscription.trial_end * 1000).toISOString();
+        }
+      }
+
       const { error } = await supabase
         .from('organizations')
         .update({
-          billing_plan: 'active',
+          billing_plan: billingPlan,
           stripe_subscription_id: subscriptionId,
+          ...(trialEndsAt ? { trial_ends_at: trialEndsAt } : {}),
         })
         .eq('id', orgId);
       if (error) {

@@ -44,10 +44,12 @@ describe('Stripe create-checkout endpoint', () => {
     expect(source).toMatch(/customers\.create/);
   });
 
-  it('does not apply Stripe-side trial (app-level trial is used instead)', () => {
-    // Stripe-side trials removed — app sets billing_plan='trial' directly during onboarding
-    expect(source).not.toMatch(/trial_period_days/);
-    expect(source).toMatch(/No Stripe-side trial/);
+  it('carries remaining app-level trial to Stripe when user subscribes early', () => {
+    // App-level trial is the primary trial. When user adds payment during trial,
+    // remaining days are carried to Stripe via trial_end on the subscription.
+    expect(source).not.toMatch(/trial_period_days/); // No fixed trial days
+    expect(source).toMatch(/trial_end/); // Carry-over of remaining trial
+    expect(source).toMatch(/billing_plan === 'trial'/); // Check if on active trial
   });
 
   it('creates checkout session with correct parameters', () => {

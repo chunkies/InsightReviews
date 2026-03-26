@@ -120,7 +120,7 @@ export default async function LoginPage({ searchParams }: PageProps) {
                   14 days free. Setup takes 2 minutes.
                 </Typography>
                 <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', justifyContent: 'center', mb: 1 }}>
-                  {['QR code collection', 'Smart routing', 'Dashboard & analytics'].map((f) => (
+                  {['QR code at the counter', 'Positive reviews \u2192 Google', 'Negative stays private'].map((f) => (
                     <Chip
                       key={f}
                       label={f}
@@ -129,6 +129,20 @@ export default async function LoginPage({ searchParams }: PageProps) {
                       sx={{ fontSize: '0.7rem', backgroundColor: '#f0fdf4', color: '#166534' }}
                     />
                   ))}
+                </Box>
+                {/* Mobile testimonial */}
+                <Box sx={{ mt: 1.5, p: 1.5, borderRadius: 2, backgroundColor: 'action.hover', border: '1px solid', borderColor: 'divider', textAlign: 'left' }}>
+                  <Box sx={{ display: 'flex', gap: 0.3, mb: 0.5 }}>
+                    {[1, 2, 3, 4, 5].map((s) => (
+                      <Star key={s} size={12} color="#fbbf24" fill="#fbbf24" />
+                    ))}
+                  </Box>
+                  <Typography variant="body2" sx={{ fontStyle: 'italic', fontSize: '0.75rem', lineHeight: 1.5 }}>
+                    &quot;We went from 3.8 to 4.6 stars on Google in 6 weeks. The QR code at the counter made it effortless.&quot;
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    — Sarah M., cafe owner, Melbourne
+                  </Typography>
                 </Box>
               </Box>
               <LoginForm isSignup={isSignup} />

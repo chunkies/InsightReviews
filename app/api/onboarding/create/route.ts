@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { envRequired } from '@/lib/utils/env';
+import { trackOnboardingServerSide } from '@/lib/analytics/meta-capi';
 
 export async function POST(request: NextRequest) {
   try {
@@ -139,6 +140,14 @@ export async function POST(request: NextRequest) {
         }))
       );
     }
+
+    // Fire server-side onboarding event for Meta CAPI
+    trackOnboardingServerSide({
+      email: user.email || undefined,
+      userAgent: request.headers.get('user-agent') || undefined,
+      ipAddress: request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || undefined,
+      sourceUrl: request.headers.get('referer') || undefined,
+    });
 
     return NextResponse.json({ orgId: org.id });
   } catch (error) {

@@ -1,6 +1,7 @@
 import { type EmailOtpType } from '@supabase/supabase-js';
 import { NextResponse, type NextRequest } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { trackSignupServerSide } from '@/lib/analytics/meta-capi';
 
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
@@ -32,7 +33,7 @@ export async function GET(request: NextRequest) {
   if (token_hash && type) {
     const { error } = await supabase.auth.verifyOtp({ type, token_hash });
     if (!error) {
-      return await redirectAfterAuth(supabase, next, buildRedirect);
+      return await redirectAfterAuth(supabase, next, buildRedirect, request);
     }
   }
 
@@ -40,7 +41,7 @@ export async function GET(request: NextRequest) {
   if (code) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
-      return await redirectAfterAuth(supabase, next, buildRedirect);
+      return await redirectAfterAuth(supabase, next, buildRedirect, request);
     }
   }
 
@@ -51,6 +52,7 @@ async function redirectAfterAuth(
   supabase: Awaited<ReturnType<typeof createClient>>,
   next: string,
   buildRedirect: (path: string) => NextResponse,
+  request: NextRequest,
 ) {
   const { data: { user } } = await supabase.auth.getUser();
   if (user) {
@@ -61,6 +63,15 @@ async function redirectAfterAuth(
       .maybeSingle();
 
     if (!member) {
+      // New user — fire server-side signup event for Meta CAPI
+      trackSignupServerSide({
+        email: user.email || '',
+        userAgent: request.headers.get('user-agent') || undefined,
+        ipAddress: request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || undefined,
+        fbc: request.cookies.get('_fbc')?.value,
+        fbp: request.cookies.get('_fbp')?.value,
+        sourceUrl: request.url,
+      });
       return buildRedirect('/onboarding');
     }
 

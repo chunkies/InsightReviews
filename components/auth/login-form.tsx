@@ -208,6 +208,12 @@ export function LoginForm({ isSignup = false }: { isSignup?: boolean }) {
                 : 'Sign In'
           }
         </Button>
+
+        {isSignup && (
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: 'center', mt: 1.5, lineHeight: 1.6 }}>
+            No credit card required. $79/mo after your 14-day trial. Cancel anytime.
+          </Typography>
+        )}
       </form>
 
       {/* Toggle between password and magic link */}

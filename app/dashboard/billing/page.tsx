@@ -4,6 +4,7 @@ import { createStripeClient } from '@/lib/stripe/server';
 import { redirect } from 'next/navigation';
 import { CreditCard, Check, Calendar, Receipt, Shield, Clock, AlertTriangle } from 'lucide-react';
 import { BillingActions } from '@/components/settings/billing-actions';
+import { PLAN } from '@/lib/utils/constants';
 
 const planFeatures = [
   'Unlimited reviews',
@@ -50,6 +51,7 @@ export default async function BillingPage() {
   let stripeNextBillingDate: Date | null = null;
   let cardBrand: string | null = null;
   let cardLast4: string | null = null;
+  let subscriptionPrice: number | null = null;
 
   if (org.stripe_customer_id) {
     try {
@@ -78,6 +80,12 @@ export default async function BillingPage() {
       const stripeSub = subscriptions.data[0];
 
       if (stripeSub) {
+        // Extract subscription price for display
+        const firstPriceItem = stripeSub.items?.data?.[0];
+        if (firstPriceItem?.price?.unit_amount) {
+          subscriptionPrice = firstPriceItem.price.unit_amount / 100;
+        }
+
         // Extract Stripe data for display
         if (stripeSub.trial_end) {
           stripeTrialEnd = new Date(stripeSub.trial_end * 1000);
@@ -266,7 +274,7 @@ export default async function BillingPage() {
                   {isCancellingTrial
                     ? `You still have access until your trial ends. Subscribe to keep your data.`
                     : stripeNextBillingDate
-                      ? `Your card will be charged $79/mo on ${stripeNextBillingDate.toLocaleDateString('en-AU', { day: 'numeric', month: 'long', year: 'numeric' })}.`
+                      ? `Your card will be charged ${subscriptionPrice ?? PLAN.price}/mo on ${stripeNextBillingDate.toLocaleDateString('en-AU', { day: 'numeric', month: 'long', year: 'numeric' })}.`
                       : 'Full access to every feature. No charge until the trial ends.'}
                 </Typography>
               </>
@@ -276,7 +284,7 @@ export default async function BillingPage() {
                   {org.name}
                 </Typography>
                 <Box sx={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: 0.5, mt: 0.5 }}>
-                  <Typography variant="h3" fontWeight={800}>$79</Typography>
+                  <Typography variant="h3" fontWeight={800}>${subscriptionPrice ?? PLAN.price}</Typography>
                   <Typography variant="h6" sx={{ opacity: 0.8 }}>/mo</Typography>
                 </Box>
               </>
@@ -465,7 +473,7 @@ export default async function BillingPage() {
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                   <Calendar size={14} />
                   <Typography variant="body2" fontWeight={600}>
-                    $79 on {stripeNextBillingDate.toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })}
+                    ${subscriptionPrice ?? PLAN.price} on {stripeNextBillingDate.toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })}
                   </Typography>
                 </Box>
               </Box>

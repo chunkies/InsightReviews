@@ -124,19 +124,17 @@ export function BillingActions({ orgId, hasSubscription, hasActiveSubscription, 
   return (
     <>
       <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', justifyContent: 'center' }}>
-        {/* Trial: Manage Billing + Cancel Trial */}
-        {isTrialing && (
+        {/* Trial with Stripe subscription: Manage Billing + Cancel Trial */}
+        {isTrialing && hasSubscription && (
           <>
-            {hasSubscription && (
-              <Button
-                variant="outlined"
-                startIcon={<ExternalLink size={16} />}
-                onClick={handlePortal}
-                disabled={loading}
-              >
-                Manage Billing
-              </Button>
-            )}
+            <Button
+              variant="outlined"
+              startIcon={<ExternalLink size={16} />}
+              onClick={handlePortal}
+              disabled={loading}
+            >
+              Manage Billing
+            </Button>
             <Button
               variant="outlined"
               color="error"
@@ -146,6 +144,17 @@ export function BillingActions({ orgId, hasSubscription, hasActiveSubscription, 
               Cancel Trial
             </Button>
           </>
+        )}
+
+        {/* Trial without Stripe subscription (no-card trial): Show subscribe CTA instead */}
+        {isTrialing && !hasSubscription && (
+          <Button
+            variant="contained"
+            onClick={handleCheckout}
+            disabled={loading}
+          >
+            {loading ? 'Loading...' : 'Add Payment Method'}
+          </Button>
         )}
 
         {/* Active paid: Manage Billing + Cancel Subscription */}

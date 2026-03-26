@@ -47,10 +47,10 @@ export function OnboardingWizard({ userId: _userId, initialName = '' }: Onboardi
     setError(null);
 
     try {
-      const slug = generateSlug(businessName);
+      let slug = generateSlug(businessName);
 
-      // Step 1: Create the organization
-      const res = await fetch('/api/onboarding/create', {
+      // Step 1: Create the organization (retry with new slug on collision)
+      let res = await fetch('/api/onboarding/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -65,7 +65,22 @@ export function OnboardingWizard({ userId: _userId, initialName = '' }: Onboardi
         }),
       });
 
-      const data = await res.json();
+      let data = await res.json();
+
+      // Auto-retry with new slug if collision (409)
+      if (res.status === 409 && data.error?.includes('slug')) {
+        slug = generateSlug(businessName);
+        res = await fetch('/api/onboarding/create', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            businessName, slug, phone: phone || null,
+            ownerName: ownerName.trim() || null, jobTitle: jobTitle.trim() || null,
+            googleUrl, yelpUrl, facebookUrl,
+          }),
+        });
+        data = await res.json();
+      }
 
       if (!res.ok) {
         setError(data.error || 'Something went wrong. Please try again.');

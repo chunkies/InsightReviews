@@ -154,12 +154,14 @@ export default async function BillingPage() {
         }
       }
 
-      // Fetch payment method
-      const paymentMethods = await stripe.paymentMethods.list({
-        customer: org.stripe_customer_id,
-        type: 'card',
-        limit: 1,
-      });
+      // Fetch payment method (guard against cleared customer ID)
+      const paymentMethods = org.stripe_customer_id
+        ? await stripe.paymentMethods.list({
+            customer: org.stripe_customer_id,
+            type: 'card',
+            limit: 1,
+          })
+        : { data: [] };
       const pm = paymentMethods.data[0];
       if (pm?.card) {
         cardBrand = pm.card.brand;
@@ -339,7 +341,7 @@ export default async function BillingPage() {
 
                 <Box sx={{ mt: 2, p: 2, borderRadius: 2, backgroundColor: 'action.hover', textAlign: 'center' }}>
                   <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
-                    After trial: <strong>$49/mo</strong>
+                    After trial: <strong>${PLAN.price}/mo</strong>
                   </Typography>
                   <Typography variant="caption" color="text.secondary">
                     Cancel anytime — no lock-in, no questions asked
@@ -453,7 +455,7 @@ export default async function BillingPage() {
             <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
               <Typography variant="body2" color="text.secondary">Plan</Typography>
               <Typography variant="body2" fontWeight={600}>
-                {isTrialing || isCancellingTrial ? '14-Day Free Trial' : 'InsightReviews — $49/mo'}
+                {isTrialing || isCancellingTrial ? '14-Day Free Trial' : `InsightReviews — $${subscriptionPrice ?? PLAN.price}/mo`}
               </Typography>
             </Box>
             {(isTrialing || isCancellingTrial) && trialEndDate && (

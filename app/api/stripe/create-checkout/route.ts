@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
       if (trialEnd > now) {
         // Carry remaining trial to Stripe (minimum 1 day)
         const remainingSeconds = Math.floor((trialEnd.getTime() - now.getTime()) / 1000);
-        if (remainingSeconds > 86400) { // more than 1 day remaining
+        if (remainingSeconds > 3600) { // more than 1 hour remaining
           subscriptionData = { trial_end: Math.floor(trialEnd.getTime() / 1000) };
         }
       }

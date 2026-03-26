@@ -231,7 +231,7 @@ export default function BlogPost() {
               Stop negative reviews before they hit Google
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 2, lineHeight: 1.7 }}>
-              InsightReviews sends your customers a quick feedback request via SMS or QR code. Happy customers get routed to Google. Unhappy customers get captured privately so you can follow up and fix it. $79/mo with a 14-day free trial.
+              InsightReviews sends your customers a quick feedback request via SMS or QR code. Happy customers get routed to Google. Unhappy customers get captured privately so you can follow up and fix it. $49/mo with a 14-day free trial.
             </Typography>
             <Button
               href="/auth/login?mode=signup"

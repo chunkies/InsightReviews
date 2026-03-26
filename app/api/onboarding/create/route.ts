@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { envRequired } from '@/lib/utils/env';
-import { trackOnboardingServerSide } from '@/lib/analytics/meta-capi';
+import { trackOnboardingServerSide, trackTrialStartedServerSide } from '@/lib/analytics/meta-capi';
 
 export async function POST(request: NextRequest) {
   try {
@@ -70,16 +70,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ orgId: existingMember.organization_id });
     }
 
-    // Create organization with billing_plan='pending'
-    // Stripe customer will be created later during checkout (create-checkout handles this)
+    // Create organization with billing_plan='trial' — no credit card needed
+    // Trial starts immediately, Stripe checkout happens when they're ready to pay
+    const trialEndsAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString();
     const { data: org, error: orgError } = await supabase
       .from('organizations')
       .insert({
         name: businessName,
         slug,
         phone: phone || null,
-        billing_plan: 'pending',
-        trial_ends_at: null,
+        billing_plan: 'trial',
+        trial_ends_at: trialEndsAt,
       })
       .select('id')
       .single();
@@ -141,13 +142,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Fire server-side onboarding event for Meta CAPI
-    trackOnboardingServerSide({
+    // Fire server-side events for Meta CAPI
+    const capiParams = {
       email: user.email || undefined,
       userAgent: request.headers.get('user-agent') || undefined,
       ipAddress: request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || undefined,
+      fbc: request.cookies.get('_fbc')?.value,
+      fbp: request.cookies.get('_fbp')?.value,
       sourceUrl: request.headers.get('referer') || undefined,
-    });
+    };
+    trackOnboardingServerSide(capiParams);
+    trackTrialStartedServerSide(capiParams);
 
     return NextResponse.json({ orgId: org.id });
   } catch (error) {

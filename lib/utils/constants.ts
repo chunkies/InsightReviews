@@ -14,10 +14,18 @@ export const RATING_COLORS: Record<number, string> = {
   5: '#2e7d32',
 };
 
+const foundingPriceId = (process.env.STRIPE_FOUNDING_PRICE_ID || '').trim();
+const standardPriceId = (process.env.STRIPE_PRICE_ID || '').trim();
+
 export const PLAN = {
   name: 'InsightReviews',
-  price: 79,
-  priceId: (process.env.STRIPE_PRICE_ID || '').trim(),
+  standardPrice: 79,
+  foundingPrice: 49,
+  price: foundingPriceId ? 49 : 79,
+  priceId: foundingPriceId || standardPriceId,
+  standardPriceId,
+  foundingPriceId,
+  isFoundingRate: !!foundingPriceId,
   trialDays: 14,
   currency: 'aud',
 } as const;

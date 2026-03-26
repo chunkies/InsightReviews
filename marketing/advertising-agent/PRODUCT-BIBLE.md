@@ -10,7 +10,7 @@ Local brick-and-mortar businesses: cafes, salons, dentists, gyms, auto shops. Au
 
 ## Pricing
 
-**Single plan: $79/mo per location.** 14-day free trial. No lock-in. Stripe billing.
+**Single plan: $49/mo per location.** 14-day free trial. No lock-in. Stripe billing.
 
 (Tiered plans will be introduced once we have paying customers and validated demand for advanced features.)
 

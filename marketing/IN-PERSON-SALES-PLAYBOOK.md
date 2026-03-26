@@ -156,7 +156,7 @@ When they ask "how is this different":
 
 | Feature | InsightReviews | Podium | Birdeye |
 |---------|---------------|--------|---------|
-| Price | **$79/mo** | $300+/mo | $250+/mo |
+| Price | **$49/mo** | $300+/mo | $250+/mo |
 | QR code collection | Yes | Yes | Yes |
 | Smart routing | Yes | Yes | Yes |
 | Setup time | **2 minutes** | Weeks | Weeks |

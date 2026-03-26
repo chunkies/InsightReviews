@@ -168,8 +168,9 @@ describe('Constants', () => {
   });
 
   describe('PLAN', () => {
-    it('has price of 79', () => {
-      expect(PLAN.price).toBe(79);
+    it('has standard price of 79 and founding price of 49', () => {
+      expect(PLAN.standardPrice).toBe(79);
+      expect(PLAN.foundingPrice).toBe(49);
     });
 
     it('has 14-day trial', () => {

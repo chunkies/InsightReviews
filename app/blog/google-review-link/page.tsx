@@ -215,7 +215,7 @@ export default function BlogPost() {
               Want Smart Review Routing for Your Business?
             </Typography>
             <Typography variant="body1" color="text.secondary" sx={{ mb: 3, maxWidth: 480, mx: 'auto' }}>
-              InsightReviews handles the whole flow — QR code, SMS requests, star rating, and smart routing to Google. Happy customers go to Google, unhappy ones stay private. $79/mo, 14-day free trial.
+              InsightReviews handles the whole flow — QR code, SMS requests, star rating, and smart routing to Google. Happy customers go to Google, unhappy ones stay private. $49/mo, 14-day free trial.
             </Typography>
             <Button
               href="/auth/login?mode=signup"

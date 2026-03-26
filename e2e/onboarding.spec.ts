@@ -64,7 +64,8 @@ test.describe('Onboarding — Wizard Flow', () => {
     await expect(page.getByLabel('Google Business Review URL')).toBeVisible();
     await expect(page.getByLabel(/Yelp Review URL/)).toBeVisible();
     await expect(page.getByLabel(/Facebook Review URL/)).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Start Free Trial' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Create My Review Page' })).toBeVisible();
+    await expect(page.getByRole('button', { name: /Skip/i })).toBeVisible();
   });
 
   test('Back button returns to Step 1 with data preserved', async ({ page }) => {
@@ -82,7 +83,7 @@ test.describe('Onboarding — Wizard Flow', () => {
     await expect(page.getByLabel('Business Name')).toHaveValue('My Test Cafe');
   });
 
-  test('submitting onboarding creates org and redirects to Stripe checkout', async ({ page }) => {
+  test('submitting onboarding creates org and redirects to dashboard (no Stripe checkout)', async ({ page }) => {
     await signInAsUser(page, TEST_EMAIL);
     await page.goto('/onboarding');
 
@@ -91,20 +92,11 @@ test.describe('Onboarding — Wizard Flow', () => {
     await page.getByLabel('Business Name').fill(`E2E Biz ${Date.now()}`);
     await page.getByRole('button', { name: 'Next', exact: true }).click();
 
-    // Step 2 — skip optional platforms
-    // Intercept the checkout API to avoid Stripe redirect
-    await page.route('**/api/stripe/create-checkout', async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({ url: '/dashboard?billing=success' }),
-      });
-    });
+    // Step 2 — use skip button (no Stripe checkout needed)
+    await page.getByRole('button', { name: /Skip/i }).click();
 
-    await page.getByRole('button', { name: 'Start Free Trial' }).click();
-
-    // Wait for redirect
-    await page.waitForURL(/\/(dashboard|subscribe)/, { timeout: 15000 });
+    // Wait for redirect to dashboard (not Stripe)
+    await page.waitForURL(/\/dashboard/, { timeout: 15000 });
 
     // Verify org was created
     const membersRes = await supabaseRest<{ organization_id: string }[]>('organization_members', {

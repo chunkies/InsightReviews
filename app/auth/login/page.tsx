@@ -101,10 +101,10 @@ export default async function LoginPage({ searchParams }: PageProps) {
                   ))}
                 </Box>
                 <Typography variant="body2" sx={{ fontStyle: 'italic', fontSize: '0.8rem' }}>
-                  &quot;We went from 3.8 to 4.6 stars on Google in 6 weeks. The QR code at the counter made it effortless.&quot;
+                  &quot;A 0.5-star increase on Google correlates with 5-9% more revenue for local businesses.&quot;
                 </Typography>
                 <Typography variant="caption" color="text.secondary">
-                  — Sarah M., cafe owner, Melbourne
+                  — Harvard Business School
                 </Typography>
               </Box>
             </Grid>

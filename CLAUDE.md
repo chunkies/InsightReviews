@@ -4,7 +4,7 @@
 
 InsightReviews helps brick-and-mortar businesses (cafes, salons, dentists, gyms, auto shops) collect customer reviews at the point of sale. A clerk enters the customer's phone number, we send an SMS with a branded review link, and smart-route the response: positive reviews (4-5 stars) get redirected to Google, Yelp, Facebook, TripAdvisor etc. Negative reviews (1-3 stars) stay private so the business can follow up.
 
-**Business model:** Single plan — $79/mo per location. 14-day free trial, no lock-in. Stripe billing. (Tiered plans will be introduced once we have paying customers.)
+**Business model:** Single plan — $49/mo per location. 14-day free trial, no lock-in. Stripe billing. (Tiered plans will be introduced once we have paying customers.)
 
 **Target market:** Local business owners who want more 5-star reviews online and want to catch bad experiences before they go public.
 

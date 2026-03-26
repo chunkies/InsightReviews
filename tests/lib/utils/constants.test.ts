@@ -20,7 +20,8 @@ describe('RATING_COLORS', () => {
 
 describe('PLAN', () => {
   it('has correct pricing', () => {
-    expect(PLAN.price).toBe(79);
+    expect(PLAN.standardPrice).toBe(79);
+    expect(PLAN.foundingPrice).toBe(49);
     expect(PLAN.trialDays).toBe(14);
     expect(PLAN.currency).toBe('aud');
   });

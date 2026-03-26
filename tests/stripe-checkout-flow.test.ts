@@ -44,15 +44,10 @@ describe('Stripe create-checkout endpoint', () => {
     expect(source).toMatch(/customers\.create/);
   });
 
-  it('checks Stripe subscription history for trial eligibility', () => {
-    expect(source).toMatch(/subscriptions\.list/);
-    expect(source).toMatch(/hadPriorSubscription/);
-  });
-
-  it('applies trial only for new subscribers with pending plan', () => {
-    expect(source).toMatch(/isNewSubscriber/);
-    expect(source).toMatch(/trial_period_days/);
-    expect(source).toMatch(/billing_plan\s*===\s*'pending'/);
+  it('does not apply Stripe-side trial (app-level trial is used instead)', () => {
+    // Stripe-side trials removed — app sets billing_plan='trial' directly during onboarding
+    expect(source).not.toMatch(/trial_period_days/);
+    expect(source).toMatch(/No Stripe-side trial/);
   });
 
   it('creates checkout session with correct parameters', () => {
@@ -350,8 +345,9 @@ describe('PLAN configuration', () => {
     expect(source).toMatch(/trialDays:\s*14/);
   });
 
-  it('sets price to $79', () => {
-    expect(source).toMatch(/price:\s*79/);
+  it('sets standard and founding prices', () => {
+    expect(source).toMatch(/standardPrice:\s*79/);
+    expect(source).toMatch(/foundingPrice:\s*49/);
   });
 
   it('uses AUD currency', () => {

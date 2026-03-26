@@ -5,7 +5,7 @@ import {
   Box, Paper, TextField, Button, Typography, Stepper, Step, StepLabel,
   Alert,
 } from '@mui/material';
-import { ArrowRight, ArrowLeft, CreditCard } from 'lucide-react';
+import { ArrowRight, ArrowLeft } from 'lucide-react';
 import { trackConversion } from '@/lib/analytics/tracking';
 interface OnboardingWizardProps {
   userId: string;
@@ -75,27 +75,8 @@ export function OnboardingWizard({ userId: _userId, initialName = '' }: Onboardi
 
       trackConversion('onboarding_complete');
 
-      // Step 2: Create Stripe Checkout session and redirect
-      const checkoutRes = await fetch('/api/stripe/create-checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ organizationId: data.orgId }),
-      });
-
-      const checkoutData = await checkoutRes.json();
-
-      if (!checkoutRes.ok) {
-        setError(checkoutData.error || 'Failed to start checkout. Please try again.');
-        setLoading(false);
-        return;
-      }
-
-      if (checkoutData.url) {
-        window.location.href = checkoutData.url;
-        return;
-      }
-
-      setError('No checkout URL returned. Please try again.');
+      // Go straight to dashboard — trial is activated server-side, no Stripe needed
+      window.location.href = '/dashboard';
     } catch {
       setError('Something went wrong. Please try again.');
     } finally {
@@ -170,8 +151,8 @@ export function OnboardingWizard({ userId: _userId, initialName = '' }: Onboardi
       {activeStep === 1 && (
         <Box>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            Add your review page URLs. Customers with positive reviews will be directed to these platforms.
-            You can add more later in Settings.
+            Add your review page URLs so positive reviews get directed to these platforms.
+            You can always add or change these later in Settings.
           </Typography>
           <TextField
             fullWidth
@@ -208,16 +189,25 @@ export function OnboardingWizard({ userId: _userId, initialName = '' }: Onboardi
             <Button
               fullWidth
               variant="contained"
-              endIcon={<CreditCard size={18} />}
+              endIcon={<ArrowRight size={18} />}
               onClick={handleComplete}
               disabled={loading}
               size="large"
             >
-              {loading ? 'Setting up...' : 'Start Free Trial'}
+              {loading ? 'Setting up...' : 'Create My Review Page'}
             </Button>
           </Box>
-          <Typography variant="caption" color="text.secondary" sx={{ mt: 1.5, display: 'block', textAlign: 'center' }}>
-            You&apos;ll be redirected to enter your card details. No charge for 14 days.
+          <Button
+            fullWidth
+            variant="text"
+            onClick={handleComplete}
+            disabled={loading}
+            sx={{ mt: 1, color: 'text.secondary', fontSize: '0.85rem' }}
+          >
+            Skip, I&apos;ll add these later
+          </Button>
+          <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block', textAlign: 'center' }}>
+            No credit card required. 14-day free trial.
           </Typography>
         </Box>
       )}

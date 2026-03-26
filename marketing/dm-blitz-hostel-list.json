@@ -1,0 +1,133 @@
+{
+  "campaign": "Google Maps DM Blitz - Melbourne Hostels",
+  "created": "2026-03-26",
+  "status": "ready_to_send",
+  "notes": "Hostels are a perfect fit: high guest turnover, front desk QR code placement, travelers already in 'review mode'. $79/mo is less than 3 bed-nights.",
+  "targets": [
+    {
+      "name": "Elizabeth Hostel",
+      "category": "hostel",
+      "rating": 2.4,
+      "reviews": 435,
+      "suburb": "Melbourne CBD",
+      "priority": "HIGH",
+      "notes": "2.4 stars with 435 reviews — worst rated hostel in Melbourne. MASSIVE need for review interception. Lead with: 'I noticed you're at 2.4 stars — most of those negative reviews could have been caught privately before they went public.'",
+      "dm_status": "not_sent"
+    },
+    {
+      "name": "St. Kilda Accommodation",
+      "category": "hostel",
+      "rating": 3.1,
+      "reviews": 56,
+      "suburb": "St Kilda",
+      "priority": "HIGH",
+      "notes": "3.1 stars and only 56 reviews — low volume AND low rating. Huge opportunity to flood with positive reviews quickly.",
+      "dm_status": "not_sent"
+    },
+    {
+      "name": "Europa Melbourne",
+      "category": "hostel",
+      "rating": 3.6,
+      "reviews": 726,
+      "suburb": "Melbourne CBD",
+      "priority": "HIGH",
+      "notes": "3.6 stars with 726 reviews. High volume but mediocre rating. Smart routing would intercept negatives.",
+      "dm_status": "not_sent"
+    },
+    {
+      "name": "Flinders Backpackers",
+      "category": "hostel",
+      "rating": 3.7,
+      "reviews": 793,
+      "suburb": "Melbourne CBD",
+      "priority": "HIGH",
+      "notes": "3.7 stars, 793 reviews. Adults-only hostel. Below 4.0 hurts bookings significantly.",
+      "dm_status": "not_sent"
+    },
+    {
+      "name": "Melbourne City Backpackers",
+      "category": "hostel",
+      "rating": 3.8,
+      "reviews": 669,
+      "suburb": "Melbourne CBD",
+      "priority": "HIGH",
+      "notes": "3.8 stars, 669 reviews. Just below the 4.0 threshold that drives significantly more bookings.",
+      "dm_status": "not_sent"
+    },
+    {
+      "name": "Pint on Punt Backpackers St Kilda",
+      "category": "hostel",
+      "rating": 3.9,
+      "reviews": 429,
+      "suburb": "St Kilda",
+      "priority": "HIGH",
+      "notes": "3.9 stars, 429 reviews. Has a pub attached — lively spot. So close to 4.0 stars.",
+      "dm_status": "not_sent"
+    },
+    {
+      "name": "Little Drifter Melbourne",
+      "category": "hostel",
+      "rating": 4.0,
+      "reviews": 2459,
+      "suburb": "Melbourne CBD",
+      "priority": "MEDIUM",
+      "notes": "4.0 stars but 2,459 reviews — highest reviewed hostel. At exactly 4.0, every new 5-star review helps. Could pitch volume growth to push to 4.2+.",
+      "dm_status": "not_sent"
+    },
+    {
+      "name": "YHA Melbourne Central",
+      "category": "hostel",
+      "rating": 4.1,
+      "reviews": 879,
+      "suburb": "Melbourne CBD",
+      "priority": "MEDIUM",
+      "notes": "4.1 stars, 879 reviews. Part of YHA chain — if we land this, could pitch to all YHA Australia locations.",
+      "dm_status": "not_sent"
+    },
+    {
+      "name": "Queen Victoria Hostel",
+      "category": "hostel",
+      "rating": 4.2,
+      "reviews": 167,
+      "suburb": "Melbourne CBD",
+      "priority": "MEDIUM",
+      "notes": "4.2 stars but only 167 reviews. Good rating but low volume — easy to pitch 'more reviews = higher Maps ranking'.",
+      "dm_status": "not_sent"
+    },
+    {
+      "name": "Space Hotel",
+      "category": "hostel",
+      "rating": 4.3,
+      "reviews": 1608,
+      "suburb": "Melbourne CBD",
+      "priority": "MEDIUM",
+      "notes": "4.3 stars, 1,608 reviews. Well-established but could still benefit from review routing to maintain/improve rating.",
+      "dm_status": "not_sent"
+    },
+    {
+      "name": "Bounce Melbourne",
+      "category": "hostel",
+      "rating": 4.6,
+      "reviews": 646,
+      "suburb": "Melbourne CBD",
+      "priority": "LOW",
+      "notes": "4.6 stars — high rating. Pitch: protect your great rating by catching the occasional negative before it goes public.",
+      "dm_status": "not_sent"
+    },
+    {
+      "name": "Mad Monkey Melbourne",
+      "category": "hostel",
+      "rating": 4.8,
+      "reviews": 150,
+      "suburb": "Melbourne CBD",
+      "priority": "LOW",
+      "notes": "4.8 stars but only 150 reviews. Great rating, low volume. Pitch review volume growth for Maps ranking.",
+      "dm_status": "not_sent"
+    }
+  ],
+  "dm_templates": {
+    "short_dm": "Hey {{name}}! I noticed you're at {{rating}} stars from {{reviews}} reviews on Google — with the number of guests passing through every week, that number could be way higher. I built a tool that helps hostels turn checkout interactions into Google reviews automatically (happy guests go to Google, unhappy feedback stays private). Would you be open to a quick chat? I'm based here in Melbourne.",
+    "long_message": "Hi there,\n\nI came across {{name}} while looking at hostels in Melbourne — {{rating}} stars from {{reviews}} reviews on Google.\n\nHere's what I've noticed about hostels: you've got hundreds of guests cycling through every month, most of whom had a good experience but never think to leave a Google review. The ones who do? Usually the unhappy ones. That negativity bias tanks your rating over time.\n\nI'm Tristan, founder of InsightReviews — a Melbourne-based tool built for exactly this. You put a QR code at your front desk. Guest scans it, taps a star rating. If they rate 4-5 stars, they get redirected straight to your Google review page. If they rate 1-3 stars, the feedback stays private so you can sort it out before it goes public.\n\nNo app for guests to download, takes about 20 seconds, and your staff don't need to awkwardly ask for reviews.\n\nWould you be up for a free review audit? I'll pull together how you compare to other Melbourne hostels and where the quick wins are. No commitment.\n\nCheers,\nTristan\ninsightreviews.com.au",
+    "follow_up_3_days": "Hey, just floating this back up — totally understand you're busy! I genuinely think there's an easy win with your Google reviews. No pressure, but if you ever want a free review audit I'm happy to put one together. Either way, good luck with everything!"
+  }
+}

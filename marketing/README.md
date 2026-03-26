@@ -15,7 +15,7 @@
 1. Hand them the QR code card — "This goes on your counter"
 2. Scan it yourself on your phone — show the review form
 3. Explain: "4-5 stars → Google. 1-3 stars → stays private, you get notified."
-4. Close: "$79/mo, first 2 weeks free, I'll set you up right now."
+4. Close: "$49/mo, first 2 weeks free, I'll set you up right now."
 
 **Read the [full playbook](IN-PERSON-SALES-PLAYBOOK.md) for objection handling, best streets, daily targets, and follow-up scripts.**
 

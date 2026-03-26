@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import { SubscribeButton } from './subscribe-button';
 import { CheckCircle2 } from 'lucide-react';
 import { hasValidBilling } from '@/lib/utils/admin';
+import { PLAN } from '@/lib/utils/constants';
 
 const features = [
   'Smart review routing to Google, Yelp & more',
@@ -83,8 +84,16 @@ export default async function SubscribePage({ searchParams }: PageProps) {
           </Typography>
 
           <Box sx={{ mb: 3, p: 3, borderRadius: 2, backgroundColor: 'action.hover' }}>
+            {PLAN.isFoundingRate && (
+              <Typography variant="body2" color="primary" fontWeight={600} sx={{ mb: 0.5 }}>
+                Founding Member Rate
+              </Typography>
+            )}
             <Box sx={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: 0.5 }}>
-              <Typography variant="h3" fontWeight={800}>$79</Typography>
+              {PLAN.isFoundingRate && (
+                <Typography variant="h5" color="text.secondary" sx={{ textDecoration: 'line-through', mr: 0.5 }}>${PLAN.standardPrice}</Typography>
+              )}
+              <Typography variant="h3" fontWeight={800}>${PLAN.price}</Typography>
               <Typography variant="h6" color="text.secondary">/mo</Typography>
             </Box>
             <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>

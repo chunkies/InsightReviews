@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Button } from '@mui/material';
 import { useSnackbar } from '@/components/providers/snackbar-provider';
 
-export function SubscribeButton({ orgId, isReturning = false }: { orgId: string; isReturning?: boolean }) {
+export function SubscribeButton({ orgId, isReturning: _isReturning = false }: { orgId: string; isReturning?: boolean }) {
   const [loading, setLoading] = useState(false);
   const { showSnackbar } = useSnackbar();
 
@@ -42,7 +42,7 @@ export function SubscribeButton({ orgId, isReturning = false }: { orgId: string;
       disabled={loading}
       sx={{ py: 1.5, fontSize: '1.05rem', fontWeight: 700 }}
     >
-      {loading ? 'Loading...' : isReturning ? 'Subscribe Now' : 'Start 14-Day Free Trial'}
+      {loading ? 'Loading...' : 'Subscribe Now'}
     </Button>
   );
 }

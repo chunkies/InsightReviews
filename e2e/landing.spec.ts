@@ -18,7 +18,7 @@ test.describe('Landing Page — Content', () => {
 
   test('shows pricing section', async ({ page }) => {
     await page.goto('/');
-    await expect(page.getByText('$79', { exact: true })).toBeVisible();
+    await expect(page.getByText('$49', { exact: true })).toBeVisible();
   });
 
   test('shows features section', async ({ page }) => {

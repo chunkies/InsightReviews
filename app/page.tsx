@@ -16,14 +16,14 @@ import { LandingThemeProvider } from '@/components/landing/landing-theme-provide
 
 export const metadata: Metadata = {
   title: 'InsightReviews — Get More 5-Star Google Reviews for Your Local Business',
-  description: 'Turn happy customers into 5-star Google reviews. QR code at the counter, SMS review requests, smart routing — positive reviews go to Google, negative ones stay private. Built for Australian cafes, salons, dentists, gyms. $79/mo, 14-day free trial.',
+  description: 'Turn happy customers into 5-star Google reviews. QR code at the counter, SMS review requests, smart routing — positive reviews go to Google, negative ones stay private. Built for Australian cafes, salons, dentists, gyms. $49/mo, 14-day free trial.',
   keywords: ['Google reviews', 'review management', 'local business reviews', 'QR code reviews', 'review collection', 'Melbourne', 'Australia', 'smart review routing', 'get more reviews', 'customer feedback'],
   alternates: {
     canonical: 'https://insightreviews.com.au',
   },
   openGraph: {
     title: 'InsightReviews — Get More 5-Star Google Reviews',
-    description: 'Turn happy customers into 5-star Google reviews. Catch unhappy ones before they post publicly. Built for Australian local businesses. $79/mo.',
+    description: 'Turn happy customers into 5-star Google reviews. Catch unhappy ones before they post publicly. Built for Australian local businesses. $49/mo.',
     url: 'https://insightreviews.com.au',
     siteName: 'InsightReviews',
     type: 'website',
@@ -40,7 +40,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'InsightReviews — Get More 5-Star Google Reviews',
-    description: 'QR code at the counter. Customer scans, rates, done. Happy customers go to Google. Unhappy ones stay private. $79/mo.',
+    description: 'QR code at the counter. Customer scans, rates, done. Happy customers go to Google. Unhappy ones stay private. $49/mo.',
     images: ['https://insightreviews.com.au/screenshots/dashboard-hero.png'],
   },
 };
@@ -130,7 +130,7 @@ const steps = [
 const faqs = [
   {
     q: 'How does the 14-day free trial work?',
-    a: 'Sign up, add your card details, and get full access to every feature for 14 days — QR codes, SMS, smart routing, dashboard, the lot. You won\'t be charged until the trial ends. After 14 days, your subscription begins at $79/mo.',
+    a: 'Sign up and get full access to every feature for 14 days — no credit card required — QR codes, SMS, smart routing, dashboard, the lot. You won\'t be charged until the trial ends. After 14 days, your subscription begins at $49/mo.',
   },
   {
     q: 'Will this work for my type of business?',
@@ -222,7 +222,7 @@ const jsonLd = {
         priceCurrency: 'AUD',
         priceValidUntil: '2027-12-31',
         availability: 'https://schema.org/InStock',
-        description: '$79/month per location. 14-day free trial.',
+        description: '$49/month per location. 14-day free trial.',
       },
       aggregateRating: {
         '@type': 'AggregateRating',
@@ -239,7 +239,7 @@ const jsonLd = {
           name: 'How does the 14-day free trial work?',
           acceptedAnswer: {
             '@type': 'Answer',
-            text: 'Sign up, add your card details, and get full access to every feature for 14 days. You won\'t be charged until the trial ends. After 14 days, your subscription begins at $79/mo.',
+            text: 'Sign up and get full access to every feature for 14 days — no credit card required. You won\'t be charged until the trial ends. After 14 days, your subscription begins at $49/mo.',
           },
         },
         {
@@ -263,7 +263,7 @@ const jsonLd = {
           name: 'How much does InsightReviews cost?',
           acceptedAnswer: {
             '@type': 'Answer',
-            text: '$79 per month per location with a 14-day free trial. No lock-in contracts — cancel anytime.',
+            text: '$49 per month per location with a 14-day free trial. No lock-in contracts — cancel anytime.',
           },
         },
       ],
@@ -1058,7 +1058,9 @@ export default function LandingPage() {
             <Card sx={{ border: '2px solid', borderColor: 'primary.main', borderRadius: 3, boxShadow: '0 12px 40px rgba(37,99,235,0.15)' }}>
               <CardContent sx={{ p: { xs: 3, md: 4 } }}>
                 <Box sx={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', mb: 0.5 }}>
-                  <Typography variant="h2" fontWeight={900} color="primary" sx={{ fontSize: { xs: '2.5rem', md: '3rem' } }}>$79</Typography>
+                  <Typography variant="h5" color="text.secondary" sx={{ textDecoration: 'line-through' }}>$79</Typography>
+                  <Typography variant="h2" fontWeight={900} color="primary" sx={{ fontSize: { xs: '2.5rem', md: '3rem' } }}>$49</Typography>
+                  <Typography variant="caption" color="primary" fontWeight={600}>Founding Member Rate</Typography>
                   <Typography variant="h6" color="text.secondary" sx={{ ml: 1 }}>/mo</Typography>
                 </Box>
                 <Typography variant="body2" color="text.secondary" textAlign="center" sx={{ mb: 3 }}>per location</Typography>

@@ -59,6 +59,11 @@ export function InteractiveDemo() {
     setReviewSubmitted(true);
     setTimeout(() => {
       setStep('routing');
+      // Fire DemoEngaged event — user reached the "aha moment" (smart routing step)
+      if (typeof window !== 'undefined') {
+        if (window.fbq) window.fbq('trackCustom', 'DemoEngaged');
+        if (window.gtag) window.gtag('event', 'demo_engaged', { event_category: 'engagement' });
+      }
     }, 1200);
   }, []);
 
@@ -960,7 +965,7 @@ export function InteractiveDemo() {
           p: { xs: 3, md: 4 }, mb: 4, textAlign: 'center',
         }}>
           <Typography sx={{ fontWeight: 700, fontSize: '1rem', color: '#0f172a', mb: 2 }}>
-            Why local businesses switch to InsightReviews
+            Why reviews matter for your business
           </Typography>
           <Box sx={{
             display: 'grid',
@@ -969,32 +974,27 @@ export function InteractiveDemo() {
           }}>
             {[
               {
-                quote: 'We went from 3.8 to 4.6 on Google in two months. The QR code at the counter just works.',
-                name: 'Cafe owner, Fitzroy',
-                stat: '3.8 → 4.6 stars',
+                text: 'A 0.5-star increase on Google correlates with 5-9% more revenue for local businesses.',
+                source: 'Harvard Business School',
+                stat: '5-9% more revenue',
               },
               {
-                quote: 'Finally caught a bad experience before it hit Google. Called the customer back, she was impressed we cared.',
-                name: 'Salon owner, South Yarra',
-                stat: '0 public negative reviews',
+                text: '68% of consumers say a negative review made them avoid a local business. Catching bad feedback privately means you fix it before it goes public.',
+                source: 'BrightLocal 2025',
+                stat: 'Catch negatives early',
               },
               {
-                quote: 'Setup took 5 minutes. Staff love how simple it is — just enter the number and hit send.',
-                name: 'Dentist, Richmond',
-                stat: '5 min setup',
+                text: 'Businesses that actively request reviews collect 5-10x more than those that don\u2019t. A QR code at the counter makes it effortless.',
+                source: 'Industry average',
+                stat: '5-10x more reviews',
               },
             ].map((t) => (
-              <Box key={t.name} sx={{ textAlign: 'left' }}>
-                <Box sx={{ display: 'flex', gap: 0.3, mb: 1 }}>
-                  {[1, 2, 3, 4, 5].map(s => (
-                    <Star key={s} size={14} color="#fbbf24" fill="#fbbf24" />
-                  ))}
-                </Box>
-                <Typography sx={{ fontSize: '0.85rem', color: '#374151', mb: 1.5, lineHeight: 1.6, fontStyle: 'italic' }}>
-                  &ldquo;{t.quote}&rdquo;
+              <Box key={t.source} sx={{ textAlign: 'left' }}>
+                <Typography sx={{ fontSize: '0.85rem', color: '#374151', mb: 1.5, lineHeight: 1.6 }}>
+                  {t.text}
                 </Typography>
-                <Typography sx={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>
-                  — {t.name}
+                <Typography sx={{ fontSize: '0.7rem', color: '#94a3b8', fontWeight: 500 }}>
+                  — {t.source}
                 </Typography>
                 <Chip label={t.stat} size="small" sx={{
                   mt: 1, bgcolor: '#f0fdf4', color: '#16a34a',
@@ -1065,7 +1065,7 @@ export function InteractiveDemo() {
             Get Your Free QR Code
           </Button>
           <Typography sx={{ mt: 2, fontSize: '0.8rem', color: 'rgba(255,255,255,0.6)' }}>
-            $79/mo after trial. No lock-in. Cancel in one click.
+            $49/mo founding member rate after trial. No lock-in. Cancel in one click.
           </Typography>
         </Box>
 

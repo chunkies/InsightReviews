@@ -211,7 +211,7 @@ export function LoginForm({ isSignup = false }: { isSignup?: boolean }) {
 
         {isSignup && (
           <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: 'center', mt: 1.5, lineHeight: 1.6 }}>
-            No credit card required. $79/mo after your 14-day trial. Cancel anytime.
+            No credit card required. $49/mo founding member rate after your 14-day trial. Cancel anytime.
           </Typography>
         )}
       </form>

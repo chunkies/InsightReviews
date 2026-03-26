@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
 
     // Create or reuse Stripe customer (verify it still exists in Stripe)
     let customerId = org.stripe_customer_id;
-    let customerIsNew = false;
+    let _customerIsNew = false;
     if (customerId) {
       try {
         const existing = await stripe.customers.retrieve(customerId);
@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
         metadata: { organizationId: org.id, orgName: org.name },
       });
       customerId = customer.id;
-      customerIsNew = true;
+      _customerIsNew = true;
 
       await supabase
         .from('organizations')
@@ -78,21 +78,13 @@ export async function POST(request: NextRequest) {
         .eq('id', org.id);
     }
 
-    // Give trial if org has never had an active subscription (pending = never subscribed)
-    // Check Stripe for any prior subscriptions to prevent trial gaming
-    let hadPriorSubscription = false;
-    if (!customerIsNew) {
-      const subs = await stripe.subscriptions.list({ customer: customerId, limit: 1 });
-      hadPriorSubscription = subs.data.length > 0;
-    }
-    const isNewSubscriber = !hadPriorSubscription && (org.billing_plan === 'pending' || !org.billing_plan);
-
+    // No Stripe-side trial — the app-level 14-day trial (set during onboarding) IS the trial.
+    // When users subscribe here, they start paying immediately. This prevents double-trialing.
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       mode: 'subscription',
       payment_method_collection: 'always',
       line_items: [{ price: PLAN.priceId, quantity: 1 }],
-      ...(isNewSubscriber ? { subscription_data: { trial_period_days: PLAN.trialDays } } : {}),
       success_url: `${siteUrl}/dashboard?billing=success`,
       cancel_url: `${siteUrl}/subscribe?org=${org.id}`,
       metadata: { organizationId: org.id },

@@ -175,7 +175,7 @@ export default function BlogPost() {
               Want to automate all of this?
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 2, lineHeight: 1.7 }}>
-              InsightReviews handles QR codes, SMS review requests, smart routing, and negative review interception — all in one tool. Print a QR code, stick it at the counter, and let the reviews roll in. $79/mo with a 14-day free trial.
+              InsightReviews handles QR codes, SMS review requests, smart routing, and negative review interception — all in one tool. Print a QR code, stick it at the counter, and let the reviews roll in. $49/mo with a 14-day free trial.
             </Typography>
             <Button
               href="/auth/login?mode=signup"

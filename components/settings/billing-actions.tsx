@@ -222,7 +222,7 @@ export function BillingActions({ orgId, hasSubscription, hasActiveSubscription, 
             onClick={handleCheckout}
             disabled={loading}
           >
-            {loading ? 'Loading...' : 'Subscribe Now — $79/mo'}
+            {loading ? 'Loading...' : 'Subscribe Now — $49/mo'}
           </Button>
         )}
       </Box>

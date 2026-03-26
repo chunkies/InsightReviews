@@ -4,6 +4,46 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { hasValidBilling } from '@/lib/utils/admin';
 import { envRequired } from '@/lib/utils/env';
 
+function getBillingCacheSecret(): string {
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!key) throw new Error('SUPABASE_SERVICE_ROLE_KEY is required');
+  return key;
+}
+
+// Web Crypto API compatible HMAC for Edge runtime
+async function hmacSign(payload: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    'raw',
+    encoder.encode(getBillingCacheSecret()),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign']
+  );
+  const sig = await crypto.subtle.sign('HMAC', key, encoder.encode(payload));
+  return Array.from(new Uint8Array(sig)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function signBillingCache(payload: string): Promise<string> {
+  const sig = await hmacSign(payload);
+  return `${payload}.${sig}`;
+}
+
+async function verifyBillingCache(signed: string): Promise<string | null> {
+  const lastDot = signed.lastIndexOf('.');
+  if (lastDot === -1) return null;
+  const payload = signed.substring(0, lastDot);
+  const sig = signed.substring(lastDot + 1);
+  const expected = await hmacSign(payload);
+  if (sig.length !== expected.length) return null;
+  // Constant-time comparison
+  let mismatch = 0;
+  for (let i = 0; i < sig.length; i++) {
+    mismatch |= sig.charCodeAt(i) ^ expected.charCodeAt(i);
+  }
+  return mismatch === 0 ? payload : null;
+}
+
 const publicPrefixes = ['/auth/', '/r/', '/wall/', '/blog/', '/demo'];
 
 function isPublicRoute(pathname: string): boolean {
@@ -86,16 +126,19 @@ export async function middleware(request: NextRequest) {
   if (pathname.startsWith('/dashboard')) {
     const isBillingSuccess = request.nextUrl.searchParams.get('billing') === 'success';
 
-    // Try cached billing check first (cookie valid for 5 min)
-    const billingCache = request.cookies.get('ir_billing_cache')?.value;
-    if (billingCache && !isBillingSuccess) {
+    // Try cached billing check first (cookie valid for 5 min, HMAC-signed)
+    const billingCacheRaw = request.cookies.get('ir_billing_cache')?.value;
+    if (billingCacheRaw && !isBillingSuccess) {
       try {
-        const cached = JSON.parse(billingCache) as { orgId: string; plan: string; trialEnds: string | null; subEnds: string | null; exp: number };
-        if (cached.exp > Date.now()) {
-          if (!hasValidBilling(cached.plan, cached.trialEnds, user.email, cached.subEnds)) {
-            return createRedirect('/subscribe', `?org=${cached.orgId}`);
+        const verified = await verifyBillingCache(billingCacheRaw);
+        if (verified) {
+          const cached = JSON.parse(verified) as { orgId: string; plan: string; trialEnds: string | null; subEnds: string | null; exp: number };
+          if (cached.exp > Date.now()) {
+            if (!hasValidBilling(cached.plan, cached.trialEnds, user.email, cached.subEnds)) {
+              return createRedirect('/subscribe', `?org=${cached.orgId}`);
+            }
+            return supabaseResponse;
           }
-          return supabaseResponse;
         }
       } catch {
         // Invalid cache — fall through to DB query
@@ -117,15 +160,16 @@ export async function middleware(request: NextRequest) {
     const orgs = member.organizations as { billing_plan: string; trial_ends_at: string | null; subscription_ends_at: string | null }[] | null;
     const org = Array.isArray(orgs) ? orgs[0] ?? null : orgs;
 
-    // Cache the billing state for 5 minutes
+    // Cache the billing state for 5 minutes (HMAC-signed to prevent forgery)
     if (org) {
-      const cacheValue = JSON.stringify({
+      const cachePayload = JSON.stringify({
         orgId: member.organization_id,
         plan: org.billing_plan,
         trialEnds: org.trial_ends_at,
         subEnds: org.subscription_ends_at,
         exp: Date.now() + 5 * 60 * 1000,
       });
+      const cacheValue = await signBillingCache(cachePayload);
       supabaseResponse.cookies.set('ir_billing_cache', cacheValue, {
         httpOnly: true,
         secure: true,

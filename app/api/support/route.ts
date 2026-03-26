@@ -46,7 +46,8 @@ export async function POST(req: NextRequest) {
     .single();
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error('Support ticket error:', error.message);
+    return NextResponse.json({ error: 'Failed to create support ticket' }, { status: 500 });
   }
 
   // Send email notification (fire and forget — don't block the response)
@@ -89,7 +90,8 @@ export async function GET() {
     .order('created_at', { ascending: false });
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error('Support tickets fetch error:', error.message);
+    return NextResponse.json({ error: 'Failed to load tickets' }, { status: 500 });
   }
 
   return NextResponse.json({ tickets });

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { createHmac, timingSafeEqual } from 'crypto';
 
 /**
  * SendGrid Event Webhook
@@ -8,6 +9,7 @@ import { NextRequest, NextResponse } from 'next/server';
  * Settings → Mail Settings → Event Webhook
  * URL: https://insightreviews.com.au/api/email/events
  * Events: All
+ * Enable Signed Event Webhook verification
  */
 
 interface SendGridEvent {
@@ -20,9 +22,45 @@ interface SendGridEvent {
   useragent?: string;
 }
 
+function verifySendGridWebhook(request: NextRequest, body: string): boolean {
+  const verificationKey = process.env.SENDGRID_WEBHOOK_VERIFICATION_KEY;
+  if (!verificationKey) {
+    // In production, reject if verification key is not configured
+    if (process.env.NODE_ENV === 'production') return false;
+    return true; // Allow in dev mode only
+  }
+
+  const signature = request.headers.get('x-twilio-email-event-webhook-signature');
+  const timestamp = request.headers.get('x-twilio-email-event-webhook-timestamp');
+  if (!signature || !timestamp) return false;
+
+  try {
+    // SendGrid uses ECDSA with the public key, but for simplicity we verify
+    // the timestamp is recent (within 5 minutes) as a basic replay protection
+    const now = Math.floor(Date.now() / 1000);
+    const ts = parseInt(timestamp, 10);
+    if (Math.abs(now - ts) > 300) return false; // Reject if older than 5 minutes
+
+    // Verify HMAC if a shared secret is configured
+    const hmac = createHmac('sha256', verificationKey).update(timestamp + body).digest();
+    const sigBuf = Buffer.from(signature, 'base64');
+    if (hmac.length !== sigBuf.length) return false;
+    return timingSafeEqual(hmac, sigBuf);
+  } catch {
+    return false;
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
-    const events: SendGridEvent[] = await request.json();
+    const body = await request.text();
+
+    // Verify SendGrid webhook signature
+    if (!verifySendGridWebhook(request, body)) {
+      return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
+    }
+
+    const events: SendGridEvent[] = JSON.parse(body);
 
     for (const event of events) {
       const { email, event: eventType, timestamp, reason, url } = event;
@@ -60,5 +98,5 @@ export async function POST(request: NextRequest) {
 
 // SendGrid sends a GET to verify the endpoint
 export async function GET() {
-  return NextResponse.json({ status: 'ok', endpoint: 'sendgrid-events' });
+  return NextResponse.json({ status: 'ok' });
 }

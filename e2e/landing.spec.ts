@@ -23,7 +23,7 @@ test.describe('Landing Page — Content', () => {
 
   test('shows features section', async ({ page }) => {
     await page.goto('/');
-    await expect(page.getByText(/smart routing/i).first()).toBeVisible();
+    await expect(page.getByText(/QR Code at the Counter/i).first()).toBeVisible();
   });
 
   test('Sign in link navigates to login', async ({ page }) => {

@@ -10,6 +10,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid data' }, { status: 400 });
     }
 
+    // Validate platform is a known value
+    const allowedPlatforms = ['google', 'yelp', 'facebook', 'tripadvisor', 'other'];
+    if (!allowedPlatforms.includes(platform)) {
+      return NextResponse.json({ error: 'Invalid platform' }, { status: 400 });
+    }
+
     // Service role client — this is a public endpoint
     const supabase = createServerClient(
       envRequired('NEXT_PUBLIC_SUPABASE_URL'),
@@ -22,11 +28,13 @@ export async function POST(request: NextRequest) {
       }
     );
 
-    // Fetch current redirected_to array
+    // Fetch review — only allow tracking clicks on reviews created within the last hour
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
     const { data: review, error: fetchError } = await supabase
       .from('reviews')
-      .select('redirected_to')
+      .select('redirected_to, created_at')
       .eq('id', reviewId)
+      .gte('created_at', oneHourAgo)
       .single();
 
     if (fetchError || !review) {

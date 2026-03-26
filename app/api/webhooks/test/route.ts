@@ -34,11 +34,31 @@ export async function POST(request: NextRequest) {
     const billingError = await requireBilling(supabase, organizationId, user.email);
     if (billingError) return billingError;
 
-    // Validate URL — only allow https in production
+    // Validate URL — only allow https in production, block private/internal IPs
     try {
       const parsed = new URL(webhookUrl);
       if (!['http:', 'https:'].includes(parsed.protocol)) {
         return NextResponse.json({ error: 'Only HTTP(S) URLs are allowed' }, { status: 400 });
+      }
+      // Block private/internal hostnames and IPs
+      const hostname = parsed.hostname.toLowerCase();
+      const blockedPatterns = [
+        /^localhost$/,
+        /^127\./,
+        /^10\./,
+        /^172\.(1[6-9]|2\d|3[01])\./,
+        /^192\.168\./,
+        /^169\.254\./,
+        /^0\./,
+        /^\[::1\]$/,
+        /^\[fd/,
+        /^\[fe80:/,
+        /^metadata\.google\.internal$/,
+        /\.internal$/,
+        /\.local$/,
+      ];
+      if (blockedPatterns.some(p => p.test(hostname))) {
+        return NextResponse.json({ error: 'Webhook URL must point to a public address' }, { status: 400 });
       }
     } catch {
       return NextResponse.json({ error: 'Invalid URL' }, { status: 400 });

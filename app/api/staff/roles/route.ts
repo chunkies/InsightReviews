@@ -20,7 +20,10 @@ export async function GET() {
     .eq('organization_id', member.organization_id)
     .order('created_at');
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    console.error('Roles fetch error:', error.message);
+    return NextResponse.json({ error: 'Failed to load roles' }, { status: 500 });
+  }
 
   return NextResponse.json({ roles });
 }
@@ -59,7 +62,8 @@ export async function POST(request: NextRequest) {
     if (error.message.includes('duplicate') || error.message.includes('unique')) {
       return NextResponse.json({ error: 'A role with this name already exists' }, { status: 409 });
     }
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error('Role create error:', error.message);
+    return NextResponse.json({ error: 'Failed to create role' }, { status: 500 });
   }
 
   return NextResponse.json({ role });
@@ -99,7 +103,8 @@ export async function PATCH(request: NextRequest) {
     if (error.message.includes('duplicate') || error.message.includes('unique')) {
       return NextResponse.json({ error: 'A role with this name already exists' }, { status: 409 });
     }
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error('Role update error:', error.message);
+    return NextResponse.json({ error: 'Failed to update role' }, { status: 500 });
   }
 
   return NextResponse.json({ role });
@@ -143,7 +148,10 @@ export async function DELETE(request: NextRequest) {
     .eq('id', id)
     .eq('organization_id', member.organization_id);
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    console.error('Role delete error:', error.message);
+    return NextResponse.json({ error: 'Failed to delete role' }, { status: 500 });
+  }
 
   return NextResponse.json({ success: true });
 }

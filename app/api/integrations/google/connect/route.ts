@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { createHmac } from 'crypto';
 import { createClient } from '@/lib/supabase/server';
 import { getGoogleAuthUrl } from '@/lib/integrations/google';
 import { requireBilling } from '@/lib/utils/admin';
@@ -22,11 +23,15 @@ export async function POST() {
     const billingError = await requireBilling(supabase, member.organization_id, user.email);
     if (billingError) return billingError;
 
-    // State encodes org ID for the callback
-    const state = Buffer.from(JSON.stringify({
+    // State encodes org ID for the callback — signed with HMAC to prevent CSRF
+    const statePayload = JSON.stringify({
       organizationId: member.organization_id,
       userId: user.id,
-    })).toString('base64url');
+      ts: Date.now(),
+    });
+    const secret = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+    const sig = createHmac('sha256', secret).update(statePayload).digest('hex').slice(0, 16);
+    const state = Buffer.from(JSON.stringify({ p: statePayload, s: sig })).toString('base64url');
 
     const authUrl = getGoogleAuthUrl(state);
     return NextResponse.json({ url: authUrl });

@@ -2,6 +2,21 @@ import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {
   try {
+    // Auth verification via shared secret in URL param
+    // Configure in SendGrid Inbound Parse: https://insightreviews.com.au/api/email/inbound?key=YOUR_SECRET
+    const inboundSecret = process.env.SENDGRID_INBOUND_SECRET;
+    if (!inboundSecret && process.env.NODE_ENV === 'production') {
+      console.error('[inbound-email] SENDGRID_INBOUND_SECRET is not set — rejecting request');
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    if (inboundSecret) {
+      const url = new URL(request.url);
+      const providedKey = url.searchParams.get('key');
+      if (providedKey !== inboundSecret) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      }
+    }
+
     const contentType = request.headers.get('content-type') || '';
     console.log('[inbound-email] Received POST, content-type:', contentType);
 
@@ -89,12 +104,7 @@ export async function POST(request: Request) {
 }
 
 export async function GET() {
-  return NextResponse.json({
-    status: 'ok',
-    endpoint: 'inbound-email',
-    hasApiKey: !!process.env.SENDGRID_API_KEY,
-    timestamp: new Date().toISOString(),
-  });
+  return NextResponse.json({ status: 'ok' });
 }
 
 /**

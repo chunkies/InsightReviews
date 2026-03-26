@@ -9,7 +9,7 @@ export async function POST(request: NextRequest) {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const { organizationId, locationName, locationTitle, accessToken, refreshToken, expiresIn } =
+    const { organizationId, locationName, locationTitle } =
       await request.json();
 
     // Verify ownership
@@ -24,25 +24,22 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    const expiresAt = new Date(Date.now() + expiresIn * 1000).toISOString();
-
     const serviceSupabase = createServerClient(
       envRequired('NEXT_PUBLIC_SUPABASE_URL'),
       envRequired('SUPABASE_SERVICE_ROLE_KEY'),
       { cookies: { getAll() { return []; }, setAll() {} } }
     );
 
-    const { error } = await serviceSupabase.from('organization_integrations').upsert({
-      organization_id: organizationId,
-      platform: 'google',
-      access_token: accessToken,
-      refresh_token: refreshToken,
-      token_expires_at: expiresAt,
-      platform_account_id: locationName,
-      platform_account_name: locationTitle,
-      sync_enabled: true,
-      show_on_review_form: true,
-    }, { onConflict: 'organization_id,platform' });
+    // Tokens are already stored server-side from the callback — just update with the selected location
+    const { error } = await serviceSupabase.from('organization_integrations')
+      .update({
+        platform_account_id: locationName,
+        platform_account_name: locationTitle,
+        sync_enabled: true,
+        show_on_review_form: true,
+      })
+      .eq('organization_id', organizationId)
+      .eq('platform', 'google');
 
     if (error) {
       return NextResponse.json({ error: 'Failed to save integration' }, { status: 500 });

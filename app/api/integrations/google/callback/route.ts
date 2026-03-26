@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { createHmac } from 'crypto';
 import { createClient } from '@/lib/supabase/server';
 import { exchangeGoogleCode, listGoogleAccounts, listGoogleLocations } from '@/lib/integrations/google';
 import { envRequired } from '@/lib/utils/env';
@@ -19,10 +20,16 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(`${siteUrl}/dashboard/integrations?error=missing_params`);
     }
 
-    // Decode state
+    // Decode and verify signed state
     let stateData: { organizationId: string; userId: string };
     try {
-      stateData = JSON.parse(Buffer.from(state, 'base64url').toString());
+      const envelope = JSON.parse(Buffer.from(state, 'base64url').toString());
+      const secret = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+      const expectedSig = createHmac('sha256', secret).update(envelope.p).digest('hex').slice(0, 16);
+      if (envelope.s !== expectedSig) {
+        return NextResponse.redirect(`${siteUrl}/dashboard/integrations?error=invalid_state`);
+      }
+      stateData = JSON.parse(envelope.p);
     } catch {
       return NextResponse.redirect(`${siteUrl}/dashboard/integrations?error=invalid_state`);
     }
@@ -109,10 +116,27 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(`${siteUrl}/dashboard/integrations?success=google`);
     }
 
-    // Multiple locations — store tokens temporarily and redirect to selection page
-    // Store in a short-lived cookie (encrypted state is in the URL)
+    // Multiple locations — store tokens server-side in a pending integration, pass only locations in URL
+    const { createServerClient: createSC } = await import('@supabase/ssr');
+    const svcSupabase = createSC(
+      envRequired('NEXT_PUBLIC_SUPABASE_URL'),
+      envRequired('SUPABASE_SERVICE_ROLE_KEY'),
+      { cookies: { getAll() { return []; }, setAll() {} } }
+    );
+
+    const expiresAt = new Date(Date.now() + tokens.expires_in * 1000).toISOString();
+    await svcSupabase.from('organization_integrations').upsert({
+      organization_id: stateData.organizationId,
+      platform: 'google',
+      access_token: tokens.access_token,
+      refresh_token: tokens.refresh_token,
+      token_expires_at: expiresAt,
+      platform_account_id: '__pending_selection__',
+      platform_account_name: 'Pending location selection',
+    }, { onConflict: 'organization_id,platform' });
+
+    // Only send locations (no tokens) to the client
     const locationData = Buffer.from(JSON.stringify({
-      tokens,
       locations: allLocations,
       organizationId: stateData.organizationId,
     })).toString('base64url');

@@ -97,11 +97,26 @@ export async function POST(request: NextRequest) {
     );
 
     if (inviteError || !inviteData.user) {
-      // If user already exists in auth, inviteUserByEmail may fail — try to find them
-      const { data: existingUsers } = await supabase.auth.admin.listUsers();
-      const existingUser = existingUsers?.users?.find(
-        (u) => u.email?.toLowerCase() === email.toLowerCase()
-      );
+      // If user already exists in auth, inviteUserByEmail may fail — find them by email
+      // Paginate instead of loading all users to avoid OOM with large user bases
+      type AuthUser = { id: string; email?: string };
+      let existingUser: AuthUser | null = null;
+      let page = 1;
+      const perPage = 50;
+      while (!existingUser) {
+        const { data: pageData } = await supabase.auth.admin.listUsers({ page, perPage });
+        if (!pageData?.users?.length) break;
+        const match = pageData.users.find(
+          (u) => u.email?.toLowerCase() === email.toLowerCase()
+        );
+        if (match) {
+          existingUser = match;
+          break;
+        }
+        if (pageData.users.length < perPage) break;
+        page++;
+        if (page > 20) break; // Safety limit: don't scan more than 1000 users
+      }
 
       if (!existingUser) {
         console.error('Invite error:', inviteError);

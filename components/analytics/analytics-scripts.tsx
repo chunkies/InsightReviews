@@ -2,8 +2,11 @@
 
 import Script from 'next/script';
 
-const GA_ID = process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID;
-const META_PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID;
+// Validate analytics IDs to prevent script injection via env vars
+const rawGaId = process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID || '';
+const rawPixelId = process.env.NEXT_PUBLIC_META_PIXEL_ID || '';
+const GA_ID = /^G-[A-Z0-9]+$/.test(rawGaId) ? rawGaId : null;
+const META_PIXEL_ID = /^\d+$/.test(rawPixelId) ? rawPixelId : null;
 
 const ga4InitScript = GA_ID
   ? 'window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag("js",new Date());gtag("config","' + GA_ID + '",{page_path:window.location.pathname});'

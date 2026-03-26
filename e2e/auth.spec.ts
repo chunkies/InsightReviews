@@ -18,10 +18,10 @@ let testOrg: TestOrg;
 const TEST_EMAIL = `e2e-auth-${Date.now()}@test.com`;
 
 test.describe('Auth — Login Page', () => {
-  test('shows email field and Send Magic Link button', async ({ page }) => {
+  test('shows email field and Sign In button', async ({ page }) => {
     await page.goto('/auth/login');
     await expect(page.getByLabel('Email address')).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Send Magic Link' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Sign In' })).toBeVisible();
   });
 
   test('does NOT show Full Name field on login page', async ({ page }) => {
@@ -36,13 +36,14 @@ test.describe('Auth — Login Page', () => {
 
   test('submit button is disabled when email is empty', async ({ page }) => {
     await page.goto('/auth/login');
-    await expect(page.getByRole('button', { name: 'Send Magic Link' })).toBeDisabled();
+    await expect(page.getByRole('button', { name: 'Sign In' })).toBeDisabled();
   });
 
-  test('submit button is enabled after entering email', async ({ page }) => {
+  test('submit button is enabled after entering email and password', async ({ page }) => {
     await page.goto('/auth/login');
     await page.getByLabel('Email address').fill('test@example.com');
-    await expect(page.getByRole('button', { name: 'Send Magic Link' })).toBeEnabled();
+    await page.getByLabel('Password').fill('testpassword');
+    await expect(page.getByRole('button', { name: 'Sign In' })).toBeEnabled();
   });
 });
 
@@ -58,10 +59,11 @@ test.describe('Auth — Signup Page', () => {
     await expect(page.getByRole('button', { name: 'Create Account' })).toBeVisible();
   });
 
-  test('shows 14-day free trial messaging', async ({ page }) => {
+  test('shows 14-day free trial messaging on mobile', async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 812 });
     await page.goto('/auth/login?mode=signup');
     await expect(page.getByText('Start your 14-day free trial')).toBeVisible();
-    await expect(page.getByText('14 days free')).toBeVisible();
+    await expect(page.getByText('14 days free. Setup takes 2 minutes.')).toBeVisible();
   });
 
   test('shows Sign in link', async ({ page }) => {

@@ -40,6 +40,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Business name and slug are required' }, { status: 400 });
     }
 
+    // Validate slug format: alphanumeric + hyphens, 3-60 chars
+    if (!/^[a-z0-9][a-z0-9-]{1,58}[a-z0-9]$/.test(slug)) {
+      return NextResponse.json({ error: 'Slug must be 3-60 characters, lowercase alphanumeric and hyphens only' }, { status: 400 });
+    }
+
     // Use service role client to bypass RLS for onboarding
     const supabase = createServerClient(
       envRequired('NEXT_PUBLIC_SUPABASE_URL'),
@@ -82,7 +87,8 @@ export async function POST(request: NextRequest) {
       if (orgError.message.includes('duplicate') || orgError.message.includes('unique')) {
         return NextResponse.json({ error: 'This slug is already taken. Please choose a different one.' }, { status: 409 });
       }
-      return NextResponse.json({ error: orgError.message }, { status: 500 });
+      console.error('Org create error:', orgError.message);
+      return NextResponse.json({ error: 'Failed to create organization' }, { status: 500 });
     }
 
     // Add user as owner
@@ -98,7 +104,8 @@ export async function POST(request: NextRequest) {
     if (memberError) {
       // Cleanup: delete the org we just created
       await supabase.from('organizations').delete().eq('id', org.id);
-      return NextResponse.json({ error: memberError.message }, { status: 500 });
+      console.error('Member insert error:', memberError.message);
+      return NextResponse.json({ error: 'Failed to create organization' }, { status: 500 });
     }
 
     // Create default "Staff" role
@@ -136,7 +143,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ orgId: org.id });
   } catch (error) {
     console.error('Onboarding create error:', error);
-    const message = error instanceof Error ? error.message : 'Something went wrong';
-    return NextResponse.json({ error: message }, { status: 500 });
+    console.error('Onboarding error:', error instanceof Error ? error.message : error);
+    return NextResponse.json({ error: 'Something went wrong' }, { status: 500 });
   }
 }

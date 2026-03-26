@@ -62,6 +62,24 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Organization not found' }, { status: 404 });
     }
 
+    // Rate limit: max 20 uploads per org per hour
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+    const { count: recentUploads } = await supabase.storage
+      .from('review-photos')
+      .list(orgId, { limit: 21, sortBy: { column: 'created_at', order: 'desc' } })
+      .then(async () => {
+        // Count recent reviews as a proxy for uploads
+        return await supabase
+          .from('reviews')
+          .select('id', { count: 'exact', head: true })
+          .eq('organization_id', orgId)
+          .gte('created_at', oneHourAgo);
+      });
+
+    if (recentUploads !== null && recentUploads >= 20) {
+      return NextResponse.json({ error: 'Too many uploads. Please try again later.' }, { status: 429 });
+    }
+
     // Generate a unique file path
     const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
     const fileName = `${orgId}/${randomUUID()}.${ext}`;

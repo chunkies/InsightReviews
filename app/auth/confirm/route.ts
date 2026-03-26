@@ -10,14 +10,14 @@ export async function GET(request: NextRequest) {
   const rawNext = searchParams.get('next') ?? '/dashboard';
   const next = rawNext.startsWith('/') && !rawNext.startsWith('//') ? rawNext : '/dashboard';
 
-  // Build redirect URL respecting load balancers (Vercel)
-  const forwardedHost = request.headers.get('x-forwarded-host');
+  // Build redirect URL — use NEXT_PUBLIC_SITE_URL as canonical base to prevent open redirect via x-forwarded-host
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim();
   const isLocalEnv = process.env.NODE_ENV === 'development';
   let baseUrl: string;
   if (isLocalEnv) {
     baseUrl = origin;
-  } else if (forwardedHost) {
-    baseUrl = `https://${forwardedHost}`;
+  } else if (siteUrl) {
+    baseUrl = siteUrl;
   } else {
     baseUrl = origin;
   }

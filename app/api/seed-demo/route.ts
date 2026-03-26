@@ -1,39 +1,49 @@
 import { NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
+import { cookies } from 'next/headers';
 import { envRequired } from '@/lib/utils/env';
 
 /**
  * Seeds demo data for the authenticated user's organization.
- * Only accessible to admin emails.
+ * Only accessible to admin emails — requires authentication.
  * POST /api/seed-demo
  */
 export async function POST() {
   try {
+    // Authenticate the caller first
+    const cookieStore = await cookies();
+    const supabaseAuth = createServerClient(
+      envRequired('NEXT_PUBLIC_SUPABASE_URL'),
+      envRequired('NEXT_PUBLIC_SUPABASE_ANON_KEY'),
+      {
+        cookies: {
+          getAll() { return cookieStore.getAll(); },
+          setAll() {},
+        },
+      }
+    );
+    const { data: { user } } = await supabaseAuth.auth.getUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Verify caller is an admin
+    const adminEmails = (process.env.ADMIN_EMAILS ?? '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
+    if (!user.email || !adminEmails.includes(user.email.toLowerCase())) {
+      return NextResponse.json({ error: 'Forbidden — admin only' }, { status: 403 });
+    }
+
     const supabase = createServerClient(
       envRequired('NEXT_PUBLIC_SUPABASE_URL'),
       envRequired('SUPABASE_SERVICE_ROLE_KEY'),
       { cookies: { getAll() { return []; }, setAll() {} } }
     );
 
-    // Find the admin user's org
-    // Look up user by email
-    const adminEmail = (process.env.ADMIN_EMAILS ?? '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean)[0];
-    if (!adminEmail) {
-      return NextResponse.json({ error: 'No admin email configured' }, { status: 400 });
-    }
-
-    // Find user by email
-    const { data: { users } } = await supabase.auth.admin.listUsers();
-    const adminUser = users?.find(u => u.email?.toLowerCase() === adminEmail);
-    if (!adminUser) {
-      return NextResponse.json({ error: 'Admin user not found' }, { status: 404 });
-    }
-
     // Get their org
     const { data: member } = await supabase
       .from('organization_members')
       .select('organization_id')
-      .eq('user_id', adminUser.id)
+      .eq('user_id', user.id)
       .single();
 
     if (!member) {
@@ -71,7 +81,7 @@ export async function POST() {
 
     if (reviewError) {
       console.error('Review seed error:', reviewError);
-      return NextResponse.json({ error: 'Failed to seed reviews', details: reviewError.message }, { status: 500 });
+      return NextResponse.json({ error: 'Failed to seed reviews' }, { status: 500 });
     }
 
     // Insert review requests

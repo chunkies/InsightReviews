@@ -4,6 +4,7 @@ import { useState, useCallback, useRef } from 'react';
 import {
   Box, Container, Typography, Button, TextField, Paper,
   LinearProgress, Chip, Avatar, IconButton,
+  AppBar, Toolbar,
 } from '@mui/material';
 import {
   Send, Star, ArrowRight, ArrowLeft, Shield, CheckCircle2,
@@ -90,46 +91,54 @@ export function InteractiveDemo() {
 
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: '#f8fafc' }}>
-      {/* ─── Sticky Header ─── */}
-      <Box sx={{
-        bgcolor: 'rgba(255,255,255,0.92)',
-        backdropFilter: 'blur(12px)',
-        borderBottom: '1px solid',
-        borderColor: 'divider',
-        py: 1.5,
-        px: { xs: 2, md: 3 },
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        position: 'sticky',
-        top: 0,
-        zIndex: 100,
-      }}>
-        <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 8 }}>
-          <BrandLogo size={32} />
-          <Typography sx={{ fontWeight: 800, fontSize: '1rem', color: '#2563eb' }}>
-            InsightReviews
-          </Typography>
-        </Link>
-        <Button
-          component={Link}
-          href={SIGNUP_URL}
-          variant="contained"
-          size="small"
-          sx={{
-            background: 'linear-gradient(135deg, #f59e0b, #d97706)',
-            color: '#000',
-            '&:hover': { background: 'linear-gradient(135deg, #fbbf24, #f59e0b)', transform: 'translateY(-1px)' },
-            px: { xs: 2, md: 3 },
-            fontWeight: 700,
-            borderRadius: '50px',
-            boxShadow: '0 2px 12px rgba(245,158,11,0.4)',
-            transition: 'all 0.2s ease',
-          }}
-        >
-          Start Free Trial
-        </Button>
-      </Box>
+      {/* ─── Header — matches landing page ─── */}
+      <AppBar
+        position="sticky"
+        color="transparent"
+        elevation={0}
+        sx={{
+          backdropFilter: 'blur(12px)',
+          backgroundColor: 'rgba(255,255,255,0.85)',
+          borderBottom: '1px solid',
+          borderColor: 'divider',
+        }}
+      >
+        <Toolbar sx={{ maxWidth: 'lg', mx: 'auto', width: '100%' }}>
+          <Box component={Link} href="/" sx={{ display: 'flex', alignItems: 'center', flexGrow: 1, gap: 1, textDecoration: 'none' }}>
+            <BrandLogo size={32} />
+            <Typography variant="h6" fontWeight={800} color="primary">
+              InsightReviews
+            </Typography>
+          </Box>
+          <Button href="/auth/login" variant="text" sx={{ mr: 0.5, color: 'text.secondary', minWidth: 'auto', px: { xs: 1, sm: 2 } }}>
+            Sign In
+          </Button>
+          <Button
+            href={SIGNUP_URL}
+            variant="contained"
+            sx={{
+              background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+              color: '#000',
+              fontWeight: 700,
+              boxShadow: '0 2px 12px rgba(245,158,11,0.4)',
+              px: { xs: 2, md: 3 },
+              py: { xs: 0.75, md: 1 },
+              fontSize: { xs: '0.8rem', md: '0.9rem' },
+              borderRadius: '50px',
+              textTransform: 'none',
+              letterSpacing: '0.01em',
+              '&:hover': {
+                background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
+                boxShadow: '0 4px 16px rgba(245,158,11,0.5)',
+                transform: 'translateY(-1px)',
+              },
+              transition: 'all 0.2s ease',
+            }}
+          >
+            Start Free Trial
+          </Button>
+        </Toolbar>
+      </AppBar>
 
       {/* ─── COMPACT HERO — Headline + Demo in one screen ─── */}
       <Box sx={{
@@ -150,31 +159,33 @@ export function InteractiveDemo() {
           pointerEvents: 'none',
         }} />
 
-        <Container maxWidth="sm" sx={{ position: 'relative', zIndex: 1 }}>
+        <Container maxWidth="md" sx={{ position: 'relative', zIndex: 1 }}>
           <Typography sx={{
             fontWeight: 900,
-            fontSize: { xs: '1.5rem', sm: '1.8rem', md: '2.1rem' },
+            fontSize: { xs: '1.6rem', sm: '2rem', md: '2.4rem' },
             lineHeight: 1.15,
-            mb: 1,
+            mb: 1.5,
           }}>
-            See how it works.{' '}
+            One QR Code. More 5-Star Reviews.{' '}
             <Box component="span" sx={{
               background: 'linear-gradient(135deg, #fbbf24, #f59e0b)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
             }}>
-              Try it yourself.
+              Zero Bad Ones Online.
             </Box>
           </Typography>
 
           <Typography sx={{
-            fontSize: { xs: '0.85rem', md: '0.95rem' },
-            color: 'rgba(255,255,255,0.7)',
-            mb: 2,
-            maxWidth: 420,
+            fontSize: { xs: '0.9rem', md: '1.05rem' },
+            color: 'rgba(255,255,255,0.75)',
+            mb: 2.5,
+            maxWidth: 520,
             mx: 'auto',
+            lineHeight: 1.6,
           }}>
-            Tap through the exact flow your customers will experience. No signup needed.
+            Happy customers get sent to Google. Unhappy ones stay private so you can fix it.
+            Try the exact flow below — no signup needed.
           </Typography>
 
           {/* Social proof strip */}
@@ -1103,16 +1114,21 @@ export function InteractiveDemo() {
           component={Link}
           href={SIGNUP_URL}
           variant="contained"
-          size="large"
-          endIcon={<ArrowRight size={18} />}
           sx={{
-            background: 'linear-gradient(135deg, #fbbf24, #f59e0b)',
-            color: '#0f172a', fontWeight: 700,
+            background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+            color: '#000',
+            fontWeight: 700,
             fontSize: { xs: '0.85rem', md: '0.95rem' },
-            py: 1.2,
+            py: { xs: 1, md: 1.2 },
             px: { xs: 3, md: 4 },
-            boxShadow: '0 2px 8px rgba(245,158,11,0.3)',
-            '&:hover': { background: 'linear-gradient(135deg, #fde68a, #fbbf24)', transform: 'translateY(-1px)' },
+            borderRadius: '50px',
+            textTransform: 'none',
+            boxShadow: '0 2px 12px rgba(245,158,11,0.4)',
+            '&:hover': {
+              background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
+              boxShadow: '0 4px 16px rgba(245,158,11,0.5)',
+              transform: 'translateY(-1px)',
+            },
             transition: 'all 0.2s ease',
             whiteSpace: 'nowrap',
           }}
